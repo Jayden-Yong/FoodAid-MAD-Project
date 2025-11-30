@@ -96,7 +96,7 @@
         android:text="@string/ToS_Policy"
         android:textAlignment="center"
         android:textColor="@color/font_primary"
-        android:textSize="12sp" android:layout_marginTop=""
+        android:textSize="12sp"
         android:fontFamily="@font/default_font"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
