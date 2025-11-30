@@ -2,6 +2,7 @@
     <string name="app_name">FoodAid</string>
 
     <!--  Login/Signup Menu  -->
+    <string name="Logo_Desc">FoodAid Locator</string>
     <string name="Slogan_1">Find your Next Meal with Ease.</string>
     <string name="Slogan_2">Your essential resource for addressing food insecurity at UM.</string>
     <string name="Login">Login</string>
@@ -9,19 +10,23 @@
     <string name="ToS_Policy">By logging in or registering, you agree to our <b>Terms of Service</b> and <b>Privacy Policy</b></string><!-- retrieve using getText not getString -->
     
     <!-- Login & Register Fragments -->
+    <string name="Back_Desc">Back</string>
     <string name="Login_Title">Welcome Back!</string>
     <string name="Register_Title">Create Your Account!</string>
     <string name="Prompt_Email">Email</string>
     <string name="Prompt_Password">Password</string>
     <string name="Prompt_ConfirmPassword">Confirm Password</string>
+    <string name="Check_Password_Desc">Check Password</string>
     <string name="Remember_Me">Remember Me</string>
     <string name="ForgotPassword"><u>Forgot Password</u></string>
     <string name="or_separator">or</string>
+    <string name="Continue_with_Google">Continue with Google</string>
 
     <!-- Reset Password -->
     <string name="Reset_Password_Title">Reset Your Password</string>
     <string name="Reset_Guide">Enter your email to reset your password quickly.</string>
     <string name="Reset_Button">Send Reset Link</string>
+    <string name="Success">Success</string>
     <string name="Reset_Popup">Reset Link Sent!</string>
 
     <!-- Profile Completion -->
