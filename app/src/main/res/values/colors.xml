@@ -5,6 +5,7 @@
     <color name="transparent">#00FFFFFF</color>
 
     <color name="primary_color">#E95C2B</color>
+    <color name="primary_color_opacity_40">#66E95C2B</color>
     <color name="secondary_color">#F4B944</color>
     <color name="input_bg_color">#23A1A4B2</color>
     <color name="font_primary">#1E2A31</color>

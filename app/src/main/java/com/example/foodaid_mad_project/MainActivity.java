@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        long animationDuration = 2100;
+        long animationDuration = 3000;
         long startTime = System.currentTimeMillis();
         splashScreen.setKeepOnScreenCondition(() -> {
             long elapsedTime = System.currentTimeMillis() - startTime;

@@ -7,6 +7,10 @@
         <item name="android:textColorHint">@color/font_primary</item>
     </style>
 
+    <style name="BottomNavStyle" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/primary_color_opacity_40</item>
+    </style>
+
     <style name="FoodAidChipStyle" parent="Widget.MaterialComponents.Chip.Choice">
         <item name="chipBackgroundColor">@color/filter_chip_bg</item>
         <item name="android:textColor">@color/filter_chip_text</item>
