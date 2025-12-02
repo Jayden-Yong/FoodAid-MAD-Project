@@ -30,6 +30,7 @@
     <string name="Reset_Popup">Reset Link Sent!</string>
 
     <!-- Profile Completion -->
+    <string name="Complete_Profile_Title">Complete Your Profile</string>
     <string name="Prompt_Name">Full name</string>
     <string name="Faculty">Faculty</string>
     <string name="Select_Faulty">-Select Faculty-</string>
@@ -77,19 +78,21 @@
     <!-- Home -->
     <string name="Home">Home</string>
     <string name="Welcome_User">Good %1$s, %2$s</string><!-- To be formatted in backend - morning/afternoon/evening, user -->
-    <string-array name="Filter_Food_Type">
-        <item>All</item>
-        <item>Pantry</item>
-        <item>Leftover</item>
-        <item>Free Table</item>
-    </string-array>
-    <string-array name="Food_Details">
-        <item name="Food_Name">%1$s</item><!-- Food Name -->
-        <item name="Food_Location">%1$s</item><!-- Location -->
-        <item name="Food_Quantity">%1$d servings</item><!-- Number -->
-        <item name="Food_Donator">%1$s</item><!-- Donator -->
-        <item name="Food_Donate_Duration">%1$d %2$s ago</item><!-- Number, mins/hours -->
-    </string-array>
+    <string name="Notification_Bell">Notification Bell</string>
+    <string name="QR_Code">QR Code</string>
+    <string name="Search_Icon">Search Icon</string>
+    <string name="Search_Hint">Search nearby food</string>
+    <string name="Filter_All">All</string>
+    <string name="Filter_Pantry">Pantry</string>
+    <string name="Filter_Leftover">Leftover</string>
+    <string name="Filter_Free_Table">Free Table</string>
+    <string name="Close_Desc">Close</string>
+    <string name="Food_Image">Food Image</string>
+    <string name="Food_Name">%1$s</string><!-- Food Name -->
+    <string name="Food_Location">Location: %1$s</string><!-- Location -->
+    <string name="Food_Quantity">Quantity: %1$d servings</string><!-- Number -->
+    <string name="Food_Donator">Posted by: %1$s</string><!-- Donator -->
+    <string name="Food_Donate_Duration">%1$d %2$s ago</string><!-- Number, mins/hours -->
     <string name="Claim">Claim</string>
     
     <!-- Item Details -->
@@ -157,6 +160,7 @@
     <string name="Contribution_Amount">+%1$dkg</string><!-- Decimal -->
 
     <!-- Donation -->
+    <string name="Donation_Desc">New Donation</string>
     <string name="Donate_Food">Donate Food</string>
     <string name="Donation_Type">Donation Type: <font color="@color/red">*</font></string>
     <string name="Item_Details">Item Details: <font color="@color/red">*</font></string>

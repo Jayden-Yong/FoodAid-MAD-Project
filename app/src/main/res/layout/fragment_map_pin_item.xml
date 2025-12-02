@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:cardCornerRadius="10dp"
+    tools:context=".HomeFragments.MapPinItemFragment">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageButton
+            android:id="@+id/fragmentCloseButton"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="5dp"
+            android:contentDescription="@string/Close_Desc"
+            android:src="@drawable/ic_close"
+            android:backgroundTint="@color/white"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <ImageView
+            android:id="@+id/selectedItemImage"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginVertical="17dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="220dp"
+            android:contentDescription="@string/Food_Image"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/selectedItemPostDuration" />
+
+        <TextView
+            android:id="@+id/selectedItemName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="10dp"
+            android:text="@string/Food_Name"
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins_medium"
+            app:layout_constraintStart_toEndOf="@id/selectedItemImage"
+            app:layout_constraintEnd_toStartOf="@id/fragmentCloseButton"
+            app:layout_constraintBottom_toTopOf="@id/selectedItemLocation"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <TextView
+            android:id="@+id/selectedItemLocation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="@string/Food_Location"
+            android:textSize="11sp"
+            android:fontFamily="@font/poppins_light"
+            app:layout_constraintTop_toBottomOf="@id/selectedItemName"
+            app:layout_constraintStart_toEndOf="@id/selectedItemImage"
+            app:layout_constraintEnd_toStartOf="@id/fragmentCloseButton"
+            app:layout_constraintBottom_toTopOf="@id/selectedItemQuantity" />
+
+        <TextView
+            android:id="@+id/selectedItemQuantity"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="@string/Food_Quantity"
+            android:textSize="11sp"
+            android:fontFamily="@font/poppins_light"
+            app:layout_constraintTop_toBottomOf="@id/selectedItemLocation"
+            app:layout_constraintStart_toEndOf="@id/selectedItemImage"
+            app:layout_constraintEnd_toStartOf="@id/fragmentCloseButton"
+            app:layout_constraintBottom_toTopOf="@id/selectedItemDonator"/>
+
+        <TextView
+            android:id="@+id/selectedItemDonator"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="@string/Food_Donator"
+            android:textSize="11sp"
+            android:fontFamily="@font/poppins_light"
+            app:layout_constraintTop_toBottomOf="@id/selectedItemQuantity"
+            app:layout_constraintBottom_toTopOf="@id/selectedItemClaimButton"
+            app:layout_constraintStart_toEndOf="@id/selectedItemImage"
+            app:layout_constraintEnd_toStartOf="@id/fragmentCloseButton" />
+
+        <TextView
+            android:id="@+id/selectedItemPostDuration"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            android:layout_marginStart="20dp"
+            android:text="@string/Food_Donate_Duration"
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins_light"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/selectedItemClaimButton"/>
+
+        <Button
+            android:id="@+id/selectedItemClaimButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginStart="80dp"
+            android:layout_marginEnd="20dp"
+            android:text="@string/Claim"
+            android:textSize="16sp"
+            android:fontFamily="@font/poppins_bold"
+            android:backgroundTint="@color/primary_color"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/selectedItemPostDuration"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

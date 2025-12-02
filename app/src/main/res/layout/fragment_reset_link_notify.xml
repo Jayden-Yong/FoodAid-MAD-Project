@@ -44,7 +44,7 @@
                     android:layout_height="match_parent"
                     android:contentDescription="@string/Success"
                     android:padding="17dp"
-                    android:src="@drawable/success" />
+                    android:src="@drawable/ic_success" />
 
             </androidx.cardview.widget.CardView>
 
@@ -55,7 +55,6 @@
                 android:layout_marginTop="24dp"
                 android:text="@string/Reset_Popup"
                 android:textAlignment="center"
-                android:textColor="@color/font_primary"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:fontFamily="@font/poppins_medium"
