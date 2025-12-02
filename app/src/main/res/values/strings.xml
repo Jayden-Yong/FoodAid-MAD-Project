@@ -1,3 +1,296 @@
-<resources>
-    <string name="app_name">FoodAid-MAD-Project</string>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="Typos">
+    <string name="app_name">FoodAid</string>
+
+    <!--  Login/Signup Menu  -->
+    <string name="Logo_Desc">FoodAid Locator</string>
+    <string name="Slogan_1">Find your Next Meal with Ease.</string>
+    <string name="Slogan_2">Your essential resource for addressing food insecurity at UM.</string>
+    <string name="Login">Login</string>
+    <string name="Signup">Sign Up</string>
+    <string name="ToS_Policy">By logging in or registering, you agree to our <b>Terms of Service</b> and <b>Privacy Policy</b></string><!-- retrieve using getText not getString -->
+    
+    <!-- Login & Register Fragments -->
+    <string name="Back_Desc">Back</string>
+    <string name="Login_Title">Welcome Back!</string>
+    <string name="Register_Title">Create Your Account!</string>
+    <string name="Prompt_Email">Email</string>
+    <string name="Prompt_Password">Password</string>
+    <string name="Prompt_ConfirmPassword">Confirm Password</string>
+    <string name="Check_Password_Desc">Check Password</string>
+    <string name="Remember_Me">Remember Me</string>
+    <string name="ForgotPassword"><u>Forgot Password</u></string>
+    <string name="or_separator">or</string>
+    <string name="Continue_with_Google">Continue with Google</string>
+
+    <!-- Reset Password -->
+    <string name="Reset_Password_Title">Reset Your Password</string>
+    <string name="Reset_Guide">Enter your email to reset your password quickly.</string>
+    <string name="Reset_Button">Send Reset Link</string>
+    <string name="Success">Success</string>
+    <string name="Reset_Popup">Reset Link Sent!</string>
+
+    <!-- Profile Completion -->
+    <string name="Complete_Profile_Title">Complete Your Profile</string>
+    <string name="Prompt_Name">Full name</string>
+    <string name="Faculty">Faculty</string>
+    <string name="Select_Faulty">-Select Faculty-</string>
+    <string-array name="Faculty_List">
+        <item>Faculty of Arts And Social Sciences</item>
+        <item>Faculty of Business and Economics</item>
+        <item>Faculty of Built Environment</item>
+        <item>Faculty of Computer Science \u0026 Information Technology</item>
+        <item>Faculty of Creative Arts</item>
+        <item>Faculty of Dentistry</item>
+        <item>Faculty of Engineering</item>
+        <item>Faculty of Education</item>
+        <item>Faculty of Law</item>
+        <item>Faculty of Languages and Linguistics</item>
+        <item>Faculty of Medicine</item>
+        <item>Faculty of Pharmacy</item>
+        <item>Faculty of Sports and Exercise Science</item>
+    </string-array>
+    <string name="Residential_College">Residential College</string>
+    <string-array name="Residential_College_List">
+        <item>RC1 (KK1)</item>
+        <item>RC2 (KK2)</item>
+        <item>RC3 (KK3)</item>
+        <item>RC4 (KK4)</item>
+        <item>RC5 (KK5)</item>
+        <item>RC6 (KK6)</item>
+        <item>RC7 (KK7)</item>
+        <item>RC8 (KK8)</item>
+        <item>RC9 (KK9)</item>
+        <item>RC10 (KK10)</item>
+        <item>RC11 (KK11)</item>
+        <item>RC12 (KK12)</item>
+        <item>RC13 (KK13)</item>
+    </string-array>
+    <string name="Select_Residential_College">-Select Residential College-</string>
+    <string name="Dietary_Preferences">Dietary Preferences</string>
+    <string name="None">None</string>
+    <string name="Halal">Halal only</string>
+    <string name="Vegetarian">Vegetarian</string>
+    <string name="No_Beef">No Beef</string>
+    <string name="Profile_Save_Button">Save \u0026 Continue</string>
+
+
+
+    <!-- Home -->
+    <string name="Home">Home</string>
+    <string name="Welcome_User">Good %1$s, %2$s</string><!-- To be formatted in backend - morning/afternoon/evening, user -->
+    <string name="Notification_Bell">Notification Bell</string>
+    <string name="QR_Code">QR Code</string>
+    <string name="Search_Icon">Search Icon</string>
+    <string name="Search_Hint">Search nearby food</string>
+    <string name="Filter_All">All</string>
+    <string name="Filter_Pantry">Pantry</string>
+    <string name="Filter_Leftover">Leftover</string>
+    <string name="Filter_Free_Table">Free Table</string>
+    <string name="Close_Desc">Close</string>
+    <string name="Food_Image">Food Image</string>
+    <string name="Food_Name">%1$s</string><!-- Food Name -->
+    <string name="Food_Location">Location: %1$s</string><!-- Location -->
+    <string name="Food_Quantity">Quantity: %1$d servings</string><!-- Number -->
+    <string name="Food_Donator">Posted by: %1$s</string><!-- Donator -->
+    <string name="Food_Donate_Duration">%1$d %2$s ago</string><!-- Number, mins/hours -->
+    <string name="Claim">Claim</string>
+    
+    <!-- Item Details -->
+    <string name="Food_Aid_Details">Food Aid Details</string>
+    <string name="Dietary_Type">%1$s</string><!-- Dietary Preference(Halal, Vegetarian, No Beef) -->
+    <string name="Claim_Successful">Claim Successful!</string>
+    <string name="Claim_Guide">Please show your QR code during pickup for verification.</string>
+    <string name="View_QR_Code">View QR Code</string>
+    <string name="Back_to_Home">Back to Home</string>
+
+    <!-- Impact -->
+    <string name="Impact">Impact</string>
+    <string-array name="Time_Type">
+        <item>Week</item>
+        <item>Month</item>
+        <item>Year</item>
+    </string-array>
+    <string-array name="Time_List">
+        <item>%1$d, %2$s, %3$d-%4$d</item><!-- Year, Month, Day, Day -->
+        <item>%1$d, %2$s</item>
+        <item>%1$d</item>
+    </string-array>
+    <string name="Chart_Title">Total Food Saved (kg)</string><!-- May use chart framework -->
+    <string-array name="Day_List">
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+        <item>Sat</item>
+        <item>Sun</item>
+    </string-array>
+    <string-array name="Week_List">
+        <item>Week 1</item>
+        <item>Week 2</item>
+        <item>Week 3</item>
+        <item>Week 4</item>
+        <item>Week 5</item>
+    </string-array>
+    <string-array name="Month_List">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>May</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Oct</item>
+        <item>Nov</item>
+        <item>Dec</item>
+    </string-array>
+    <string name="Items_Claimed">%1$d<br/>Items claimed this %2$s</string><!-- Number, Time_Type -->
+    <string name="Items_Donated">%1$d<br/>Items donated this %2$s</string><!-- Number, Time_Type -->
+    <string name="Food_Saved">%1$dkg<br/>Food saved this %2$s</string><!-- Decimal, Time_Type -->
+    <string name="Personal_Contribution">Personal Contribution (%1$s)</string><!-- Date(##/##/####-##/##/####)/Month(### Year)/Year -->
+    <string name="Contribute_Time">%1$s, %2$d%3$s</string><!-- Day, Time, AM/PM -->
+    <string name="Contribute_Week">(%1$s - %2$s</string><!-- Date, Date -->
+    <string-array name="Contribution_Type">
+        <item>Claimed</item>
+        <item>Donated</item>
+    </string-array>
+    <string name="Contribution_Quantity_Type">%1$d items</string><!-- Number -->
+    <string name="Contribution_Amount">+%1$dkg</string><!-- Decimal -->
+
+    <!-- Donation -->
+    <string name="Donation_Desc">New Donation</string>
+    <string name="Donate_Food">Donate Food</string>
+    <string name="Donation_Type">Donation Type: <font color="@color/red">*</font></string>
+    <string name="Item_Details">Item Details: <font color="@color/red">*</font></string>
+    <string name="Item_Name">Item Name:</string>
+    <string name="Quantity">Quantity:</string>
+    <string name="Weight">Weight (kg):</string>
+    <string name="Expiry_Date">Expiry Date:</string>
+    <string name="Description">Description:</string>
+    <string name="Upload_Photos">Upload Photos: <font color="@color/red">*</font></string>
+    <string name="Location">Location: <font color="@color/red">*</font></string>
+    <string name="Pickup_Method">Pickup Method: <font color="@color/red">*</font></string>
+    <string name="Pickup_Method_Spinner">-Pickup Method-</string>
+    <string name="Available_Time">Available Time: <font color="@color/red">*</font></string>
+    <string name="From">From</string>
+    <string name="to">to</string>
+    <string name="Donation_Confirmation">I confirm this item is safe for donation.</string>
+    <string name="Donate">Donate</string>
+    <string name="Donation_Posted">Donation Posted!</string>
+    <string name="Donation_Notify">Your item is now available.</string>
+    <string name="View_Item">View item</string>
+
+    <!-- Community -->
+    <string name="Community">Community</string>
+    <string name="Post_Title">%1$s posted a %2$s</string><!-- User, Post_Type -->
+    <string-array name="Post_Type">
+        <item>tip</item>
+        <item>story</item>
+        <item>question</item>
+    </string-array>
+    <string name="Community_Post_Duration">%1$d %2$s ago</string><!-- Duration, minutes/hours -->
+    <string name="Community_Post_Description">%1$s</string><!-- Description -->
+    <string name="Post_Likes">%1$d likes</string><!-- Number -->
+    <string name="Post_Comments">%1$d comments</string><!-- Number -->
+    <string name="View_Details"><u>View Details</u></string>
+
+    <!-- Profile -->
+    <string name="Profile">Profile</string>
+    <string name="Edit_Profile">Edit Profile</string>
+    <string name="My_Badges">My Badges</string>
+    <string name="View_All_Badges"><u>View All Badges</u></string>
+    <string name="Account_Settings">Account Settings</string>
+    <string name="Security_Privacy">Security \u0026 Privacy</string>
+    <string name="Change_Password">Change password</string>
+    <string name="Privacy_Settings">Privacy Settings</string>
+    <string name="Notifications">Notifications</string>
+    <string name="Push_Notification">Push Notification</string>
+    <string name="Email_Notification">Email Notification</string>
+    <string name="Others">Others</string>
+    <string name="Help_FAQ">Help \u0026 FAQ</string>
+    <string name="Contact_Report_Issue">Contact / Report Issue</string>
+    <string name="Logout">Logout</string>
+
+    <!-- QR Page -->
+    <string name="QR_Page">QR Page</string>
+    <string name="My_QR">My QR</string>
+    <string name="Scan_QR">Scan QR</string>
+    <string name="Download_QR">Download QR code</string>
+    <string name="Downloaded">Downloaded!</string>
+    <string name="Scan_QR_Guide">Show your QR to verify pickup</string>
+    <string name="Upload_From_Gallery">Upload from Gallery</string>
+
+    <!-- Notification -->
+    <string name="Activity_Feed">Activity Feed</string>
+    <string-array name="Activity_Type_Filter">
+        <item>All</item>
+        <item>Request</item>
+        <item>Donation</item>
+        <item>Community</item>
+    </string-array>
+    <string-array name="Activity_Time">
+        <item>Today</item>
+        <item>Yesterday</item>
+        <item>This week</item>
+    </string-array>
+    <string name="View_History"><u>View History</u></string>
+
+    <string-array name="Request_Donation">
+        <item>%1$s</item><!-- Activity Type -->
+        <item>Your %1$s %2$s was %3$s.</item><!-- Activity, FoodAid Code/Donation Name, Approve/Declined -->
+        <item>%1$s %2$s</item><!-- Time(#:##), AM/PM -->
+        <item>%1$s</item><!-- Day -->
+        <item>%1$s</item><!-- Date -->
+    </string-array>
+    <string-array name="Activity_Type">
+        <item>Request Approved</item>
+        <item>Request Declined</item>
+        <item>Donation Approved</item>
+        <item>Donation Declined</item>
+    </string-array>
+    <string-array name="Activity">
+        <item>FoodAid request</item>
+        <item>donation</item>
+    </string-array>
+    <string-array name="Approve_Decline">
+        <item>approved</item>
+        <item>declined</item>
+    </string-array>
+
+    <string-array name="Pickup">
+        <item>%1$s</item><!-- Pickup Type -->
+        <item>Collect your aid at: %1$s, %2$s today.</item><!-- Reminder - Location, Time Range -->
+        <item>Your aid request (%1$s) was picked up.</item><!-- Completed - FoodAid Code -->)
+        <item>%1$s %2$s</item><!-- Time(#:##), AM/PM -->
+        <item>%1$s</item><!-- Day -->
+        <item>%1$s</item><!-- Date -->
+    </string-array>
+    <string-array name="Pickup_Type">
+        <item>Pickup Reminder</item>
+        <item>Pickup Completed</item>
+    </string-array>
+
+    <string-array name="Community_Post_Activity">
+        <item>Community Post Activity</item>
+        <item>Your post "%1$s" has %2$d new comments.</item><!-- Post Title, Number -->
+        <item>%1$s %2$s</item><!-- Time(#:##), AM/PM -->
+        <item>%1$s</item><!-- Day -->
+        <item>%1$s</item><!-- Date -->
+    </string-array>
+
+    <string-array name="Impact_Activity">
+        <item>%1$s Eco Impact Ready</item><!-- Impact_Time_Type -->
+        <item>You saved %1$dkg of food waste this week.</item><!-- Food Saved -->
+        <item>%1$s %2$s</item><!-- Time(#:##), AM/PM -->
+        <item>%1$s</item><!-- Day -->
+        <item>%1$s</item><!-- Date -->
+    </string-array>
+    <string-array name="Impact_Time_Type">
+        <item>Weekly</item>
+        <item>Monthly</item>
+        <item>Yearly</item>
+    </string-array>
+
 </resources>
