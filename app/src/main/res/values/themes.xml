@@ -5,6 +5,7 @@
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
         <item name="android:textColor">@color/font_primary</item>
         <item name="android:textColorHint">@color/font_primary</item>
+        <item name="android:windowBackground">@color/white</item>
     </style>
 
     <style name="FoodAidChipStyle" parent="Widget.MaterialComponents.Chip.Choice">

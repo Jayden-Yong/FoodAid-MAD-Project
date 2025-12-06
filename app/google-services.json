@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "384347054284",
+    "project_id": "foodaid-d2d35",
+    "storage_bucket": "foodaid-d2d35.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:384347054284:android:6abb1a30604da0c7d36269",
+        "android_client_info": {
+          "package_name": "com.example.foodaid_mad_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "384347054284-02ke8eem3ghkg2biekmsv7a83h0ke594.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.foodaid_mad_project",
+            "certificate_hash": "21783ffa77f2baef3401782ac9f35776098bc76a"
+          }
+        },
+        {
+          "client_id": "384347054284-c8nc3s4e7o4mdk8ihldoqnn20q1nnu67.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB18EVvh_obRlGjKlaZhh94Gfo2Hcfli2M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "384347054284-c8nc3s4e7o4mdk8ihldoqnn20q1nnu67.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

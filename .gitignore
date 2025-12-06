@@ -1,13 +1,29 @@
 *.iml
 .gradle
 /local.properties
+
+# IntelliJ IDEA / Android Studio
 /.idea/caches
 /.idea/libraries
+/.idea/shelf
 /.idea/modules.xml
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/deploymentTargetSelector.xml
+/.idea/deviceManager.xml
+/.idea/androidTestResultsUserPreferences.xml
+/.idea/appInsightsSettings.xml
+/.idea/markdown.xml
+/.idea/copilot*.xml
+/.idea/*.data
+/.idea/.gitignore
+/.idea/.name
+
+# macOS
 .DS_Store
+
+# Build outputs
 /build
 /captures
 .externalNativeBuild
