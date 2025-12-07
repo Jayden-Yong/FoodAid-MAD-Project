@@ -116,8 +116,13 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
                 hasLowercase = true;
             } else if (Character.isDigit(c)) {
                 hasDigit = true;
-            } else if (!Character.isLetterOrDigit(c)) {
+            } else if (!Character.isLetterOrDigit(c) && !Character.isWhitespace(c)) {
                 hasSpecial = true;
+            }
+            
+            // Early exit if all requirements are met
+            if (hasUppercase && hasLowercase && hasDigit && hasSpecial) {
+                break;
             }
         }
 
@@ -139,8 +144,8 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
 
     private void registerNewUser() {
         String email = etRegisterEmail.getText().toString().trim();
-        String password = etRegisterPassword.getText().toString().trim();
-        String confirmPassword = etRegisterConfirmPassword.getText().toString().trim();
+        String password = etRegisterPassword.getText().toString();
+        String confirmPassword = etRegisterConfirmPassword.getText().toString();
 
         // input validations
         if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
