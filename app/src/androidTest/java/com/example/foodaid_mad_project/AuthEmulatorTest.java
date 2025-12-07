@@ -47,7 +47,11 @@ public class AuthEmulatorTest {
     public void tearDown() {
         // Clean up after tests to prevent state leakage
         if (mAuth.getCurrentUser() != null) {
-            mAuth.getCurrentUser().delete();
+            try {
+                Tasks.await(mAuth.getCurrentUser().delete());
+            } catch (ExecutionException | InterruptedException e) {
+                // Log or handle the exception as needed; for now, we ignore to avoid test interruption
+            }
         }
     }
 
