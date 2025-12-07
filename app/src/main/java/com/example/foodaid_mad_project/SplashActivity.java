@@ -3,8 +3,6 @@ package com.example.foodaid_mad_project;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.animation.AnticipateInterpolator;
@@ -71,11 +69,8 @@ public class SplashActivity extends AppCompatActivity {
         });
 
         // Perform Firebase authentication check before setting the flag
-        new Handler(Looper.getMainLooper()).post(() -> {
-            // Check if user is signed in (non-null)
-            FirebaseUser currentUser = mAuth.getCurrentUser();
-            // Firebase check is now complete, regardless of whether user is logged in or not
-            firebaseCheckCompleted = true;
-        });
+        // getCurrentUser() is synchronous and runs on main thread
+        mAuth.getCurrentUser();
+        firebaseCheckCompleted = true;
     }
 }
