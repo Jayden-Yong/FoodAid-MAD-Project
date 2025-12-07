@@ -70,7 +70,11 @@ public class SplashActivity extends AppCompatActivity {
             slideUp.start();
         });
 
+        // Perform Firebase authentication check before setting the flag
         new Handler(Looper.getMainLooper()).post(() -> {
+            // Check if user is signed in (non-null)
+            FirebaseUser currentUser = mAuth.getCurrentUser();
+            // Firebase check is now complete, regardless of whether user is logged in or not
             firebaseCheckCompleted = true;
         });
     }
