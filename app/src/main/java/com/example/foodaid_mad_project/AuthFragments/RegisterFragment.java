@@ -201,7 +201,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
         auth.signInWithCredential(credential)
                 .addOnCompleteListener(requireActivity(), task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Registration successful!", Toast.LENGTH_LONG).show();
                         startActivity(new Intent(getContext(), MainActivity.class));
                         requireActivity().finish();
                     } else {
