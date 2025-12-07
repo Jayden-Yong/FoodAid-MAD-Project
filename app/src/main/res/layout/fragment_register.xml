@@ -86,7 +86,7 @@
             android:autofillHints="password" />
 
         <CheckBox
-            android:id="@id/btnCheckPassword"
+            android:id="@+id/btnCheckPassword"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_marginStart="-56dp"
@@ -120,7 +120,7 @@
             android:autofillHints="password" />
 
         <CheckBox
-            android:id="@id/btnCheckPassword"
+            android:id="@+id/btnCheckConfirmPassword"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_marginStart="-56dp"
