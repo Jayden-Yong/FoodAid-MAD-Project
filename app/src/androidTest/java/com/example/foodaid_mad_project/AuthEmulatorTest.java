@@ -111,4 +111,24 @@ public class AuthEmulatorTest {
             fail("Setup for failure test failed: " + e.getMessage());
         }
     }
+
+    @Test
+    public void testCreateUserWithStrongPassword() {
+        String testEmail = "strongpass@example.com";
+        // Strong password: 8+ chars, uppercase, lowercase, digit, special char
+        String strongPass = "StrongP@ss1";
+
+        try {
+            Task<AuthResult> task = mAuth.createUserWithEmailAndPassword(testEmail, strongPass);
+            AuthResult result = Tasks.await(task);
+
+            // Assert creation was successful
+            assertNotNull("Auth result should not be null", result);
+            assertNotNull("User should not be null", result.getUser());
+            assertEquals("Email should match", testEmail, result.getUser().getEmail());
+
+        } catch (ExecutionException | InterruptedException e) {
+            fail("User creation with strong password failed: " + e.getMessage());
+        }
+    }
 }
