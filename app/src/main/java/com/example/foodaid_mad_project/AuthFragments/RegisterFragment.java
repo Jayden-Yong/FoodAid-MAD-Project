@@ -110,6 +110,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
                         if (task.isSuccessful()) {
                             Toast.makeText(getContext(), "Registration successful!", Toast.LENGTH_LONG).show();
                             startActivity(new Intent(getContext(), MainActivity.class));
+                            requireActivity().finish();
                         } else {
                             Toast.makeText(getContext(), "Registration failed, please try again", Toast.LENGTH_LONG).show();
                         }
