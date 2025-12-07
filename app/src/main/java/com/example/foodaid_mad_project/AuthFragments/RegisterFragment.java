@@ -86,10 +86,65 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
         btnGoogle.setOnClickListener(v -> launchCredentialManager());
     }
 
+    /**
+     * Validates password strength according to security requirements.
+     * Password must:
+     * - Be at least 8 characters long
+     * - Contain at least one uppercase letter
+     * - Contain at least one lowercase letter
+     * - Contain at least one digit
+     * - Contain at least one special character
+     *
+     * @param password The password to validate
+     * @return Error message if validation fails, null if password is valid
+     */
+    private String validatePasswordStrength(String password) {
+        if (password.length() < 8) {
+            return "Password must be at least 8 characters long";
+        }
+
+        boolean hasUppercase = false;
+        boolean hasLowercase = false;
+        boolean hasDigit = false;
+        boolean hasSpecial = false;
+
+        for (char c : password.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                hasUppercase = true;
+            } else if (Character.isLowerCase(c)) {
+                hasLowercase = true;
+            } else if (Character.isDigit(c)) {
+                hasDigit = true;
+            } else if (!Character.isLetterOrDigit(c) && !Character.isWhitespace(c)) {
+                hasSpecial = true;
+            }
+            
+            // Early exit if all requirements are met
+            if (hasUppercase && hasLowercase && hasDigit && hasSpecial) {
+                break;
+            }
+        }
+
+        if (!hasUppercase) {
+            return "Password must contain at least one uppercase letter";
+        }
+        if (!hasLowercase) {
+            return "Password must contain at least one lowercase letter";
+        }
+        if (!hasDigit) {
+            return "Password must contain at least one digit";
+        }
+        if (!hasSpecial) {
+            return "Password must contain at least one special character";
+        }
+
+        return null; // Password is valid
+    }
+
     private void registerNewUser() {
         String email = etRegisterEmail.getText().toString().trim();
-        String password = etRegisterPassword.getText().toString().trim();
-        String confirmPassword = etRegisterConfirmPassword.getText().toString().trim();
+        String password = etRegisterPassword.getText().toString();
+        String confirmPassword = etRegisterConfirmPassword.getText().toString();
 
         // input validations
         if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
@@ -99,6 +154,12 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
 
         if (!confirmPassword.equals(password)) {
             Toast.makeText(getContext(), "Passwords do not match", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        String passwordError = validatePasswordStrength(password);
+        if (passwordError != null) {
+            Toast.makeText(getContext(), passwordError, Toast.LENGTH_LONG).show();
             return;
         }
 
