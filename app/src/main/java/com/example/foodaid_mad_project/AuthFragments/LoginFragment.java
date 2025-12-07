@@ -9,6 +9,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.text.InputType;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -120,6 +121,11 @@ public class LoginFragment extends Fragment {
             return;
         }
 
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Toast.makeText(getContext(), "Please enter a valid email address", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         auth.sendPasswordResetEmail(email).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Toast.makeText(getContext(), "Password reset email sent", Toast.LENGTH_LONG).show();
@@ -136,6 +142,11 @@ public class LoginFragment extends Fragment {
         // validate input
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(getContext(), "Please enter all credentials", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Toast.makeText(getContext(), "Please enter a valid email address", Toast.LENGTH_LONG).show();
             return;
         }
 
