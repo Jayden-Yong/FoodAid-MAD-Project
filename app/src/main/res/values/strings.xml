@@ -21,6 +21,7 @@
     <string name="ForgotPassword"><u>Forgot Password</u></string>
     <string name="or_separator">or</string>
     <string name="Continue_with_Google">Continue with Google</string>
+    <string name="default_web_client_id">384347054284-c8nc3s4e7o4mdk8ihldoqnn20q1nnu67.apps.googleusercontent.com</string>
 
     <!-- Reset Password -->
     <string name="Reset_Password_Title">Reset Your Password</string>

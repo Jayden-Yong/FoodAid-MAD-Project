@@ -1,5 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
+
+    // firebase google services
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -42,4 +45,19 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
+
+    // TODO: Add the dependencies for Firebase products you want to use
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth")
+
+    // google sign in dependencies
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+    // Add the dependencies for any other desired Firebase products
+    // https://firebase.google.com/docs/android/setup#available-libraries
 }
