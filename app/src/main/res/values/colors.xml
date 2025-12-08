@@ -12,4 +12,5 @@
     <color name="font_hint">#818898</color>
     <color name="text_grey">#A1A4B2</color>
     <color name="notify_bg_grey">#B5868282</color>
+    <color name="bg_detail_preference">#5CE95C2B</color>
 </resources>

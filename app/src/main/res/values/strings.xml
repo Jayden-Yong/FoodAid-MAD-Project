@@ -1,5 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="Typos">
     <string name="app_name">FoodAid</string>
+    <string name="Page_Title">%1$s</string>
 
     <!--  Login/Signup Menu  -->
     <string name="Logo_Desc">FoodAid Locator</string>
@@ -99,7 +100,9 @@
     <!-- Item Details -->
     <string name="Food_Aid_Details">Food Aid Details</string>
     <string name="Dietary_Type">%1$s</string><!-- Dietary Preference(Halal, Vegetarian, No Beef) -->
+    <string name="Pickup_Time">Pickup Time: %1$s – %2$s</string><!-- Time(##:## AM/PM) -->
     <string name="Claim_Successful">Claim Successful!</string>
+    <string name="Category">Category:</string>
     <string name="Claim_Guide">Please show your QR code during pickup for verification.</string>
     <string name="View_QR_Code">View QR Code</string>
     <string name="Back_to_Home">Back to Home</string>
