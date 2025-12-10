@@ -19,7 +19,9 @@
         android:layout_height="0dp"
         android:fillViewport="true"
         app:layout_constraintTop_toBottomOf="@+id/Toolbar"
-        app:layout_constraintBottom_toTopOf="@+id/btnClaim">
+        app:layout_constraintBottom_toTopOf="@+id/btnClaim"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -70,7 +72,7 @@
                 android:text="@string/Food_Name"
                 android:textColor="@color/font_primary"
                 android:textSize="22sp"
-                android:textStyle="bold"
+                android:fontFamily="@font/poppins_bold"
                 app:layout_constraintTop_toBottomOf="@+id/ivProductImage" />
 
             <TextView
@@ -82,7 +84,7 @@
                 android:text="@string/Pickup_Time"
                 android:textColor="@color/primary_color"
                 android:textSize="16sp"
-                android:textStyle="bold"
+                android:fontFamily="@font/poppins_bold"
                 app:layout_constraintTop_toBottomOf="@+id/tvProductTitle" />
 
             <TextView
@@ -94,7 +96,7 @@
                 android:text="@string/Category"
                 android:textColor="@color/font_primary"
                 android:textSize="16sp"
-                android:textStyle="bold"
+                android:fontFamily="@font/poppins_semi_bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvPickupTime" />
 
@@ -116,21 +118,24 @@
                     style="@style/FoodAidChipStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/Filter_Pantry" />
+                    android:text="@string/Filter_Pantry"
+                    android:fontFamily="@font/poppins_bold"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipLeftover"
                     style="@style/FoodAidChipStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/Filter_Leftover" />
+                    android:text="@string/Filter_Leftover"
+                    android:fontFamily="@font/poppins_bold"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipFreeTable"
                     style="@style/FoodAidChipStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/Filter_Free_Table" />
+                    android:text="@string/Filter_Free_Table"
+                    android:fontFamily="@font/poppins_bold"/>
             </com.google.android.material.chip.ChipGroup>
 
             <TextView
@@ -142,7 +147,7 @@
                 android:text="@string/Food_Quantity"
                 android:textColor="@color/font_primary"
                 android:textSize="16sp"
-                android:textStyle="bold"
+                android:fontFamily="@font/poppins_semi_bold"
                 app:layout_constraintTop_toBottomOf="@+id/chipGroupCategory" />
 
             <TextView
@@ -154,7 +159,7 @@
                 android:text="@string/Food_Location"
                 android:textColor="@color/font_primary"
                 android:textSize="16sp"
-                android:textStyle="bold"
+                android:fontFamily="@font/poppins_semi_bold"
                 app:layout_constraintTop_toBottomOf="@+id/tvQuantity" />
 
             <androidx.cardview.widget.CardView
@@ -162,7 +167,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:layout_marginHorizontal="24dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="5dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
                 app:layout_constraintTop_toBottomOf="@+id/tvLocationLabel">
@@ -171,13 +176,6 @@
                     android:id="@+id/MapFragment"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
-                <ImageView
-                    android:id="@+id/ivMap"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@color/white"
-                    android:scaleType="centerCrop"
-                    tools:src="@drawable/ic_launcher_background" />
             </androidx.cardview.widget.CardView>
 
             <TextView
@@ -189,7 +187,7 @@
                 android:text="@string/Food_Donator"
                 android:textColor="@color/font_primary"
                 android:textSize="14sp"
-                android:textStyle="bold"
+                android:fontFamily="@font/poppins_semi_bold"
                 app:layout_constraintTop_toBottomOf="@+id/cvMap" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -209,5 +207,13 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

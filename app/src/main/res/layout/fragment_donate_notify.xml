@@ -9,7 +9,7 @@
     android:background="@color/notify_bg_grey"
     android:clickable="true"
     android:focusable="true"
-    tools:context=".HomeFragments.ClaimNotifyFragment">
+    tools:context=".DonateFragments.DonateNotifyFragment">
 
     <androidx.cardview.widget.CardView
         android:layout_width="320dp"
@@ -52,7 +52,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="@string/Claim_Successful"
+                android:text="@string/Donation_Posted"
                 android:textColor="@color/font_primary"
                 android:textSize="26sp"
                 android:fontFamily="@font/poppins_semi_bold"
@@ -66,7 +66,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 android:gravity="center"
-                android:text="@string/Claim_Guide"
+                android:text="@string/Donation_Notify"
                 android:textColor="@color/font_primary"
                 android:textSize="16sp"
                 android:fontFamily="@font/poppins_regular"
@@ -81,7 +81,7 @@
                 android:layout_marginTop="14dp"
                 android:layout_marginHorizontal="40dp"
                 android:paddingVertical="8dp"
-                android:text="@string/View_QR_Code"
+                android:text="@string/View_Item"
                 android:textAllCaps="false"
                 android:textSize="16sp"
                 android:fontFamily="@font/poppins_bold"

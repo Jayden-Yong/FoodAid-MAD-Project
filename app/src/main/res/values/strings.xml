@@ -109,11 +109,10 @@
 
     <!-- Impact -->
     <string name="Impact">Impact</string>
-    <string-array name="Time_Type">
-        <item>Week</item>
-        <item>Month</item>
-        <item>Year</item>
-    </string-array>
+    <string name="Week">Week</string>
+    <string name="Month">Month</string>
+    <string name="Year">Year</string>
+    <string name="Forward_Desc">Forward</string>
     <string-array name="Time_List">
         <item>%1$d, %2$s, %3$d-%4$d</item><!-- Year, Month, Day, Day -->
         <item>%1$d, %2$s</item>
@@ -150,16 +149,17 @@
         <item>Nov</item>
         <item>Dec</item>
     </string-array>
-    <string name="Items_Claimed">%1$d<br/>Items claimed this %2$s</string><!-- Number, Time_Type -->
-    <string name="Items_Donated">%1$d<br/>Items donated this %2$s</string><!-- Number, Time_Type -->
-    <string name="Food_Saved">%1$dkg<br/>Food saved this %2$s</string><!-- Decimal, Time_Type -->
+    <string name="Number">%1$d</string>
+    <string name="String">%1$s</string>
+    <string name="Items_Claimed">Items claimed this %1$s</string><!-- Number, Time_Type -->
+    <string name="Items_Donated">Items donated this %1$s</string><!-- Number, Time_Type -->
+    <string name="Food_Saved_inRange">Food saved this %1$s</string><!-- Decimal, Time_Type -->
     <string name="Personal_Contribution">Personal Contribution (%1$s)</string><!-- Date(##/##/####-##/##/####)/Month(### Year)/Year -->
     <string name="Contribute_Time">%1$s, %2$d%3$s</string><!-- Day, Time, AM/PM -->
-    <string name="Contribute_Week">(%1$s - %2$s</string><!-- Date, Date -->
-    <string-array name="Contribution_Type">
-        <item>Claimed</item>
-        <item>Donated</item>
-    </string-array>
+    <string name="Contribute_Week">(%1$s - %2$s)</string><!-- Date, Date -->
+    <string name="Claimed">Claimed</string>
+    <string name="Donated">Donated</string>
+    <string name="Food_Saved">Food Saved</string>
     <string name="Contribution_Quantity_Type">%1$d items</string><!-- Number -->
     <string name="Contribution_Amount">+%1$dkg</string><!-- Decimal -->
 
@@ -174,11 +174,13 @@
     <string name="Expiry_Date">Expiry Date:</string>
     <string name="Description">Description:</string>
     <string name="Upload_Photos">Upload Photos: <font color="@color/red">*</font></string>
+    <string name="Photo_Icon">Photo Icon</string>
     <string name="Location">Location: <font color="@color/red">*</font></string>
     <string name="Pickup_Method">Pickup Method: <font color="@color/red">*</font></string>
     <string name="Pickup_Method_Spinner">-Pickup Method-</string>
     <string name="Available_Time">Available Time: <font color="@color/red">*</font></string>
     <string name="From">From</string>
+    <string name="Time_Hint">00:00</string>
     <string name="to">to</string>
     <string name="Donation_Confirmation">I confirm this item is safe for donation.</string>
     <string name="Donate">Donate</string>

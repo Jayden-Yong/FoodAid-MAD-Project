@@ -19,6 +19,6 @@
         android:text="@string/Page_Title"
         android:textColor="@color/font_primary"
         android:textSize="20sp"
-        android:textStyle="bold" />
+        android:fontFamily="@font/poppins_bold"/>
 
 </com.google.android.material.appbar.MaterialToolbar>
