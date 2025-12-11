@@ -1,8 +1,11 @@
 package com.example.foodaid_mad_project;
 
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.animation.AnticipateInterpolator;
@@ -14,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+@SuppressLint("CustomSplashScreen")
 public class SplashActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private boolean firebaseCheckCompleted = false;
@@ -68,9 +72,8 @@ public class SplashActivity extends AppCompatActivity {
             slideUp.start();
         });
 
-        // Perform Firebase authentication check before setting the flag
-        // getCurrentUser() is synchronous and runs on main thread
-        mAuth.getCurrentUser();
-        firebaseCheckCompleted = true;
+        new Handler(Looper.getMainLooper()).post(() -> {
+            firebaseCheckCompleted = true;
+        });
     }
 }

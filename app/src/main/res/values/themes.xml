@@ -8,6 +8,28 @@
         <item name="android:windowBackground">@color/white</item>
     </style>
 
+    <style name="BottomNavStyle" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/primary_color_opacity_40</item>
+    </style>
+
+    <style name="FoodAidImpactDateRangeBtnStyle" parent="Widget.AppCompat.CompoundButton.RadioButton">
+        <item name="android:button">@null</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/bg_impact_time_range_btn</item>
+        <item name="android:textColor">@color/text_impact_time_range_btn</item>
+        <item name="fontFamily">@font/poppins_semi_bold</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="FoodAidDonateTypeBtnStyle" parent="Widget.AppCompat.CompoundButton.RadioButton">
+        <item name="android:button">@null</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/bg_donate_type_btn</item>
+        <item name="android:textColor">@color/text_donate_type_btn</item>
+        <item name="fontFamily">@font/poppins_semi_bold</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
     <style name="FoodAidChipStyle" parent="Widget.MaterialComponents.Chip.Choice">
         <item name="chipBackgroundColor">@color/filter_chip_bg</item>
         <item name="android:textColor">@color/filter_chip_text</item>

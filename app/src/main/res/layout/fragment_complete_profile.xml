@@ -149,7 +149,7 @@
                 android:paddingHorizontal="5dp"
                 android:text="@string/None"
                 android:textSize="14sp"
-                android:buttonTint="@color/primary_color" />
+                app:buttonTint="@color/primary_color" />
 
             <CheckBox
                 android:layout_width="match_parent"
@@ -159,7 +159,7 @@
                 android:paddingHorizontal="5dp"
                 android:text="@string/Halal"
                 android:textSize="14sp"
-                android:buttonTint="@color/primary_color" />
+                app:buttonTint="@color/primary_color" />
         </TableRow>
         <TableRow>
             <CheckBox
@@ -170,7 +170,7 @@
                 android:paddingHorizontal="5dp"
                 android:text="@string/Vegetarian"
                 android:textSize="14sp"
-                android:buttonTint="@color/primary_color" />
+                app:buttonTint="@color/primary_color" />
 
             <CheckBox
                 android:layout_width="match_parent"
@@ -180,7 +180,7 @@
                 android:paddingHorizontal="5dp"
                 android:text="@string/No_Beef"
                 android:textSize="14sp"
-                android:buttonTint="@color/primary_color" />
+                app:buttonTint="@color/primary_color" />
         </TableRow>
     </TableLayout>
 

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:baselineAligned="false"
+    android:paddingVertical="12dp"
+    android:paddingHorizontal="16dp"
+    android:gravity="center_vertical"
+    android:weightSum="3.8">
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.2"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvWeekTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/String"
+            android:textColor="@color/font_primary"
+            android:textSize="14sp"
+            android:fontFamily="@font/poppins_medium"/>
+
+        <TextView
+            android:id="@+id/tvDateRange"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/Contribute_Week"
+            android:textColor="@color/font_primary"
+            android:textSize="12sp"
+            android:fontFamily="@font/poppins_medium"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvClaimedCount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.8"
+        android:layout_marginStart="10dp"
+        android:gravity="center"
+        android:text="@string/Contribution_Quantity_Type"
+        android:textColor="@color/primary_color"
+        android:textSize="13sp"
+        android:fontFamily="@font/poppins_medium"/>
+
+    <TextView
+        android:id="@+id/tvDonatedCount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.8"
+        android:layout_marginStart="10dp"
+        android:gravity="center"
+        android:text="@string/Contribution_Quantity_Type"
+        android:textColor="@color/primary_color"
+        android:textSize="13sp"
+        android:fontFamily="@font/poppins_medium"/>
+
+    <TextView
+        android:id="@+id/tvSavedAmount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.8"
+        android:gravity="end"
+        android:text="@string/Contribution_Amount"
+        android:textColor="@color/primary_color"
+        android:textSize="13sp"
+        android:fontFamily="@font/poppins_medium"/>
+
+</LinearLayout>

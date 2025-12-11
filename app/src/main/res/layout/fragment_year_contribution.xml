@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingVertical="12dp"
+    android:paddingHorizontal="16dp"
+    android:gravity="center_vertical"
+    android:weightSum="3.8">
+
+    <TextView
+        android:id="@+id/tvMonthName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.2"
+        android:text="@string/String"
+        android:textColor="@color/font_primary"
+        android:textSize="14sp"
+        android:fontFamily="@font/poppins_medium"/>
+
+    <TextView
+        android:id="@+id/tvYearClaimed"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.8"
+        android:layout_marginStart="10dp"
+        android:gravity="center"
+        android:text="@string/Contribution_Quantity_Type"
+        android:textColor="@color/primary_color"
+        android:textSize="13sp"
+        android:fontFamily="@font/poppins_medium"/>
+
+    <TextView
+        android:id="@+id/tvYearDonated"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.8"
+        android:layout_marginStart="10dp"
+        android:gravity="center"
+        android:text="@string/Contribution_Quantity_Type"
+        android:textColor="@color/primary_color"
+        android:textSize="13sp"
+        android:fontFamily="@font/poppins_medium"/>
+
+    <TextView
+        android:id="@+id/tvYearSaved"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.8"
+        android:gravity="end"
+        android:text="@string/Contribution_Amount"
+        android:textColor="@color/primary_color"
+        android:textSize="13sp"
+        android:fontFamily="@font/poppins_medium"/>
+
+</LinearLayout>
