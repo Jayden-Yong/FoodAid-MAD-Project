@@ -191,6 +191,7 @@
     <!-- Community -->
     <string name="Community">Community</string>
     <string name="Post_Title">%1$s posted a %2$s</string><!-- User, Post_Type -->
+    <string name="Create_Post">Create a new post</string>
     <string-array name="Post_Type">
         <item>tip</item>
         <item>story</item>

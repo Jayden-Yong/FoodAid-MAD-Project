@@ -11,6 +11,7 @@
         android:id="@+id/ivItemImage"
         android:layout_width="50dp"
         android:layout_height="50dp"
+        android:contentDescription="@string/Food_Image"
         android:src="@drawable/ic_launcher_background"
         android:scaleType="centerCrop"
         android:background="@drawable/bg_impact_week_image_rounded_corner_8dp"
