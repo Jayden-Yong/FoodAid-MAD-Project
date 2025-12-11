@@ -1,18 +1,13 @@
 package com.example.foodaid_mad_project;
 
-import android.animation.ObjectAnimator;
 import android.os.Bundle;
-import android.view.View;
-import android.view.animation.AnticipateInterpolator;
-
-import androidx.core.splashscreen.SplashScreen;
-
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentContainerView;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-
-import com.example.foodaid_mad_project.HomeFragments.HomeFragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.NavigationUI;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.example.foodaid_mad_project.DonateFragments.DonateFragment; // Import DonateFragment
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,17 +16,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.mainFragment);
 
-        // TODO: replace with navigation
-        // Set mainFragment
-        if (savedInstanceState == null) {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
-            // Create HomeFragment instance, add HomeFragment to the mainFragment and run
-            HomeFragment homeFragment = new HomeFragment();
-            fragmentTransaction.add(R.id.mainFragment, homeFragment);
-            fragmentTransaction.commit();
+        if (navHostFragment != null) {
+            NavController navController = navHostFragment.getNavController();
+            BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
+            NavigationUI.setupWithNavController(bottomNav, navController);
         }
+
+        FloatingActionButton fab = findViewById(R.id.fabNewDonation);
+        fab.setOnClickListener(v -> {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.coveringFragment, new DonateFragment())
+                    .addToBackStack("Donate") // Add to back stack so "Back" button dismisses it
+                    .commit();
+        });
     }
 }
