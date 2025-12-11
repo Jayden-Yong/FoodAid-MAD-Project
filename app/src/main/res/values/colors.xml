@@ -15,4 +15,5 @@
     <color name="notify_bg_grey">#B5868282</color>
     <color name="bg_detail_preference">#5CE95C2B</color>
     <color name="bg_community_post">#B0F2F2F4</color>
+    <color name="bg_profile_setting">#B0F2F2F4</color>
 </resources>

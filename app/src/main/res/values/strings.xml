@@ -205,6 +205,9 @@
 
     <!-- Profile -->
     <string name="Profile">Profile</string>
+    <string name="Username">%1$s</string><!-- String:Username -->
+    <string name="Matric_No">%1$d</string><!-- Number:Matric -->
+    <string name="Camera">Camera</string>
     <string name="Edit_Profile">Edit Profile</string>
     <string name="My_Badges">My Badges</string>
     <string name="View_All_Badges"><u>View All Badges</u></string>
