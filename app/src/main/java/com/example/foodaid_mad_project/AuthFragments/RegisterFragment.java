@@ -39,13 +39,20 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 public class RegisterFragment extends Fragment implements CompoundButton.OnCheckedChangeListener {
 
     private FirebaseAuth auth;
+    private FirebaseFirestore db;
     private CredentialManager credentialManager;
     private EditText etRegisterEmail, etRegisterPassword, etRegisterConfirmPassword;
     private CheckBox btnCheckPassword, btnCheckConfirmPassword;
@@ -53,7 +60,8 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_register, container, false);
     }
 
@@ -71,6 +79,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
 
         auth = FirebaseAuth.getInstance();
         credentialManager = CredentialManager.create(requireContext());
+        db = FirebaseFirestore.getInstance();
 
         etRegisterEmail = view.findViewById(R.id.etRegisterEmail);
         etRegisterPassword = view.findViewById(R.id.etRegisterPassword);
@@ -119,7 +128,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
             } else if (!Character.isLetterOrDigit(c) && !Character.isWhitespace(c)) {
                 hasSpecial = true;
             }
-            
+
             // Early exit if all requirements are met
             if (hasUppercase && hasLowercase && hasDigit && hasSpecial) {
                 break;
@@ -171,16 +180,18 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
 
         // register new user
         auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            Toast.makeText(getContext(), "Registration successful!", Toast.LENGTH_LONG).show();
-                            startActivity(new Intent(getContext(), MainActivity.class));
-                            requireActivity().finish();
-                        } else {
-                            Toast.makeText(getContext(), "Registration failed, please try again", Toast.LENGTH_LONG).show();
-                        }
+                .addOnSuccessListener(authResult -> {
+                    FirebaseUser user = authResult.getUser();
+                    if (user != null) {
+                        saveUserToFirestore(user, "email");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (e instanceof FirebaseAuthUserCollisionException) {
+                        Toast.makeText(getContext(), "User already exists", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(getContext(), "Registration failed: " + e.getMessage(), Toast.LENGTH_LONG)
+                                .show();
                     }
                 });
     }
@@ -190,7 +201,8 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
         if (buttonView.getId() == R.id.btnCheckPassword) {
             Typeface passwordTypeface = etRegisterPassword.getTypeface();
             if (isChecked) {
-                etRegisterPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                etRegisterPassword
+                        .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
             } else {
                 etRegisterPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
             }
@@ -199,9 +211,11 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
         } else {
             Typeface confirmPasswordTypeface = etRegisterConfirmPassword.getTypeface();
             if (isChecked) {
-                etRegisterConfirmPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                etRegisterConfirmPassword
+                        .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
             } else {
-                etRegisterConfirmPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                etRegisterConfirmPassword
+                        .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
             }
             etRegisterConfirmPassword.setTypeface(confirmPasswordTypeface);
             etRegisterConfirmPassword.setSelection(etRegisterConfirmPassword.getText().length());
@@ -233,9 +247,9 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
 
                     @Override
                     public void onError(@NonNull GetCredentialException e) {
-                        requireActivity().runOnUiThread(() ->
-                                Toast.makeText(getContext(), "Google Sign-In failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                        );
+                        requireActivity().runOnUiThread(() -> Toast
+                                .makeText(getContext(), "Google Sign-In failed: " + e.getMessage(), Toast.LENGTH_LONG)
+                                .show());
                     }
                 });
     }
@@ -251,9 +265,8 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
             // sign in to firebase with google
             firebaseAuthWithGoogle(googleIdTokenCredential.getIdToken());
         } else {
-            requireActivity().runOnUiThread(() ->
-                    Toast.makeText(getContext(), "Unexpected credential type", Toast.LENGTH_LONG).show()
-            );
+            requireActivity().runOnUiThread(
+                    () -> Toast.makeText(getContext(), "Unexpected credential type", Toast.LENGTH_LONG).show());
         }
     }
 
@@ -262,15 +275,54 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
         auth.signInWithCredential(credential)
                 .addOnCompleteListener(requireActivity(), task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(getContext(), "Registration successful!", Toast.LENGTH_LONG).show();
-                        startActivity(new Intent(getContext(), MainActivity.class));
-                        requireActivity().finish();
+                        FirebaseUser user = auth.getCurrentUser();
+                        if (user != null) {
+                            saveUserToFirestore(user, "google");
+                        }
                     } else {
                         String errorMessage = task.getException() != null
                                 ? task.getException().getMessage()
                                 : "Unknown error";
                         Toast.makeText(getContext(), "Login failed: " + errorMessage, Toast.LENGTH_LONG).show();
                     }
+                });
+    }
+
+    private void saveUserToFirestore(FirebaseUser user, String providerType) {
+        String uid = user.getUid();
+        String email = user.getEmail();
+        String name = user.getDisplayName();
+
+        if (name == null || name.isEmpty()) {
+            if (email != null && email.contains("@")) {
+                name = email.substring(0, email.indexOf("@"));
+            } else {
+                name = "User";
+            }
+        }
+
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("uid", uid);
+        userData.put("email", email);
+        userData.put("displayName", name);
+        userData.put("userType", "student");
+        userData.put("favourites", "");
+
+        if ("email".equals(providerType)) {
+            userData.put("createdAt", System.currentTimeMillis());
+        } else {
+            userData.put("lastLogin", System.currentTimeMillis());
+        }
+
+        db.collection("users").document(uid).set(userData, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Registration/Login successful!", Toast.LENGTH_LONG).show();
+                    startActivity(new Intent(getContext(), MainActivity.class));
+                    requireActivity().finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Failed to save user data: " + e.getMessage(), Toast.LENGTH_LONG)
+                            .show();
                 });
     }
 }
