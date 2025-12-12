@@ -58,10 +58,15 @@ public class DonateFragment extends Fragment {
                 //TODO: Save data to Firebase
 
                 //TODO: Call Success Dialog
+                FragmentManager fragmentManager = getParentFragmentManager();
+                fragmentManager.beginTransaction()
+                        .replace(R.id.DonateFragmentContainer, new DonateNotifyFragment())
+                        .addToBackStack("DonateSuccess")
+                        .commit();
 
-                if (getParentFragmentManager().getBackStackEntryCount() > 0) {
-                    getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                }
+//                if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+//                    getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+//                }
             });
         }
     }

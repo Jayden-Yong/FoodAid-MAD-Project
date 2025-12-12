@@ -150,6 +150,8 @@
         <item>Dec</item>
     </string-array>
     <string name="Number">%1$d</string>
+    <string name="Decimal">%1$.2f</string>
+    <string name="Food_Saved_Value">%1$.2fkg</string>
     <string name="String">%1$s</string>
     <string name="Items_Claimed">Items claimed this %1$s</string><!-- Number, Time_Type -->
     <string name="Items_Donated">Items donated this %1$s</string><!-- Number, Time_Type -->
@@ -161,7 +163,7 @@
     <string name="Donated">Donated</string>
     <string name="Food_Saved">Food Saved</string>
     <string name="Contribution_Quantity_Type">%1$d items</string><!-- Number -->
-    <string name="Contribution_Amount">+%1$dkg</string><!-- Decimal -->
+    <string name="Contribution_Amount">+%1$.2fkg</string><!-- Decimal -->
 
     <!-- Donation -->
     <string name="Donation_Desc">New Donation</string>
@@ -292,7 +294,7 @@
 
     <string-array name="Impact_Activity">
         <item>%1$s Eco Impact Ready</item><!-- Impact_Time_Type -->
-        <item>You saved %1$dkg of food waste this week.</item><!-- Food Saved -->
+        <item>You saved %1$.2fkg of food waste this week.</item><!-- Food Saved -->
         <item>%1$s %2$s</item><!-- Time(#:##), AM/PM -->
         <item>%1$s</item><!-- Day -->
         <item>%1$s</item><!-- Date -->

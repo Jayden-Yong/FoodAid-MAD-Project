@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -39,12 +42,12 @@ public class ImpactBodyFragment extends Fragment {
     public static final String MODE_MONTH = "MONTH";
     public static final String MODE_YEAR = "YEAR";
 
-    private TextView tvDateRange, tvChartTitle;
+    private TextView tvDateRange, tvContributionsHeader, tvStatClaimedValue, tvStatClaimedDesc, tvStatDonatedValue, tvStateDonatedDesc, tvStatSavedValue, tvMonthYear;
+    private ImageButton btnPrevDate, btnNextDate;
     private BarChart chartWeek;
     private LineChart chartMonth;
     private PieChart chartYear;
-    private LinearLayout statsContainer;
-    private LinearLayout headerMonthYear;
+    private LinearLayout statsContainer, headerMonthYear;
     private RecyclerView rvContributions;
     private ConstraintLayout impactConstraint;
 
@@ -60,13 +63,25 @@ public class ImpactBodyFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Bind Views
+        //Date Range
+        btnPrevDate = view.findViewById(R.id.btnPrevDate);
+        btnNextDate = view.findViewById(R.id.btnNextDate);
         tvDateRange = view.findViewById(R.id.tvDateRange);
-        tvChartTitle = view.findViewById(R.id.tvChartTitle);
+        //Chart
         chartWeek = view.findViewById(R.id.chartWeek);
         chartMonth = view.findViewById(R.id.chartMonth);
         chartYear = view.findViewById(R.id.chartYear);
+        //Stats
         statsContainer = view.findViewById(R.id.statsContainer);
+        tvStatClaimedValue = view.findViewById(R.id.tvStatClaimedValue);
+        tvStatClaimedDesc = view.findViewById(R.id.tvStatClaimedDesc);
+        tvStatDonatedValue = view.findViewById(R.id.tvStatDonatedValue);
+        tvStateDonatedDesc = view.findViewById(R.id.tvStateDonatedDesc);
+        tvStatSavedValue = view.findViewById(R.id.tvStatSavedValue);
+        //Contribution Title
+        tvContributionsHeader = view.findViewById(R.id.tvContributionsHeader);
+        tvMonthYear = view.findViewById(R.id.tvMonthYear);
+        //Contribution Recycler
         headerMonthYear = view.findViewById(R.id.header_Month_Year);
         rvContributions = view.findViewById(R.id.rvContributions);
         impactConstraint = view.findViewById(R.id.impactConstraint);
@@ -89,10 +104,30 @@ public class ImpactBodyFragment extends Fragment {
 
         switch (mode) {
             case MODE_WEEK:
-                // UI Setup
+                // TODO: Get Time, get week, month, year
                 tvDateRange.setText(String.format(timeList[0], 2025, "Dec", 8, 14));
+                btnPrevDate.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //TODO:Calculate Week
+                    }
+                });
+                btnNextDate.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //TODO:Calculate Week
+                    }
+                });
                 constraintSet.connect(R.id.statsContainer, ConstraintSet.TOP, R.id.chartWeek, ConstraintSet.BOTTOM);
                 constraintSet.applyTo(impactConstraint);
+                //TODO: Get Total value from database
+                tvStatClaimedValue.setText(getString(R.string.Number, 2));
+                tvStatClaimedDesc.setText(getString(R.string.Items_Claimed, "Week"));
+                tvStatDonatedValue.setText(getString(R.string.Number, 5));
+                tvStateDonatedDesc.setText(getString(R.string.Items_Donated, "Week"));
+                var weightWeek = 2.5;
+                tvStatSavedValue.setText(getString(R.string.Food_Saved_Value, weightWeek));
+                tvContributionsHeader.setText(getString(R.string.Personal_Contribution, "24/11/2025-30/11/2025"));
                 headerMonthYear.setVisibility(View.GONE);
 
                 // Charts Visibility
@@ -105,10 +140,32 @@ public class ImpactBodyFragment extends Fragment {
                 break;
 
             case MODE_MONTH:
-                // UI Setup
+                // TODO: Get Time, get week, month, year
                 tvDateRange.setText(String.format(timeList[1], 2025, "Dec"));
+                btnPrevDate.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //TODO:Calculate Month
+                    }
+                });
+                btnNextDate.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //TODO:Calculate Month
+                    }
+                });
                 constraintSet.connect(R.id.statsContainer, ConstraintSet.TOP, R.id.chartMonth, ConstraintSet.BOTTOM);
                 constraintSet.applyTo(impactConstraint);
+                //TODO: Get Total value from database
+                tvStatClaimedValue.setText(getString(R.string.Number, 2));
+                tvStatClaimedDesc.setText(getString(R.string.Items_Claimed, "Month"));
+                tvStatDonatedValue.setText(getString(R.string.Number, 5));
+                tvStateDonatedDesc.setText(getString(R.string.Items_Donated, "Month"));
+                var weightMonth = 2.5;
+                tvStatSavedValue.setText(getString(R.string.Food_Saved_Value, weightMonth));
+                tvContributionsHeader.setText(getString(R.string.Personal_Contribution, "24/11/2025-30/11/2025"));
+                tvContributionsHeader.setText(getString(R.string.Personal_Contribution, "Nov 2025"));
+                tvMonthYear.setText(getString(R.string.String, "Week"));
                 headerMonthYear.setVisibility(View.VISIBLE);
 
                 // Charts Visibility
@@ -121,10 +178,32 @@ public class ImpactBodyFragment extends Fragment {
                 break;
 
             case MODE_YEAR:
-                // UI Setup
+                // TODO: Get Time, get week, month, year
                 tvDateRange.setText(String.format(timeList[2], 2025));
+                btnPrevDate.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //TODO:Calculate Year
+                    }
+                });
+                btnNextDate.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //TODO:Calculate Year
+                    }
+                });
                 constraintSet.connect(R.id.statsContainer, ConstraintSet.TOP, R.id.chartYear, ConstraintSet.BOTTOM);
                 constraintSet.applyTo(impactConstraint);
+                //TODO: Get Total value from database
+                tvStatClaimedValue.setText(getString(R.string.Number, 2));
+                tvStatClaimedDesc.setText(getString(R.string.Items_Claimed, "Year"));
+                tvStatDonatedValue.setText(getString(R.string.Number, 5));
+                tvStateDonatedDesc.setText(getString(R.string.Items_Donated, "Year"));
+                var weightYear = 2.5;
+                tvStatSavedValue.setText(getString(R.string.Food_Saved_Value, weightYear));
+                tvContributionsHeader.setText(getString(R.string.Personal_Contribution, "24/11/2025-30/11/2025"));
+                tvContributionsHeader.setText(getString(R.string.Personal_Contribution, "2025"));
+                tvMonthYear.setText(getString(R.string.String, "Month"));
                 headerMonthYear.setVisibility(View.VISIBLE);
 
                 // Charts Visibility
@@ -141,9 +220,11 @@ public class ImpactBodyFragment extends Fragment {
     // --- Mock Chart Setup Methods ---
     private void setupBarChart() {
         List<BarEntry> entries = new ArrayList<>();
-        entries.add(new BarEntry(1, 10)); // Mon
-        entries.add(new BarEntry(2, 5));  // Tue
-        entries.add(new BarEntry(3, 8));  // Wed
+
+        //TODO: Replace with real data, Day, Food Saved(kg)
+        entries.add(new BarEntry(1, 10)); // Mon, kg
+        entries.add(new BarEntry(2, 5));  // Tue, kg
+        entries.add(new BarEntry(3, 8));  // Wed, kg
         BarDataSet set = new BarDataSet(entries, "Items");
         //TODO: Maybe set the onValueSelect to primary color
         set.setColors(getResources().getColor(R.color.chart_unselected));
@@ -154,9 +235,11 @@ public class ImpactBodyFragment extends Fragment {
 
     private void setupLineChart() {
         List<Entry> entries = new ArrayList<>();
-        entries.add(new Entry(1, 20)); // Week 1
-        entries.add(new Entry(2, 45)); // Week 2
-        entries.add(new Entry(3, 30)); // Week 3
+
+        //TODO: Replace with real data, Week, Food Saved(kg)
+        entries.add(new Entry(1, 20)); // Week 1, kg
+        entries.add(new Entry(2, 45)); // Week 2, kg
+        entries.add(new Entry(3, 30)); // Week 3, kg
         LineDataSet set = new LineDataSet(entries, "Kg Saved");
         set.setColor(Color.BLUE);
         LineData data = new LineData(set);
@@ -166,6 +249,8 @@ public class ImpactBodyFragment extends Fragment {
 
     private void setupPieChart() {
         List<PieEntry> entries = new ArrayList<>();
+
+        //TODO: Replace with real data
         entries.add(new PieEntry(40f, "Saved"));
         entries.add(new PieEntry(30f, "Donated"));
         entries.add(new PieEntry(30f, "Claimed"));
@@ -179,6 +264,7 @@ public class ImpactBodyFragment extends Fragment {
     // --- Mock Data Generators ---
     private List<String> getMockWeekData() {
         List<String> list = new ArrayList<>();
+        //TODO: Data put in here
         for (int i = 0; i < 5; i++) list.add("Bread");
         return list;
     }
@@ -198,7 +284,9 @@ public class ImpactBodyFragment extends Fragment {
     // 1. Week Adapter (Uses fragment_week_contribution.xml)
     private class WeekAdapter extends RecyclerView.Adapter<WeekAdapter.ViewHolder> {
         List<String> data;
-        public WeekAdapter(List<String> data) { this.data = data; }
+        public WeekAdapter(List<String> data) {
+            this.data = data;
+        }
 
         @NonNull @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -207,17 +295,28 @@ public class ImpactBodyFragment extends Fragment {
         }
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            //TODO: Data go here
+            holder.ivItemImage.setImageResource(R.drawable.ic_launcher_background);
             holder.tvItemName.setText(data.get(position));
-            holder.tvStatus.setText("Saved");
+            holder.tvItemDate.setText(getString(R.string.Contribute_Time, "Mon", 2, "PM"));
+            holder.tvStatus.setText(getString(R.string.String, "Claimed"));
+            var contributionWeight = 0.2;
+            holder.tvWeight.setText(getString(R.string.Contribution_Amount, contributionWeight));
         }
-        @Override public int getItemCount() { return data.size(); }
+        @Override public int getItemCount() {
+            return data.size();
+        }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView tvItemName, tvStatus;
+            TextView tvItemName, tvItemDate, tvStatus, tvWeight;
+            ImageView ivItemImage;
             public ViewHolder(View itemView) {
                 super(itemView);
+                ivItemImage = itemView.findViewById(R.id.ivItemImage);
                 tvItemName = itemView.findViewById(R.id.tvItemName);
+                tvItemDate = itemView.findViewById(R.id.tvItemDate);
                 tvStatus = itemView.findViewById(R.id.tvStatus);
+                tvWeight = itemView.findViewById(R.id.tvWeight);
             }
         }
     }
@@ -234,18 +333,21 @@ public class ImpactBodyFragment extends Fragment {
         }
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            //TODO: Data go here
             holder.tvWeekTitle.setText(data.get(position));
-            holder.tvClaimedCount.setText("5");
-            holder.tvDonatedCount.setText("2");
-            holder.tvSavedAmount.setText("10kg");
+            holder.tvDateRange.setText(getString(R.string.Contribute_Week, "3/11/2025", " 9/11/2025"));
+            holder.tvClaimedCount.setText(getString(R.string.Contribution_Quantity_Type, 5));
+            holder.tvDonatedCount.setText(getString(R.string.Contribution_Quantity_Type, 2));
+            holder.tvSavedAmount.setText(getString(R.string.Contribution_Amount, 10.0));
         }
         @Override public int getItemCount() { return data.size(); }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView tvWeekTitle, tvClaimedCount, tvDonatedCount, tvSavedAmount;
+            TextView tvWeekTitle, tvDateRange, tvClaimedCount, tvDonatedCount, tvSavedAmount;
             public ViewHolder(View itemView) {
                 super(itemView);
                 tvWeekTitle = itemView.findViewById(R.id.tvWeekTitle);
+                tvDateRange = itemView.findViewById(R.id.tvDateRange);
                 tvClaimedCount = itemView.findViewById(R.id.tvClaimedCount);
                 tvDonatedCount = itemView.findViewById(R.id.tvDonatedCount);
                 tvSavedAmount = itemView.findViewById(R.id.tvSavedAmount);
@@ -265,10 +367,11 @@ public class ImpactBodyFragment extends Fragment {
         }
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            //TODO: Data go here
             holder.tvMonthName.setText(data.get(position));
-            holder.tvYearClaimed.setText("20");
-            holder.tvYearDonated.setText("15");
-            holder.tvYearSaved.setText("50kg");
+            holder.tvYearClaimed.setText(getString(R.string.Contribution_Quantity_Type, 5));
+            holder.tvYearDonated.setText(getString(R.string.Contribution_Quantity_Type, 5));
+            holder.tvYearSaved.setText(getString(R.string.Contribution_Amount, 5.0));
         }
         @Override public int getItemCount() { return data.size(); }
 
