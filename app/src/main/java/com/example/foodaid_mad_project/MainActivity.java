@@ -12,9 +12,7 @@ import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.example.foodaid_mad_project.AuthFragments.CompleteProfileFragment;
 import com.example.foodaid_mad_project.AuthFragments.User;
-import com.example.foodaid_mad_project.HomeFragments.HomeFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -32,23 +30,10 @@ public class MainActivity extends AppCompatActivity {
             NavigationUI.setupWithNavController(bottomNav, navController);
 
             User user = UserManager.getInstance().getUser();
-            // TODO: replace with navigation
-            // Set mainFragment
-            if (savedInstanceState == null) {
-                FragmentManager fragmentManager = getSupportFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-                // Create HomeFragment instance, add HomeFragment to the mainFragment and run
-                HomeFragment homeFragment = new HomeFragment();
-                CompleteProfileFragment completeProfileFragment = new CompleteProfileFragment();
-
-                if (user.getFullName() == null) {
-                    fragmentTransaction.add(R.id.mainFragment, completeProfileFragment);
-                } else {
-                    fragmentTransaction.add(R.id.mainFragment, homeFragment);
-                }
-
-                fragmentTransaction.commit();
+            if (user != null && user.getFullName() == null) {
+                // Navigate to CompleteProfileFragment if profile is incomplete
+                navController.navigate(R.id.completeProfileFragment);
             }
 
             FloatingActionButton fab = findViewById(R.id.fabNewDonation);
