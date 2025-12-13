@@ -1,13 +1,13 @@
 package com.example.foodaid_mad_project;
 
-import android.animation.ObjectAnimator;
 import android.os.Bundle;
-import android.view.View;
-import android.view.animation.AnticipateInterpolator;
-
-import androidx.core.splashscreen.SplashScreen;
-
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.NavigationUI;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.example.foodaid_mad_project.DonateFragments.DonateFragment; // Import DonateFragment
 import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -23,6 +23,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.mainFragment);
+
+        if (navHostFragment != null) {
+            NavController navController = navHostFragment.getNavController();
+            BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
+            NavigationUI.setupWithNavController(bottomNav, navController);
         User user = UserManager.getInstance().getUser();
         // TODO: replace with navigation
         // Set mainFragment
@@ -42,5 +49,13 @@ public class MainActivity extends AppCompatActivity {
 
             fragmentTransaction.commit();
         }
+
+        FloatingActionButton fab = findViewById(R.id.fabNewDonation);
+        fab.setOnClickListener(v -> {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.coveringFragment, new DonateFragment())
+                    .addToBackStack("Donate")
+                    .commit();
+        });
     }
 }

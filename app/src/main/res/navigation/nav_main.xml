@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_main"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.foodaid_mad_project.HomeFragments.HomeFragment"
+        android:label="fragment_home"
+        tools:layout="@layout/fragment_home" >
+        <action android:id="@+id/action_to_impact" app:destination="@id/impactFragment"/>
+        <action android:id="@+id/action_to_community" app:destination="@id/communityFragment"/>
+        <action android:id="@+id/action_to_profile" app:destination="@id/profileFragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/impactFragment"
+        android:name="com.example.foodaid_mad_project.ImpactFragments.ImpactFragment"
+        android:label="fragment_impact"
+        tools:layout="@layout/fragment_impact" />
+
+    <fragment
+        android:id="@+id/communityFragment"
+        android:name="com.example.foodaid_mad_project.CommunityFragments.CommunityFragment"
+        android:label="fragment_community"
+        tools:layout="@layout/fragment_community" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.foodaid_mad_project.ProfileFragments.ProfileFragment"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_profile" />
+</navigation>

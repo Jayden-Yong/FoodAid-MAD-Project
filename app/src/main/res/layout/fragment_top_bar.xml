@@ -7,9 +7,10 @@
     android:layout_height="?attr/actionBarSize"
     android:background="@color/white"
     android:elevation="0dp"
+    android:clickable="true"
+    android:focusable="true"
     app:navigationIcon="@drawable/ic_back_button"
-    app:navigationIconTint="@color/primary_color"
-    app:title="">
+    app:navigationIconTint="@color/primary_color">
 
     <TextView
         android:id="@+id/toolbarTitle"
