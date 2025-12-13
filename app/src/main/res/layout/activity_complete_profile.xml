@@ -6,7 +6,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:padding="26dp"
     android:background="@color/white"
-    tools:context=".AuthFragments.CompleteProfileFragment">
+    tools:context=".CompleteProfileActivity">
 
     <TextView
         android:id="@+id/tvCompleteProfileTitle"

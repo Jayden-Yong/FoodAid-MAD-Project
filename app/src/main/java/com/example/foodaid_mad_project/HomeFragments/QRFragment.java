@@ -22,7 +22,9 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import com.example.foodaid_mad_project.AuthFragments.User;
 import com.example.foodaid_mad_project.R;
+import com.example.foodaid_mad_project.UserManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.zxing.BarcodeFormat;
@@ -70,15 +72,34 @@ public class QRFragment extends Fragment {
         TextView toolBarTitle = view.findViewById(R.id.toolbarTitle);
         toolBarTitle.setText(getString(R.string.String, "QR Page"));
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        String username = (user != null) ? user.getEmail().substring(0, user.getEmail().indexOf("@")).toUpperCase() : "Anonymous";
-        String userId = (user != null) ? user.getUid() : "Anonymous";
+        String username = "";
+        String userId = "";
+        User user = UserManager.getInstance().getUser();
+        try {
+            if (user != null) {
+                String email = user.getEmail();
+
+                if (user.getFullName() != null) {
+                    username = user.getFullName();
+                } else if(user.getDisplayName() != null){
+                    username = user.getDisplayName();
+                } else {
+                    username = email.substring(0, email.indexOf("@")).toUpperCase();
+                }
+
+                if(user.getUid() != null){
+                    userId = user.getUid();
+                }
+            }
+        } catch (NullPointerException e) {
+            username = "Guest";
+        }
         tvUserName.setText(username);
         tvUserId.setText(userId);
 
         // Generate "My QR" immediately
-        generateMyQRCode("USER-12345-AUTH-TOKEN"); // Replace with actual User ID or Data
-        tvUserCode.setText("USER-12345-AUTH-TOKEN");
+        generateMyQRCode(user.getUid());
+        tvUserCode.setText(String.format("%s-AUTH-TOKEN", username));
 
         // Set Tab Listeners
         btnTabMyQr.setOnClickListener(v -> switchTab(true));

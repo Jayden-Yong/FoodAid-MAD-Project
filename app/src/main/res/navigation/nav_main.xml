@@ -35,9 +35,9 @@
 
     <fragment
         android:id="@+id/completeProfileFragment"
-        android:name="com.example.foodaid_mad_project.AuthFragments.CompleteProfileFragment"
+        android:name="com.example.foodaid_mad_project.CompleteProfileFragment"
         android:label="fragment_complete_profile"
-        tools:layout="@layout/fragment_complete_profile" />
+        tools:layout="@layout/activity_complete_profile" />
 
     <fragment
         android:id="@+id/mapFragment"

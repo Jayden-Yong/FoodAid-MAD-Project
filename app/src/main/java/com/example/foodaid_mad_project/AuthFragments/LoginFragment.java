@@ -120,27 +120,10 @@ public class LoginFragment extends Fragment {
     }
 
     private void forgotPassword() {
-        // check if email is empty
-        String email = etLoginEmail.getText().toString().trim();
-        if (email.isEmpty()) {
-            Toast.makeText(getContext(), "Please enter your email first", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(getContext(), "Please enter a valid email address", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        //TODO: Navigate to Reset Password Fragment
-
-        auth.sendPasswordResetEmail(email).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Toast.makeText(getContext(), "Password reset email sent", Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(getContext(), "Failed to send password reset email", Toast.LENGTH_LONG).show();
-            }
-        });
+        getParentFragmentManager().beginTransaction()
+                .replace(R.id.authFragmentContainer, new ResetPasswordFragment(auth))
+                .addToBackStack(null)
+                .commit();
     }
 
     private void loginEmail() {

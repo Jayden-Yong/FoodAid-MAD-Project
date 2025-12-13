@@ -46,6 +46,11 @@
             android:theme="@style/Theme.FoodAidMADProject">
         </activity>
         <activity
+            android:name=".CompleteProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.FoodAidMADProject">
+        </activity>
+        <activity
             android:name=".AuthActivity"
             android:exported="false"
             android:theme="@style/Theme.FoodAidMADProject">
