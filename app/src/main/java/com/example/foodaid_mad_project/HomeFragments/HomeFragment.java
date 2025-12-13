@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +37,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private GoogleMap mMap;
     // private FirebaseFirestore db; // Commented out for now
     private FragmentContainerView mapPinContainer;
+    private ImageButton btnToQR;
 
     // List to hold Mock Data
     private List<FoodItem> mockFoodItems;
@@ -86,6 +88,17 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                     .replace(R.id.MapFragment, mapFragment)
                     .commit();
         }
+
+        // To QR Page
+        btnToQR = view.findViewById(R.id.btnToQR);
+        btnToQR.setOnClickListener(v -> {
+            // Use requireActivity().getSupportFragmentManager() because coveringFragment
+            // belongs to MainActivity, not the NavHostFragment.
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.coveringFragment, new QRFragment())
+                    .addToBackStack("QRFragment")
+                    .commit();
+        });
 
         if (mapFragment instanceof SupportMapFragment) {
             ((SupportMapFragment) mapFragment).getMapAsync(this);
