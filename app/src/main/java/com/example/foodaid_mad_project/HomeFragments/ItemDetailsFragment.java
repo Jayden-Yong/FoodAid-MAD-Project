@@ -1,5 +1,6 @@
 package com.example.foodaid_mad_project.HomeFragments;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +29,7 @@ public class ItemDetailsFragment extends Fragment {
     private int quantity;
     private String location;
     private String donator;
+    private String imageUri;
 
 
     private TextView tvProductTitle, tvPickupTime, tvQuantity, tvLocationLabel, tvPostedBy;
@@ -37,13 +39,19 @@ public class ItemDetailsFragment extends Fragment {
 
     public ItemDetailsFragment() {}
 
-    public ItemDetailsFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator){
+    // Updated Constructor
+    public ItemDetailsFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator, String imageUri){
         this.title = title;
         this.pickupTime = pickupTime;
         this.category = category;
         this.quantity = quantity;
         this.location = location;
         this.donator = donator;
+        this.imageUri = imageUri;
+    }
+
+    public ItemDetailsFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator){
+        this(title, pickupTime, category, quantity, location, donator, null);
     }
 
     @Nullable
@@ -65,12 +73,17 @@ public class ItemDetailsFragment extends Fragment {
         radioGroupCategory = view.findViewById(R.id.radioGroupCategory);
 
         tvProductTitle.setText(getString(R.string.Food_Name, title));
-        tvPickupTime.setText(getString(R.string.Pickup_Time, pickupTime[0], pickupTime[1]));
+        if(pickupTime != null && pickupTime.length >= 2) {
+            tvPickupTime.setText(getString(R.string.Pickup_Time, pickupTime[0], pickupTime[1]));
+        }
         tvQuantity.setText(getString(R.string.Food_Quantity, quantity));
         tvLocationLabel.setText(getString(R.string.Food_Location, location));
         tvPostedBy.setText(getString(R.string.Food_Donator, donator));
-        radioGroupCategory.check(category);
+        if (category != 0) radioGroupCategory.check(category);
 
+        if (imageUri != null) {
+            ivProductImage.setImageURI(Uri.parse(imageUri));
+        }
 
         TextView toolBarTitle = view.findViewById(R.id.toolbarTitle);
         toolBarTitle.setText(getString(R.string.String, "Food Aid Details"));

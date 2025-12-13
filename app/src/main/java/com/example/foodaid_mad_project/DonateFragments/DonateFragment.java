@@ -1,14 +1,19 @@
 package com.example.foodaid_mad_project.DonateFragments;
 
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -26,20 +31,28 @@ import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import com.example.foodaid_mad_project.Model.FoodItem; // Import your model
 import com.example.foodaid_mad_project.R;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-// import com.google.firebase.firestore.FirebaseFirestore;
-// import java.util.UUID;
 
-public class DonateFragment extends Fragment {
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+
+// Implement OnMapReadyCallback
+public class DonateFragment extends Fragment implements OnMapReadyCallback {
 
     private String title;
     private String[] pickupTime;
     private int category;
     private String quantityStr;
-    private String location;
+    private String location; // Stores the selected address string
     private String donator;
 
     private ImageView ivSelectedPhoto;
@@ -47,13 +60,14 @@ public class DonateFragment extends Fragment {
     private Uri selectedImageUri;
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
 
-    // private FirebaseFirestore db; // Commented out
+    // Map Variables
+    private GoogleMap mMap;
+    private LatLng selectedLatLng; // Stores the selected coordinates
+    private EditText etLocationSearch;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // db = FirebaseFirestore.getInstance(); // Commented out
-
         pickMedia = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
             if (uri != null) {
                 selectedImageUri = uri;
@@ -76,6 +90,7 @@ public class DonateFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // --- View Binding ---
         RadioGroup toggleGroupDonationType = view.findViewById(R.id.toggleGroupDonationType);
         EditText etItemName = view.findViewById(R.id.etItemName);
         EditText etQuantity = view.findViewById(R.id.etQuantity);
@@ -88,11 +103,34 @@ public class DonateFragment extends Fragment {
         EditText etTimeTo = view.findViewById(R.id.etTimeTo);
         CheckBox cbConfirm = view.findViewById(R.id.cbConfirm);
 
+        // Location Search Views
+        etLocationSearch = view.findViewById(R.id.etLocationSearch);
+        ImageButton btnSearchLocation = view.findViewById(R.id.btnSearchLocation);
+
         TextView toolBarTitle = view.findViewById(R.id.toolbarTitle);
         toolBarTitle.setText("Donate Food");
 
         ivSelectedPhoto = view.findViewById(R.id.ivSelectedPhoto);
         tvUploadPlaceholder = view.findViewById(R.id.tvUploadPlaceholder);
+
+        // --- Map Initialization ---
+        // Get the map fragment from the container
+        Fragment mapFragment = getChildFragmentManager().findFragmentById(R.id.mapFragmentContainer);
+        if (mapFragment instanceof SupportMapFragment) {
+            ((SupportMapFragment) mapFragment).getMapAsync(this);
+        }
+
+        // --- Search Button Logic ---
+        btnSearchLocation.setOnClickListener(v -> {
+            String searchString = etLocationSearch.getText().toString();
+            if (!searchString.isEmpty()) {
+                searchLocation(searchString);
+            } else {
+                Toast.makeText(getContext(), "Please enter a location to search", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Photo Upload Logic
         if (cvUploadPhoto != null) {
             cvUploadPhoto.setOnClickListener(v -> {
                 pickMedia.launch(new PickVisualMediaRequest.Builder()
@@ -101,10 +139,12 @@ public class DonateFragment extends Fragment {
             });
         }
 
+        // Spinner Setup
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(requireContext(), R.array.Pickup_Method_List, R.layout.spinner_item_selected);
         adapter.setDropDownViewResource(R.layout.spinner_pickup_method);
         spinnerPickupMethod.setAdapter(adapter);
 
+        // Navigation Logic
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -123,15 +163,11 @@ public class DonateFragment extends Fragment {
             });
         }
 
+        // --- Donate Button Logic ---
         Button btnDonate = view.findViewById(R.id.btnDonate);
         if (btnDonate != null) {
             btnDonate.setOnClickListener(v -> {
-                // Validation
-                if(toggleGroupDonationType.getCheckedRadioButtonId() == -1){
-                    Toast.makeText(getContext(), "Please select a donation type", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
+                // Input Gathering
                 title = etItemName.getText().toString();
                 quantityStr = etQuantity.getText().toString();
                 String weight = etWeight.getText().toString();
@@ -140,6 +176,12 @@ public class DonateFragment extends Fragment {
                 String timeFrom = etTimeFrom.getText().toString();
                 String timeTo = etTimeTo.getText().toString();
 
+                // Validation
+                if(toggleGroupDonationType.getCheckedRadioButtonId() == -1){
+                    Toast.makeText(getContext(), "Please select a donation type", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 if (title.isEmpty() || quantityStr.isEmpty() || weight.isEmpty() || expiry.isEmpty() || desc.isEmpty()){
                     Toast.makeText(getContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
                     return;
@@ -147,6 +189,11 @@ public class DonateFragment extends Fragment {
 
                 if (selectedImageUri == null) {
                     Toast.makeText(getContext(), "Please upload a photo", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (location == null || location.isEmpty()) {
+                    Toast.makeText(getContext(), "Please search or select a location on the map", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -160,47 +207,85 @@ public class DonateFragment extends Fragment {
                     return;
                 }
 
-                // Get User Info
+                // Save Logic (Mocked)
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                donator = (user != null && user.getDisplayName() != null && !user.getDisplayName().isEmpty()) ? user.getDisplayName() : "Anonymous";
+                donator = (user != null) ? user.getEmail().substring(0, user.getEmail().indexOf("@")).toUpperCase() : "Anonymous";
 
-                location = "Petaling Jaya"; // Mock location
-
-                // Prepare Data variables for navigation
                 pickupTime = new String[]{timeFrom, timeTo};
                 category = toggleGroupDonationType.getCheckedRadioButtonId();
 
-                // --- REAL DATABASE CODE (Commented Out) ---
-                /*
-                String uniqueId = UUID.randomUUID().toString();
                 String imageUriString = selectedImageUri.toString();
-                double lat = 3.118; // Mock lat
-                double lng = 101.60; // Mock lng
-
-                FoodItem foodItem = new FoodItem(uniqueId, title, location, quantityStr, donator, imageUriString, lat, lng);
-
-                db.collection("donations").document(uniqueId).set(foodItem)
-                    .addOnSuccessListener(aVoid -> {
-                        // Success Navigation
-                        FragmentManager fragmentManager = getParentFragmentManager();
-                        fragmentManager.beginTransaction()
-                                .replace(R.id.DonateFragmentContainer, new DonateNotifyFragment(title, pickupTime, category, Integer.parseInt(quantityStr), location, donator))
-                                .addToBackStack("DonateSuccess")
-                                .commit();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(getContext(), "Failed to save donation: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
-                */
-
-                // --- MOCK NAVIGATION (Temporary) ---
                 FragmentManager fragmentManager = getParentFragmentManager();
                 fragmentManager.beginTransaction()
-                        .replace(R.id.DonateFragmentContainer, new DonateNotifyFragment(title, pickupTime, category, Integer.parseInt(quantityStr), location, donator))
+                        .replace(R.id.DonateFragmentContainer, new DonateNotifyFragment(title, pickupTime, category, Integer.parseInt(quantityStr), location, donator, imageUriString))
                         .addToBackStack("DonateSuccess")
                         .commit();
-                // -----------------------------------
             });
+        }
+    }
+
+    // --- Map Callback ---
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        mMap = googleMap;
+
+        // Default: Kuala Lumpur
+        LatLng defaultLocation = new LatLng(3.1390, 101.6869);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 10));
+
+        // Map Click Listener: Allow user to pin point manually
+        mMap.setOnMapClickListener(latLng -> {
+            mMap.clear(); // Remove old marker
+            mMap.addMarker(new MarkerOptions().position(latLng).title("Selected Location"));
+            selectedLatLng = latLng;
+
+            // Reverse Geocode: Get address from LatLng
+            getAddressFromLatLng(latLng);
+        });
+    }
+
+    // Helper: Search Location by Text
+    private void searchLocation(String locationName) {
+        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+        try {
+            List<Address> addressList = geocoder.getFromLocationName(locationName, 1);
+            if (addressList != null && !addressList.isEmpty()) {
+                Address address = addressList.get(0);
+                LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+
+                mMap.clear();
+                mMap.addMarker(new MarkerOptions().position(latLng).title(locationName));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+
+                // Save data
+                selectedLatLng = latLng;
+                location = address.getAddressLine(0); // Full address string
+                // Update EditText to show full resolved address
+                etLocationSearch.setText(location);
+            } else {
+                Toast.makeText(getContext(), "Location not found", Toast.LENGTH_SHORT).show();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Error searching location", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // Helper: Get Address from Pin Point
+    private void getAddressFromLatLng(LatLng latLng) {
+        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                location = addresses.get(0).getAddressLine(0);
+                etLocationSearch.setText(location); // Update UI
+            } else {
+                location = "Selected Coordinates: " + latLng.latitude + ", " + latLng.longitude;
+                etLocationSearch.setText(location);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            location = "Unknown Location";
         }
     }
 }

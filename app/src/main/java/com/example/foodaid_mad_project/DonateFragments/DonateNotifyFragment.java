@@ -22,16 +22,18 @@ public class DonateNotifyFragment extends Fragment {
     private int quantity;
     private String location;
     private String donator;
+    private String imageUri;
 
     public DonateNotifyFragment() {}
 
-    public DonateNotifyFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator){
+    public DonateNotifyFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator, String imageUri){
         this.title = title;
         this.pickupTime = pickupTime;
         this.category = category;
         this.quantity = quantity;
         this.location = location;
         this.donator = donator;
+        this.imageUri = imageUri; // Save it
     }
 
     @Nullable
@@ -52,7 +54,7 @@ public class DonateNotifyFragment extends Fragment {
             getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
             requireActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment, new ItemDetailsFragment(title, pickupTime, category, quantity, location, donator))
+                    .replace(R.id.coveringFragment, new ItemDetailsFragment(title, pickupTime, category, quantity, location, donator, imageUri))
                     .addToBackStack("ItemDetail")
                     .commit();
         });
