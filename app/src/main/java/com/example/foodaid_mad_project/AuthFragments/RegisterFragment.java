@@ -31,6 +31,7 @@ import androidx.fragment.app.Fragment;
 import com.example.foodaid_mad_project.AuthActivity;
 import com.example.foodaid_mad_project.MainActivity;
 import com.example.foodaid_mad_project.R;
+import com.example.foodaid_mad_project.UserManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
@@ -316,9 +317,22 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
 
         db.collection("users").document(uid).set(userData, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "Registration/Login successful!", Toast.LENGTH_LONG).show();
-                    startActivity(new Intent(getContext(), MainActivity.class));
-                    requireActivity().finish();
+                    // Fetch latest data to ensure UserManager is up to date (handles merges for
+                    // existing users)
+                    db.collection("users").document(uid).get()
+                            .addOnSuccessListener(documentSnapshot -> {
+                                User currentUser = documentSnapshot.toObject(User.class);
+                                UserManager.getInstance().setUser(currentUser);
+
+                                Toast.makeText(getContext(), "Registration/Login successful!", Toast.LENGTH_LONG)
+                                        .show();
+                                startActivity(new Intent(getContext(), MainActivity.class));
+                                requireActivity().finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(getContext(), "Failed to retrieve user data: " + e.getMessage(),
+                                        Toast.LENGTH_LONG).show();
+                            });
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Failed to save user data: " + e.getMessage(), Toast.LENGTH_LONG)

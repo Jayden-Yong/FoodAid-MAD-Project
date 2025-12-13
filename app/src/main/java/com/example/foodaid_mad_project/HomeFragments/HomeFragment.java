@@ -1,7 +1,6 @@
 package com.example.foodaid_mad_project.HomeFragments;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,8 +13,11 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentContainerView;
 
+import com.example.foodaid_mad_project.AuthFragments.User;
 import com.example.foodaid_mad_project.Model.FoodItem;
 import com.example.foodaid_mad_project.R;
+import com.example.foodaid_mad_project.UserManager;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -33,7 +35,10 @@ import java.util.List;
 
 public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
+    private String email, username, welcomeDisplay;
     private TextView tvWelcomeUser;
+
+    //My Map
     private GoogleMap mMap;
     // private FirebaseFirestore db; // Commented out for now
     private FragmentContainerView mapPinContainer;
@@ -44,13 +49,33 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+            Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        tvWelcomeUser = view.findViewById(R.id.tvWelcomeUser);
+
+        try {
+            User user = UserManager.getInstance().getUser();
+            if (user != null) {
+                email = user.getEmail();
+
+                if (user.getFullName() != null) {
+                    username = user.getFullName();
+                } else {
+                    username = user.getDisplayName();
+                }
+
+                welcomeDisplay = username;
+            }
+
+        } catch (NullPointerException e) {
+            welcomeDisplay = "Guest";
+        }
 
         // db = FirebaseFirestore.getInstance(); // Commented out
 
@@ -62,23 +87,14 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         mapPinContainer.setVisibility(View.GONE);
 
         String email, username, welcomeDisplay;
-        try {
-            FirebaseAuth auth = FirebaseAuth.getInstance();
-            FirebaseUser currentUser = auth.getCurrentUser();
-            if (currentUser != null) {
-                username = currentUser.getDisplayName();
-                email = currentUser.getEmail();
-                welcomeDisplay = (username != null && !username.isEmpty()) ? username : email;
-            } else {
-                welcomeDisplay = "Guest";
-            }
-        } catch (Exception e){
-            Log.e("HomeFragment", "Error getting user", e);
-            welcomeDisplay = "Guest";
-        }
 
-        tvWelcomeUser = view.findViewById(R.id.tvWelcomeUser);
         tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
+
+        // --- Load MapFragment into FragmentContainerView ---
+        getChildFragmentManager()
+                .beginTransaction()
+                .replace(R.id.MapFragment, new MapFragment())
+                .commit();
 
         // Initialize Map
         Fragment mapFragment = getChildFragmentManager().findFragmentById(R.id.MapFragment);
