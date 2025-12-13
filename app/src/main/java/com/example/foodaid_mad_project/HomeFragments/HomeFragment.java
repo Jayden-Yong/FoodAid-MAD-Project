@@ -66,8 +66,10 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
                 if (user.getFullName() != null) {
                     username = user.getFullName();
-                } else {
+                } else if(user.getDisplayName() != null){
                     username = user.getDisplayName();
+                } else {
+                    username = email.substring(0, email.indexOf("@")).toUpperCase();
                 }
 
                 welcomeDisplay = username;
@@ -76,6 +78,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         } catch (NullPointerException e) {
             welcomeDisplay = "Guest";
         }
+        tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
 
         // db = FirebaseFirestore.getInstance(); // Commented out
 
@@ -85,10 +88,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
         mapPinContainer = view.findViewById(R.id.MapPinFragment);
         mapPinContainer.setVisibility(View.GONE);
-
-        String email, username, welcomeDisplay;
-
-        tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
 
         // --- Load MapFragment into FragmentContainerView ---
         getChildFragmentManager()
