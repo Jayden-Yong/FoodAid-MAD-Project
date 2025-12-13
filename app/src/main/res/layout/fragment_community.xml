@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="26dp"
         android:text="@string/Community"
-        android:textColor="#1A1A1A"
+        android:textColor="@color/font_primary"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"

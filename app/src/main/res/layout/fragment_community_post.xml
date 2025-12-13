@@ -7,8 +7,7 @@
     android:layout_marginBottom="20dp"
     app:cardBackgroundColor="@color/bg_community_post"
     app:cardCornerRadius="16dp"
-    app:cardElevation="0dp"
-    tools:context=".CommunityFragments.CommunityPostFragment">
+    app:cardElevation="0dp">
 
 <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
