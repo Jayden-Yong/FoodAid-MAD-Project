@@ -30,32 +30,34 @@ public class MainActivity extends AppCompatActivity {
             NavController navController = navHostFragment.getNavController();
             BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
             NavigationUI.setupWithNavController(bottomNav, navController);
-        User user = UserManager.getInstance().getUser();
-        // TODO: replace with navigation
-        // Set mainFragment
-        if (savedInstanceState == null) {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-            // Create HomeFragment instance, add HomeFragment to the mainFragment and run
-            HomeFragment homeFragment = new HomeFragment();
-            CompleteProfileFragment completeProfileFragment = new CompleteProfileFragment();
+            User user = UserManager.getInstance().getUser();
+            // TODO: replace with navigation
+            // Set mainFragment
+            if (savedInstanceState == null) {
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-            if (user.getFullName() == null) {
-                fragmentTransaction.add(R.id.mainFragment, completeProfileFragment);
-            } else {
-                fragmentTransaction.add(R.id.mainFragment, homeFragment);
+                // Create HomeFragment instance, add HomeFragment to the mainFragment and run
+                HomeFragment homeFragment = new HomeFragment();
+                CompleteProfileFragment completeProfileFragment = new CompleteProfileFragment();
+
+                if (user.getFullName() == null) {
+                    fragmentTransaction.add(R.id.mainFragment, completeProfileFragment);
+                } else {
+                    fragmentTransaction.add(R.id.mainFragment, homeFragment);
+                }
+
+                fragmentTransaction.commit();
             }
 
-            fragmentTransaction.commit();
+            FloatingActionButton fab = findViewById(R.id.fabNewDonation);
+            fab.setOnClickListener(v -> {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.coveringFragment, new DonateFragment())
+                        .addToBackStack("Donate")
+                        .commit();
+            });
         }
-
-        FloatingActionButton fab = findViewById(R.id.fabNewDonation);
-        fab.setOnClickListener(v -> {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment, new DonateFragment())
-                    .addToBackStack("Donate")
-                    .commit();
-        });
     }
 }
