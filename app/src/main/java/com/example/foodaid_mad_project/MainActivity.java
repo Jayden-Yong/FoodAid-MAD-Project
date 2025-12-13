@@ -12,6 +12,8 @@ import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.foodaid_mad_project.AuthFragments.CompleteProfileFragment;
+import com.example.foodaid_mad_project.AuthFragments.User;
 import com.example.foodaid_mad_project.HomeFragments.HomeFragment;
 
 public class MainActivity extends AppCompatActivity {
@@ -21,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        User user = UserManager.getInstance().getUser();
         // TODO: replace with navigation
         // Set mainFragment
         if (savedInstanceState == null) {
@@ -30,7 +32,14 @@ public class MainActivity extends AppCompatActivity {
 
             // Create HomeFragment instance, add HomeFragment to the mainFragment and run
             HomeFragment homeFragment = new HomeFragment();
-            fragmentTransaction.add(R.id.mainFragment, homeFragment);
+            CompleteProfileFragment completeProfileFragment = new CompleteProfileFragment();
+
+            if (user.getFullName() == null) {
+                fragmentTransaction.add(R.id.mainFragment, completeProfileFragment);
+            } else {
+                fragmentTransaction.add(R.id.mainFragment, homeFragment);
+            }
+
             fragmentTransaction.commit();
         }
     }

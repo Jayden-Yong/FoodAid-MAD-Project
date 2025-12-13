@@ -142,6 +142,7 @@
 
         <TableRow>
             <CheckBox
+                android:id="@+id/cbNone"
                 android:layout_width="match_parent"
                 android:layout_height="35dp"
                 android:layout_marginHorizontal="10dp"
@@ -152,6 +153,7 @@
                 app:buttonTint="@color/primary_color" />
 
             <CheckBox
+                android:id="@+id/cbHalal"
                 android:layout_width="match_parent"
                 android:layout_height="35dp"
                 android:layout_marginHorizontal="10dp"
@@ -163,6 +165,7 @@
         </TableRow>
         <TableRow>
             <CheckBox
+                android:id="@+id/cbVegetarian"
                 android:layout_width="match_parent"
                 android:layout_height="35dp"
                 android:layout_marginHorizontal="10dp"
@@ -173,6 +176,7 @@
                 app:buttonTint="@color/primary_color" />
 
             <CheckBox
+                android:id="@+id/cbNoBeef"
                 android:layout_width="match_parent"
                 android:layout_height="35dp"
                 android:layout_marginHorizontal="10dp"
