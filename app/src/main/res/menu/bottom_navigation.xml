@@ -1,22 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/btnHome"
+        android:id="@+id/homeFragment"
         android:icon="@drawable/btn_home"
         android:title="@string/Home" />
     <item
-        android:id="@+id/btnImpact"
+        android:id="@+id/impactFragment"
         android:icon="@drawable/btn_impact"
         android:title="@string/Impact" />
     <item
-        android:id="@+id/btnCommunity"
+        android:id="@+id/communityFragment"
         android:icon="@drawable/btn_community"
         android:title="@string/Community" />
     <item
-        android:id="@+id/btnProfile"
+        android:id="@+id/profileFragment"
         android:icon="@drawable/btn_profile"
         android:title="@string/Profile" />
-
-
 </menu>
