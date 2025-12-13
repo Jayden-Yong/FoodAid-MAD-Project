@@ -37,6 +37,7 @@
     <string name="Faculty">Faculty</string>
     <string name="Select_Faulty">-Select Faculty-</string>
     <string-array name="Faculty_List">
+        <item>-Select Faculty-</item>
         <item>Faculty of Arts And Social Sciences</item>
         <item>Faculty of Business and Economics</item>
         <item>Faculty of Built Environment</item>
@@ -53,6 +54,7 @@
     </string-array>
     <string name="Residential_College">Residential College</string>
     <string-array name="Residential_College_List">
+        <item>-Select Residential College-</item>
         <item>RC1 (KK1)</item>
         <item>RC2 (KK2)</item>
         <item>RC3 (KK3)</item>

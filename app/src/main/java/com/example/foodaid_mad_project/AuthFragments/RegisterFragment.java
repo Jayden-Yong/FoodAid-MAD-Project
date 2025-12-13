@@ -29,6 +29,7 @@ import androidx.credentials.exceptions.GetCredentialException;
 import androidx.fragment.app.Fragment;
 
 import com.example.foodaid_mad_project.AuthActivity;
+import com.example.foodaid_mad_project.CompleteProfileActivity;
 import com.example.foodaid_mad_project.MainActivity;
 import com.example.foodaid_mad_project.R;
 import com.example.foodaid_mad_project.UserManager;
@@ -326,7 +327,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
 
                                 Toast.makeText(getContext(), "Registration/Login successful!", Toast.LENGTH_LONG)
                                         .show();
-                                startActivity(new Intent(getContext(), MainActivity.class));
+                                startActivity(new Intent(getContext(), CompleteProfileActivity.class));
                                 requireActivity().finish();
                             })
                             .addOnFailureListener(e -> {

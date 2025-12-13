@@ -29,13 +29,6 @@ public class MainActivity extends AppCompatActivity {
             BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
             NavigationUI.setupWithNavController(bottomNav, navController);
 
-            User user = UserManager.getInstance().getUser();
-
-            if (user != null && user.getFullName() == null) {
-                // Navigate to CompleteProfileFragment if profile is incomplete
-                navController.navigate(R.id.completeProfileFragment);
-            }
-
             FloatingActionButton fab = findViewById(R.id.fabNewDonation);
             fab.setOnClickListener(v -> {
                 getSupportFragmentManager().beginTransaction()
