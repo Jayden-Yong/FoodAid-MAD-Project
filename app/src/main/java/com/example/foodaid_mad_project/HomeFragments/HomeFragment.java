@@ -33,15 +33,17 @@ import com.google.firebase.auth.FirebaseUser;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HomeFragment extends Fragment implements OnMapReadyCallback {
+public class HomeFragment extends Fragment
+//        implements OnMapReadyCallback
+{
 
     private String email, username, welcomeDisplay;
     private TextView tvWelcomeUser;
 
     //My Map
-    private GoogleMap mMap;
+//    private GoogleMap mMap;
     // private FirebaseFirestore db; // Commented out for now
-    private FragmentContainerView mapPinContainer;
+//    private FragmentContainerView mapPinContainer;
     private ImageButton btnToQR;
 
     // List to hold Mock Data
@@ -80,14 +82,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         }
         tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
 
-        // db = FirebaseFirestore.getInstance(); // Commented out
-
-        // --- MOCK DATA GENERATION (Temporary) ---
-        generateMockData();
-        // ----------------------------------------
-
-        mapPinContainer = view.findViewById(R.id.MapPinFragment);
-        mapPinContainer.setVisibility(View.GONE);
 
         // --- Load MapFragment into FragmentContainerView ---
         getChildFragmentManager()
@@ -95,14 +89,29 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                 .replace(R.id.MapFragment, new MapFragment())
                 .commit();
 
-        // Initialize Map
-        Fragment mapFragment = getChildFragmentManager().findFragmentById(R.id.MapFragment);
-        if (mapFragment == null) {
-            mapFragment = new SupportMapFragment();
-            getChildFragmentManager().beginTransaction()
-                    .replace(R.id.MapFragment, mapFragment)
-                    .commit();
-        }
+//        Vibe Coded map using Google Map
+//        // db = FirebaseFirestore.getInstance(); // Commented out
+//
+//        // --- MOCK DATA GENERATION (Temporary) ---
+//        generateMockData();
+//        // ----------------------------------------
+//
+//        mapPinContainer = view.findViewById(R.id.MapPinFragment);
+//        mapPinContainer.setVisibility(View.GONE);
+
+
+//        // Initialize Map
+//        Fragment mapFragment = getChildFragmentManager().findFragmentById(R.id.MapFragment);
+//        if (mapFragment == null) {
+//            mapFragment = new SupportMapFragment();
+//            getChildFragmentManager().beginTransaction()
+//                    .replace(R.id.MapFragment, mapFragment)
+//                    .commit();
+//        }
+//
+//        if (mapFragment instanceof SupportMapFragment) {
+//            ((SupportMapFragment) mapFragment).getMapAsync(this);
+//        }
 
         // To QR Page
         btnToQR = view.findViewById(R.id.btnToQR);
@@ -114,79 +123,75 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                     .addToBackStack("QRFragment")
                     .commit();
         });
-
-        if (mapFragment instanceof SupportMapFragment) {
-            ((SupportMapFragment) mapFragment).getMapAsync(this);
-        }
     }
 
-    private void generateMockData() {
-        mockFoodItems = new ArrayList<>();
-        // Using local drawables for testing
-        mockFoodItems.add(new FoodItem("1", "Tiger Biscuits", "Universiti Malaya", "50 packs", "Student Council", R.drawable.ic_launcher_background, 3.1209, 101.6538));
-        mockFoodItems.add(new FoodItem("2", "Leftover Catering", "Mid Valley", "20 kg", "Grand Hotel", R.drawable.ic_launcher_background, 3.1176, 101.6776));
-        mockFoodItems.add(new FoodItem("3", "Canned Soup", "Jaya One", "100 cans", "Community NGO", R.drawable.ic_launcher_background, 3.1180, 101.6360));
-    }
-
-    @Override
-    public void onMapReady(@NonNull GoogleMap googleMap) {
-        mMap = googleMap;
-
-        // Default Camera Position
-        LatLng startLocation = new LatLng(3.1209, 101.6538);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startLocation, 12));
-
-        // --- REAL DATABASE CODE (Commented Out) ---
-        /*
-        db.collection("donations").get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                for (QueryDocumentSnapshot document : task.getResult()) {
-                    FoodItem item = document.toObject(FoodItem.class);
-                    if (item != null) {
-                        LatLng loc = new LatLng(item.getLat(), item.getLng());
-                        Marker marker = mMap.addMarker(new MarkerOptions().position(loc).title(item.getName()));
-                        if (marker != null) marker.setTag(item);
-                    }
-                }
-            } else {
-                Toast.makeText(getContext(), "Failed to load map pins", Toast.LENGTH_SHORT).show();
-            }
-        });
-        */
-
-        // --- MOCK DATA CODE (Temporary) ---
-        for (FoodItem item : mockFoodItems) {
-            LatLng position = new LatLng(item.getLat(), item.getLng());
-            Marker marker = mMap.addMarker(new MarkerOptions()
-                    .position(position)
-                    .title(item.getName()));
-
-            if (marker != null) {
-                marker.setTag(item);
-            }
-        }
-        // ----------------------------------
-
-        mMap.setOnMarkerClickListener(marker -> {
-            FoodItem selectedItem = (FoodItem) marker.getTag();
-            if (selectedItem != null) {
-                showMapPinDetails(selectedItem);
-                return true;
-            }
-            return false;
-        });
-
-        mMap.setOnMapClickListener(latLng -> {
-            mapPinContainer.setVisibility(View.GONE);
-        });
-    }
-
-    private void showMapPinDetails(FoodItem item) {
-        mapPinContainer.setVisibility(View.VISIBLE);
-        MapPinItemFragment pinFragment = new MapPinItemFragment(item);
-
-        getChildFragmentManager().beginTransaction()
-                .replace(R.id.MapPinFragment, pinFragment)
-                .commit();
-    }
+//    private void generateMockData() {
+//        mockFoodItems = new ArrayList<>();
+//        // Using local drawables for testing
+//        mockFoodItems.add(new FoodItem("1", "Tiger Biscuits", "Universiti Malaya", "50 packs", "Student Council", R.drawable.ic_launcher_background, 3.1209, 101.6538));
+//        mockFoodItems.add(new FoodItem("2", "Leftover Catering", "Mid Valley", "20 kg", "Grand Hotel", R.drawable.ic_launcher_background, 3.1176, 101.6776));
+//        mockFoodItems.add(new FoodItem("3", "Canned Soup", "Jaya One", "100 cans", "Community NGO", R.drawable.ic_launcher_background, 3.1180, 101.6360));
+//    }
+//
+//    @Override
+//    public void onMapReady(@NonNull GoogleMap googleMap) {
+//        mMap = googleMap;
+//
+//        // Default Camera Position
+//        LatLng startLocation = new LatLng(3.1209, 101.6538);
+//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startLocation, 12));
+//
+//        // --- REAL DATABASE CODE (Commented Out) ---
+//        /*
+//        db.collection("donations").get().addOnCompleteListener(task -> {
+//            if (task.isSuccessful()) {
+//                for (QueryDocumentSnapshot document : task.getResult()) {
+//                    FoodItem item = document.toObject(FoodItem.class);
+//                    if (item != null) {
+//                        LatLng loc = new LatLng(item.getLat(), item.getLng());
+//                        Marker marker = mMap.addMarker(new MarkerOptions().position(loc).title(item.getName()));
+//                        if (marker != null) marker.setTag(item);
+//                    }
+//                }
+//            } else {
+//                Toast.makeText(getContext(), "Failed to load map pins", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//        */
+//
+//        // --- MOCK DATA CODE (Temporary) ---
+//        for (FoodItem item : mockFoodItems) {
+//            LatLng position = new LatLng(item.getLat(), item.getLng());
+//            Marker marker = mMap.addMarker(new MarkerOptions()
+//                    .position(position)
+//                    .title(item.getName()));
+//
+//            if (marker != null) {
+//                marker.setTag(item);
+//            }
+//        }
+//        // ----------------------------------
+//
+//        mMap.setOnMarkerClickListener(marker -> {
+//            FoodItem selectedItem = (FoodItem) marker.getTag();
+//            if (selectedItem != null) {
+//                showMapPinDetails(selectedItem);
+//                return true;
+//            }
+//            return false;
+//        });
+//
+//        mMap.setOnMapClickListener(latLng -> {
+//            mapPinContainer.setVisibility(View.GONE);
+//        });
+//    }
+//
+//    private void showMapPinDetails(FoodItem item) {
+//        mapPinContainer.setVisibility(View.VISIBLE);
+//        MapPinItemFragment pinFragment = new MapPinItemFragment(item);
+//
+//        getChildFragmentManager().beginTransaction()
+//                .replace(R.id.MapPinFragment, pinFragment)
+//                .commit();
+//    }
 }
