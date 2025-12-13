@@ -42,6 +42,8 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.foodaid_mad_project.UserManager;
 
 import java.util.concurrent.Executors;
 
@@ -52,6 +54,7 @@ public class LoginFragment extends Fragment {
     private static final String KEY_REMEMBER_ME = "remember_me";
 
     private FirebaseAuth auth;
+    private FirebaseFirestore db;
     private CredentialManager credentialManager;
     private EditText etLoginEmail, etLoginPassword;
     private CheckBox btnCheckPassword, cbRememberMe;
@@ -61,7 +64,8 @@ public class LoginFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_login, container, false);
     }
 
@@ -78,6 +82,7 @@ public class LoginFragment extends Fragment {
         });
 
         auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
         credentialManager = CredentialManager.create(requireContext());
 
         // Initialize SharedPreferences
@@ -101,7 +106,8 @@ public class LoginFragment extends Fragment {
             Typeface passwordTypeface = etLoginPassword.getTypeface();
 
             if (isChecked) {
-                etLoginPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                etLoginPassword
+                        .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
             } else {
                 etLoginPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
             }
@@ -160,9 +166,7 @@ public class LoginFragment extends Fragment {
                             // Save email if Remember Me is checked
                             saveEmailPreference(email);
 
-                            Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_LONG).show();
-                            startActivity(new Intent(getContext(), MainActivity.class));
-                            requireActivity().finish();
+                            fetchUserAndNavigate(auth.getCurrentUser().getUid());
                         } else {
                             Toast.makeText(getContext(), "Login failed, please try again", Toast.LENGTH_LONG).show();
                         }
@@ -229,8 +233,7 @@ public class LoginFragment extends Fragment {
                         // If no authorized accounts, try with all accounts
                         launchCredentialManagerAllAccounts();
                     }
-                }
-        );
+                });
     }
 
     private void launchCredentialManagerAllAccounts() {
@@ -257,18 +260,17 @@ public class LoginFragment extends Fragment {
 
                     @Override
                     public void onError(@NonNull GetCredentialException e) {
-                        requireActivity().runOnUiThread(() ->
-                                Toast.makeText(getContext(), "Google Sign-In failed: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                        );
+                        requireActivity().runOnUiThread(() -> Toast
+                                .makeText(getContext(), "Google Sign-In failed: " + e.getMessage(), Toast.LENGTH_LONG)
+                                .show());
                     }
-                }
-        );
+                });
     }
 
     private void handleSignIn(Credential credential) {
         // check if credential is google id
         if (credential instanceof CustomCredential
-            && credential.getType().equals(TYPE_GOOGLE_ID_TOKEN_CREDENTIAL)) {
+                && credential.getType().equals(TYPE_GOOGLE_ID_TOKEN_CREDENTIAL)) {
             CustomCredential customCredential = (CustomCredential) credential;
             Bundle credentialData = customCredential.getData();
             GoogleIdTokenCredential googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credentialData);
@@ -276,9 +278,8 @@ public class LoginFragment extends Fragment {
             // sign in to firebase with google
             firebaseAuthWithGoogle(googleIdTokenCredential.getIdToken());
         } else {
-            requireActivity().runOnUiThread(() ->
-                    Toast.makeText(getContext(), "Unexpected credential type", Toast.LENGTH_LONG).show()
-            );
+            requireActivity().runOnUiThread(
+                    () -> Toast.makeText(getContext(), "Unexpected credential type", Toast.LENGTH_LONG).show());
         }
     }
 
@@ -287,15 +288,30 @@ public class LoginFragment extends Fragment {
         auth.signInWithCredential(credential)
                 .addOnCompleteListener(requireActivity(), task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_LONG).show();
-                        startActivity(new Intent(getContext(), MainActivity.class));
-                        requireActivity().finish();
+                        fetchUserAndNavigate(auth.getCurrentUser().getUid());
                     } else {
                         String errorMessage = task.getException() != null
                                 ? task.getException().getMessage()
                                 : "Unknown error";
                         Toast.makeText(getContext(), "Login failed: " + errorMessage, Toast.LENGTH_LONG).show();
                     }
+                });
+    }
+
+    private void fetchUserAndNavigate(String uid) {
+        db.collection("users").document(uid).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    com.example.foodaid_mad_project.AuthFragments.User currentUser = documentSnapshot
+                            .toObject(com.example.foodaid_mad_project.AuthFragments.User.class);
+                    UserManager.getInstance().setUser(currentUser);
+
+                    Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_LONG).show();
+                    startActivity(new Intent(getContext(), MainActivity.class));
+                    requireActivity().finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Failed to retrieve user data: " + e.getMessage(), Toast.LENGTH_LONG)
+                            .show();
                 });
     }
 }

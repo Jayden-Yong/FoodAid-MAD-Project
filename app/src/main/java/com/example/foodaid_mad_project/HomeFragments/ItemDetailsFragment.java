@@ -39,7 +39,6 @@ public class ItemDetailsFragment extends Fragment {
 
     public ItemDetailsFragment() {}
 
-    // Updated Constructor
     public ItemDetailsFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator, String imageUri){
         this.title = title;
         this.pickupTime = pickupTime;

@@ -70,6 +70,9 @@ dependencies {
     // firestore database
     implementation("com.google.firebase:firebase-firestore")
 
+    // osmdroid for OpenStreetMap
+    implementation("org.osmdroid:osmdroid-android:6.1.16")
+
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
 }
