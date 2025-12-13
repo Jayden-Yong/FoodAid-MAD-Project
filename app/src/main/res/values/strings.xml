@@ -181,6 +181,7 @@
     <string name="Pickup_Method">Pickup Method: <font color="@color/red">*</font></string>
     <string name="Pickup_Method_Spinner">-Pickup Method-</string>
     <string-array name="Pickup_Method_List">
+        <item>-Pickup Method-</item>
         <item>Pick-up Point</item>
         <item>Self Collect</item>
         <item>Free Table Drop Zone</item>

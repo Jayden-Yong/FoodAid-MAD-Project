@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -16,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.example.foodaid_mad_project.DonateFragments.DonateNotifyFragment;
+import com.example.foodaid_mad_project.Model.FoodItem;
 import com.example.foodaid_mad_project.R;
 
 public class ItemDetailsFragment extends Fragment {
@@ -29,6 +31,7 @@ public class ItemDetailsFragment extends Fragment {
 
 
     private TextView tvProductTitle, tvPickupTime, tvQuantity, tvLocationLabel, tvPostedBy;
+    ImageView ivProductImage;
     private RadioGroup radioGroupCategory;
 
 
@@ -58,6 +61,7 @@ public class ItemDetailsFragment extends Fragment {
         tvQuantity = view.findViewById(R.id.tvQuantity);
         tvLocationLabel = view.findViewById(R.id.tvLocationLabel);
         tvPostedBy = view.findViewById(R.id.tvPostedBy);
+        ivProductImage = view.findViewById(R.id.ivProductImage);
         radioGroupCategory = view.findViewById(R.id.radioGroupCategory);
 
         tvProductTitle.setText(getString(R.string.Food_Name, title));

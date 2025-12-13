@@ -1,5 +1,6 @@
 package com.example.foodaid_mad_project.DonateFragments;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,12 +10,16 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
@@ -23,6 +28,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.example.foodaid_mad_project.HomeFragments.ItemDetailsFragment;
+import com.example.foodaid_mad_project.HomeFragments.MapFragment;
 import com.example.foodaid_mad_project.R;
 
 import java.util.Objects;
@@ -37,6 +43,32 @@ public class DonateFragment extends Fragment {
     private String location;
     private String donator;
 
+    //Upload photo
+    private ImageView ivSelectedPhoto;
+    private TextView tvUploadPlaceholder;
+    private Uri selectedImageUri;
+    private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        pickMedia = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+            if (uri != null) {
+                // Image selected successfully
+                selectedImageUri = uri;
+
+                // Update UI: Show Image, Hide Placeholder
+                ivSelectedPhoto.setImageURI(uri);
+                ivSelectedPhoto.setVisibility(View.VISIBLE);
+                tvUploadPlaceholder.setVisibility(View.GONE);
+
+            } else {
+                // User cancelled the picker
+                Toast.makeText(getContext(), "No image selected", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
     @Nullable
     @Override
@@ -61,6 +93,21 @@ public class DonateFragment extends Fragment {
         EditText etTimeTo = view.findViewById(R.id.etTimeTo);
         CheckBox cbConfirm = view.findViewById(R.id.cbConfirm);
 
+        // Set Toolbar title
+        TextView toolBarTitle = view.findViewById(R.id.toolbarTitle);
+        toolBarTitle.setText(getString(R.string.String, "Donate Food"));
+
+        //Setup photo upload
+        ivSelectedPhoto = view.findViewById(R.id.ivSelectedPhoto);
+        tvUploadPlaceholder = view.findViewById(R.id.tvUploadPlaceholder);
+        if (cvUploadPhoto != null) {
+            cvUploadPhoto.setOnClickListener(v -> {
+                pickMedia.launch(new PickVisualMediaRequest.Builder()
+                        .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                        .build());
+            });
+        }
+
         // Set Spinner Item
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(requireContext(), R.array.Pickup_Method_List, R.layout.spinner_item_selected);
         adapter.setDropDownViewResource(R.layout.spinner_pickup_method);
@@ -74,13 +121,9 @@ public class DonateFragment extends Fragment {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                // TODO: Spinner must be selected
+                parent.setSelection(0);
             }
         });
-
-        // Set Toolbar title
-        TextView toolBarTitle = view.findViewById(R.id.toolbarTitle);
-        toolBarTitle.setText(getString(R.string.String, "Donate Food"));
 
         // Set System Back action
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
@@ -117,6 +160,45 @@ public class DonateFragment extends Fragment {
                 quantity = 100;
                 location = "Tasik Varsiti";
                 donator = "KMUM (Kesatuan Mahasiswa UM)";
+
+
+
+                // Validation: Check if all fields are filled
+                if(toggleGroupDonationType.getCheckedRadioButtonId() == -1){
+                    Toast.makeText(getContext(), "Please select a donation type", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (etItemName.getText().toString().isEmpty() ||
+                        etQuantity.getText().toString().isEmpty() ||
+                        etWeight.getText().toString().isEmpty() ||
+                        etExpiryDate.getText().toString().isEmpty() ||
+                        etDescription.getText().toString().isEmpty()){
+                    Toast.makeText(getContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (ivSelectedPhoto.getVisibility() == View.GONE) {
+                    Toast.makeText(getContext(), "Please upload a photo", Toast.LENGTH_SHORT).show();
+                }
+
+                //TODO:Location Validate
+
+                if (spinnerPickupMethod.getSelectedItemPosition() == 0) {
+                    Toast.makeText(getContext(), "Please select a pickup method", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (etTimeFrom.getText().toString().isEmpty() ||
+                        etTimeTo.getText().toString().isEmpty()){
+                    Toast.makeText(getContext(), "Please fill in all time fields", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (!cbConfirm.isChecked()) {
+                    Toast.makeText(getContext(), "You must confirm the donation details", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 FragmentManager fragmentManager = getParentFragmentManager();
                 fragmentManager.beginTransaction()

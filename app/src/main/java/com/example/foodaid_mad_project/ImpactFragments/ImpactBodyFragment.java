@@ -121,11 +121,13 @@ public class ImpactBodyFragment extends Fragment {
                 constraintSet.connect(R.id.statsContainer, ConstraintSet.TOP, R.id.chartWeek, ConstraintSet.BOTTOM);
                 constraintSet.applyTo(impactConstraint);
                 //TODO: Get Total value from database
-                tvStatClaimedValue.setText(getString(R.string.Number, 2));
+                int itemsClaimedWeek = 2;
+                int itemsDonatedWeek = 5;
+                double weightWeek = 2.5;
+                tvStatClaimedValue.setText(getString(R.string.Number, itemsClaimedWeek));
                 tvStatClaimedDesc.setText(getString(R.string.Items_Claimed, "Week"));
-                tvStatDonatedValue.setText(getString(R.string.Number, 5));
+                tvStatDonatedValue.setText(getString(R.string.Number, itemsDonatedWeek));
                 tvStateDonatedDesc.setText(getString(R.string.Items_Donated, "Week"));
-                var weightWeek = 2.5;
                 tvStatSavedValue.setText(getString(R.string.Food_Saved_Value, weightWeek));
                 tvContributionsHeader.setText(getString(R.string.Personal_Contribution, "24/11/2025-30/11/2025"));
                 headerMonthYear.setVisibility(View.GONE);
@@ -157,11 +159,13 @@ public class ImpactBodyFragment extends Fragment {
                 constraintSet.connect(R.id.statsContainer, ConstraintSet.TOP, R.id.chartMonth, ConstraintSet.BOTTOM);
                 constraintSet.applyTo(impactConstraint);
                 //TODO: Get Total value from database
-                tvStatClaimedValue.setText(getString(R.string.Number, 2));
+                int itemsClaimedMonth = 2;
+                int itemsDonatedMonth = 5;
+                double weightMonth = 2.5;
+                tvStatClaimedValue.setText(getString(R.string.Number, itemsClaimedMonth));
                 tvStatClaimedDesc.setText(getString(R.string.Items_Claimed, "Month"));
-                tvStatDonatedValue.setText(getString(R.string.Number, 5));
+                tvStatDonatedValue.setText(getString(R.string.Number, itemsDonatedMonth));
                 tvStateDonatedDesc.setText(getString(R.string.Items_Donated, "Month"));
-                var weightMonth = 2.5;
                 tvStatSavedValue.setText(getString(R.string.Food_Saved_Value, weightMonth));
                 tvContributionsHeader.setText(getString(R.string.Personal_Contribution, "24/11/2025-30/11/2025"));
                 tvContributionsHeader.setText(getString(R.string.Personal_Contribution, "Nov 2025"));
@@ -195,11 +199,13 @@ public class ImpactBodyFragment extends Fragment {
                 constraintSet.connect(R.id.statsContainer, ConstraintSet.TOP, R.id.chartYear, ConstraintSet.BOTTOM);
                 constraintSet.applyTo(impactConstraint);
                 //TODO: Get Total value from database
-                tvStatClaimedValue.setText(getString(R.string.Number, 2));
+                int itemsClaimedYear = 2;
+                int itemsDonatedYear = 5;
+                double weightYear = 2.5;
+                tvStatClaimedValue.setText(getString(R.string.Number, itemsClaimedYear));
                 tvStatClaimedDesc.setText(getString(R.string.Items_Claimed, "Year"));
-                tvStatDonatedValue.setText(getString(R.string.Number, 5));
+                tvStatDonatedValue.setText(getString(R.string.Number, itemsDonatedYear));
                 tvStateDonatedDesc.setText(getString(R.string.Items_Donated, "Year"));
-                var weightYear = 2.5;
                 tvStatSavedValue.setText(getString(R.string.Food_Saved_Value, weightYear));
                 tvContributionsHeader.setText(getString(R.string.Personal_Contribution, "24/11/2025-30/11/2025"));
                 tvContributionsHeader.setText(getString(R.string.Personal_Contribution, "2025"));
