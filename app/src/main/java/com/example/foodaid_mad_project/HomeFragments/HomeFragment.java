@@ -48,6 +48,12 @@ public class HomeFragment extends Fragment {
         }
 
         tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
+
+        // --- Load MapFragment into FragmentContainerView ---
+        getChildFragmentManager()
+                .beginTransaction()
+                .replace(R.id.MapFragment, new MapFragment())
+                .commit();
     }
 
 }
