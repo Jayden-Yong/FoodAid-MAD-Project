@@ -116,6 +116,13 @@ public class DonateFragment extends Fragment implements OnMapReadyCallback {
         // --- Map Initialization ---
         // Get the map fragment from the container
         Fragment mapFragment = getChildFragmentManager().findFragmentById(R.id.mapFragmentContainer);
+        if (mapFragment == null) {
+            mapFragment = SupportMapFragment.newInstance();
+            getChildFragmentManager().beginTransaction()
+                    .add(R.id.mapFragmentContainer, mapFragment)
+                    .commit();
+        }
+        // Load the map asynchronously
         if (mapFragment instanceof SupportMapFragment) {
             ((SupportMapFragment) mapFragment).getMapAsync(this);
         }
@@ -246,6 +253,11 @@ public class DonateFragment extends Fragment implements OnMapReadyCallback {
 
     // Helper: Search Location by Text
     private void searchLocation(String locationName) {
+        if (mMap == null) {
+            Toast.makeText(getContext(), "Map is not ready yet", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
         try {
             List<Address> addressList = geocoder.getFromLocationName(locationName, 1);
