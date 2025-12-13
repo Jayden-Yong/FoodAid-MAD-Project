@@ -1,6 +1,101 @@
 package com.example.foodaid_mad_project.HomeFragments;
 
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.foodaid_mad_project.Model.FoodItem;
+import com.example.foodaid_mad_project.R;
+
 public class MapPinItemFragment extends Fragment {
+    private FoodItem foodItem;
+
+    public MapPinItemFragment() {
+        // Required empty public constructor
+    }
+
+    public MapPinItemFragment(FoodItem item) {
+        this.foodItem = item;
+    }
+//
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_map_pin_item, container, false);
+    }
+
+//    Vibe Coded map pin to use with Google Map
+//    @Override
+//    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+//        super.onViewCreated(view, savedInstanceState);
+//
+//        if (foodItem == null) return;
+//
+//        TextView tvName = view.findViewById(R.id.selectedItemName);
+//        TextView tvLocation = view.findViewById(R.id.selectedItemLocation);
+//        TextView tvQuantity = view.findViewById(R.id.selectedItemQuantity);
+//        TextView tvDonator = view.findViewById(R.id.selectedItemDonator);
+//        ImageView ivImage = view.findViewById(R.id.selectedItemImage);
+//        ImageButton btnClose = view.findViewById(R.id.fragmentCloseButton);
+//        Button btnClaim = view.findViewById(R.id.selectedItemClaimButton);
+//
+//        tvName.setText(foodItem.getName());
+//        tvLocation.setText(foodItem.getLocation());
+//        tvQuantity.setText("Qty: " + foodItem.getQuantity());
+//        tvDonator.setText("By: " + foodItem.getDonator());
+//
+//        // Handle Image: Check if it's Mock (ResID) or Real (URI)
+//        if (foodItem.getImageUri() != null && !foodItem.getImageUri().isEmpty()) {
+//            ivImage.setImageURI(Uri.parse(foodItem.getImageUri()));
+//        } else if (foodItem.getImageResId() != 0) {
+//            ivImage.setImageResource(foodItem.getImageResId());
+//        } else {
+//            ivImage.setImageResource(R.drawable.ic_launcher_background); // Fallback
+//        }
+//
+//        btnClose.setOnClickListener(v -> {
+//            if (getParentFragment() != null && getParentFragment().getView() != null) {
+//                View containerView = getParentFragment().getView().findViewById(R.id.MapPinFragment);
+//                if (containerView != null) containerView.setVisibility(View.GONE);
+//            }
+//        });
+//
+//        btnClaim.setOnClickListener(v -> {
+//            String[] mockTimes = {"10:00 AM", "6:00 PM"};
+//
+//            // Try to parse quantity to integer safely
+//            int qty = 0;
+//            try {
+//                String qtyString = foodItem.getQuantity().replaceAll("[^0-9]", ""); // Extract numbers
+//                if(!qtyString.isEmpty()) qty = Integer.parseInt(qtyString);
+//            } catch (Exception e) { qty = 1; }
+//
+//            ItemDetailsFragment detailsFragment = new ItemDetailsFragment(
+//                    foodItem.getName(),
+//                    mockTimes,
+//                    R.id.radioPantry,
+//                    qty,
+//                    foodItem.getLocation(),
+//                    foodItem.getDonator()
+//            );
+//
+//            // Use the correct container ID for your Activity
+//            if (getActivity() != null) {
+//                getActivity().getSupportFragmentManager().beginTransaction()
+//                        .replace(R.id.coveringFragment, detailsFragment)
+//                        .addToBackStack(null)
+//                        .commit();
+//            }
+//        });
+//    }
 }

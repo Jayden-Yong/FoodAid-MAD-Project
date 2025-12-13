@@ -1,10 +1,12 @@
 package com.example.foodaid_mad_project.HomeFragments;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -16,6 +18,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.example.foodaid_mad_project.DonateFragments.DonateNotifyFragment;
+import com.example.foodaid_mad_project.Model.FoodItem;
 import com.example.foodaid_mad_project.R;
 
 public class ItemDetailsFragment extends Fragment {
@@ -26,21 +29,28 @@ public class ItemDetailsFragment extends Fragment {
     private int quantity;
     private String location;
     private String donator;
+    private String imageUri;
 
 
     private TextView tvProductTitle, tvPickupTime, tvQuantity, tvLocationLabel, tvPostedBy;
+    ImageView ivProductImage;
     private RadioGroup radioGroupCategory;
 
 
     public ItemDetailsFragment() {}
 
-    public ItemDetailsFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator){
+    public ItemDetailsFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator, String imageUri){
         this.title = title;
         this.pickupTime = pickupTime;
         this.category = category;
         this.quantity = quantity;
         this.location = location;
         this.donator = donator;
+        this.imageUri = imageUri;
+    }
+
+    public ItemDetailsFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator){
+        this(title, pickupTime, category, quantity, location, donator, null);
     }
 
     @Nullable
@@ -58,15 +68,21 @@ public class ItemDetailsFragment extends Fragment {
         tvQuantity = view.findViewById(R.id.tvQuantity);
         tvLocationLabel = view.findViewById(R.id.tvLocationLabel);
         tvPostedBy = view.findViewById(R.id.tvPostedBy);
+        ivProductImage = view.findViewById(R.id.ivProductImage);
         radioGroupCategory = view.findViewById(R.id.radioGroupCategory);
 
         tvProductTitle.setText(getString(R.string.Food_Name, title));
-        tvPickupTime.setText(getString(R.string.Pickup_Time, pickupTime[0], pickupTime[1]));
+        if(pickupTime != null && pickupTime.length >= 2) {
+            tvPickupTime.setText(getString(R.string.Pickup_Time, pickupTime[0], pickupTime[1]));
+        }
         tvQuantity.setText(getString(R.string.Food_Quantity, quantity));
         tvLocationLabel.setText(getString(R.string.Food_Location, location));
         tvPostedBy.setText(getString(R.string.Food_Donator, donator));
-        radioGroupCategory.check(category);
+        if (category != 0) radioGroupCategory.check(category);
 
+        if (imageUri != null) {
+            ivProductImage.setImageURI(Uri.parse(imageUri));
+        }
 
         TextView toolBarTitle = view.findViewById(R.id.toolbarTitle);
         toolBarTitle.setText(getString(R.string.String, "Food Aid Details"));

@@ -132,6 +132,8 @@ public class LoginFragment extends Fragment {
             return;
         }
 
+        //TODO: Navigate to Reset Password Fragment
+
         auth.sendPasswordResetEmail(email).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Toast.makeText(getContext(), "Password reset email sent", Toast.LENGTH_LONG).show();
