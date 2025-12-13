@@ -8,6 +8,13 @@ import androidx.navigation.ui.NavigationUI;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.example.foodaid_mad_project.DonateFragments.DonateFragment; // Import DonateFragment
+import androidx.fragment.app.FragmentContainerView;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
+import com.example.foodaid_mad_project.AuthFragments.CompleteProfileFragment;
+import com.example.foodaid_mad_project.AuthFragments.User;
+import com.example.foodaid_mad_project.HomeFragments.HomeFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,6 +30,24 @@ public class MainActivity extends AppCompatActivity {
             NavController navController = navHostFragment.getNavController();
             BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
             NavigationUI.setupWithNavController(bottomNav, navController);
+        User user = UserManager.getInstance().getUser();
+        // TODO: replace with navigation
+        // Set mainFragment
+        if (savedInstanceState == null) {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+            // Create HomeFragment instance, add HomeFragment to the mainFragment and run
+            HomeFragment homeFragment = new HomeFragment();
+            CompleteProfileFragment completeProfileFragment = new CompleteProfileFragment();
+
+            if (user.getFullName() == null) {
+                fragmentTransaction.add(R.id.mainFragment, completeProfileFragment);
+            } else {
+                fragmentTransaction.add(R.id.mainFragment, homeFragment);
+            }
+
+            fragmentTransaction.commit();
         }
 
         FloatingActionButton fab = findViewById(R.id.fabNewDonation);
