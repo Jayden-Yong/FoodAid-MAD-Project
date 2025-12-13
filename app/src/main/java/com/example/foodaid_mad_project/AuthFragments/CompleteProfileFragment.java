@@ -19,6 +19,8 @@ import com.example.foodaid_mad_project.UserManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import android.widget.Toast;
+import androidx.navigation.Navigation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,10 +35,9 @@ public class CompleteProfileFragment extends Fragment {
     private Spinner spinnerCPFaculty, spinnerCPResidential;
     private MaterialButton btnCPComplete;
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+            Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_complete_profile, container, false);
     }
 
@@ -66,8 +67,7 @@ public class CompleteProfileFragment extends Fragment {
         ArrayAdapter<String> facultyAdapter = new ArrayAdapter<>(
                 requireContext(),
                 android.R.layout.simple_spinner_item,
-                facultyList
-        );
+                facultyList);
 
         facultyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCPFaculty.setAdapter(facultyAdapter);
@@ -93,8 +93,7 @@ public class CompleteProfileFragment extends Fragment {
         ArrayAdapter<String> residentialAdapter = new ArrayAdapter<>(
                 requireContext(),
                 android.R.layout.simple_spinner_item,
-                residentialList
-        );
+                residentialList);
 
         residentialAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCPResidential.setAdapter(residentialAdapter);
@@ -107,10 +106,10 @@ public class CompleteProfileFragment extends Fragment {
         cbNoBeef = view.findViewById(R.id.cbNoBeef);
         btnCPComplete = view.findViewById(R.id.btnCPComplete);
 
-        btnCPComplete.setOnClickListener(v -> onClickComplete());
+        btnCPComplete.setOnClickListener(v -> onClickComplete(view));
     }
 
-    public void onClickComplete() {
+    public void onClickComplete(View view) {
         String fullName = etFullName.getText().toString();
         String faculty = spinnerCPFaculty.getSelectedItem().toString();
         String residentialCollege = spinnerCPResidential.getSelectedItem().toString();
@@ -143,17 +142,19 @@ public class CompleteProfileFragment extends Fragment {
         String uid = user.getUid();
 
         DocumentReference userRef = db.collection("users").document(uid);
-        userRef.update(additionalUserData);
+        userRef.update(additionalUserData)
+                .addOnSuccessListener(aVoid -> {
+                    user.addAdditionalData(additionalUserData);
+                    UserManager.getInstance().setUser(user);
 
-        user.addAdditionalData(additionalUserData);
-        UserManager.getInstance().setUser(user);
+                    Toast.makeText(requireContext(), "Profile Completed!", Toast.LENGTH_SHORT).show();
 
-        // navigate back to home fragment
-        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
-        HomeFragment homeFragment = new HomeFragment();
-        fragmentTransaction.replace(R.id.mainFragment, homeFragment);
-        fragmentTransaction.commit();
+                    // navigate back to home fragment
+                    Navigation.findNavController(view).navigate(R.id.homeFragment);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(), "Error updating profile: " + e.getMessage(), Toast.LENGTH_SHORT)
+                            .show();
+                });
     }
 }
