@@ -51,6 +51,7 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
 
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:34.6.0"))

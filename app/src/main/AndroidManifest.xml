@@ -14,6 +14,11 @@
         android:roundIcon="@drawable/logo_1"
         android:supportsRtl="true"
         android:theme="@style/Theme.FoodAidMADProject">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="API KEY" />
+
         <activity
             android:name=".SplashActivity"
             android:exported="true"
