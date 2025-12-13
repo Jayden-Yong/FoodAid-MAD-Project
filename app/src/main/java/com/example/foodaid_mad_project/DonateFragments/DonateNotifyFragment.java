@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.example.foodaid_mad_project.HomeFragments.HomeFragment;
@@ -19,15 +20,27 @@ import com.example.foodaid_mad_project.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 
-public class DonateNotifyFragment extends DialogFragment {
+public class DonateNotifyFragment extends Fragment {
 
     private MaterialButton btnViewItem, btnBackToHome;
 
-    @NonNull
-    @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
-        return builder.create();
+    private ItemDetailsFragment itemDetailsFragment;
+    private String title;
+    private String[] pickupTime;
+    private int category;
+    private int quantity;
+    private String location;
+    private String donator;
+
+    public DonateNotifyFragment() {}
+
+    public DonateNotifyFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator){
+        this.title = title;
+        this.pickupTime = pickupTime;
+        this.category = category;
+        this.quantity = quantity;
+        this.location = location;
+        this.donator = donator;
     }
 
     @Nullable
@@ -43,19 +56,18 @@ public class DonateNotifyFragment extends DialogFragment {
         btnViewItem = view.findViewById(R.id.btnViewItem);
         btnBackToHome = view.findViewById(R.id.btnBackToHome);
 
-        //TODO: Fix the code. The button only goes back to home and not continue to the item details fragment.
         btnViewItem.setOnClickListener(v -> {
-            dismiss();
+            getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
             getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
             getParentFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment, new ItemDetailsFragment())
-                    .addToBackStack("ItemDetails")
+                    .replace(R.id.coveringFragment, new ItemDetailsFragment(title, pickupTime, category, quantity, location, donator))
+                    .addToBackStack("ItemDetail")
                     .commit();
         });
 
         btnBackToHome.setOnClickListener(v -> {
-            dismiss();
             getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
         });
     }
 }

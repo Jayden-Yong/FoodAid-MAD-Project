@@ -46,37 +46,32 @@
                 app:singleSelection="true">
 
                 <RadioButton
-                    android:id="@+id/btnPantry"
+                    android:id="@+id/radioPantry"
                     style="@style/FoodAidDonateTypeBtnStyle"
                     android:layout_width="0dp"
                     android:layout_height="35dp"
                     android:layout_weight="1"
                     android:text="@string/Filter_Pantry"
-                    android:textAllCaps="false"
-                    android:textColor="@color/primary_color" />
+                    android:textAllCaps="false"/>
 
                 <RadioButton
-                    android:id="@+id/btnLeftover"
+                    android:id="@+id/radioLeftover"
                     style="@style/FoodAidDonateTypeBtnStyle"
                     android:layout_width="0dp"
                     android:layout_height="35dp"
                     android:layout_weight="1"
                     android:layout_marginHorizontal="8dp"
                     android:text="@string/Filter_Leftover"
-                    android:textAllCaps="false"
-                    android:textColor="@color/primary_color"/>
+                    android:textAllCaps="false"/>
 
                 <RadioButton
-                    android:id="@+id/btnFreeTable"
+                    android:id="@+id/radioFreeTable"
                     style="@style/FoodAidDonateTypeBtnStyle"
                     android:layout_width="0dp"
                     android:layout_height="35dp"
                     android:layout_weight="1"
                     android:text="@string/Filter_Free_Table"
-                    android:textAllCaps="false"
-                    android:textColor="@color/primary_color"
-                    app:cornerRadius="24dp"
-                    app:strokeColor="@color/primary_color" />
+                    android:textAllCaps="false"/>
             </RadioGroup>
 
             <TextView
@@ -180,7 +175,6 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_edit_text_underline"
-                            android:focusable="false"
                             android:inputType="date"
                             android:padding="8dp"
                             android:textSize="14sp"
@@ -225,6 +219,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
                 android:layout_marginTop="12dp"
+                android:clickable="true"
+                android:focusable="true"
                 app:cardBackgroundColor="#F5F5F5"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp">
@@ -279,7 +275,9 @@
                     android:id="@+id/spinnerPickupMethod"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    android:padding="12dp" />
+                    android:padding="12dp"
+                    android:prompt="@string/Pickup_Method_Spinner"
+                    android:popupBackground="@drawable/bg_spinner_popup"/>
             </androidx.cardview.widget.CardView>
 
             <TextView
@@ -308,7 +306,6 @@
                     android:layout_weight="1"
                     android:layout_marginHorizontal="12dp"
                     android:background="@drawable/bg_edit_text_underline"
-                    android:focusable="false"
                     android:gravity="center"
                     android:hint="@string/Time_Hint"
                     android:inputType="time"
@@ -325,7 +322,6 @@
                     android:layout_weight="1"
                     android:layout_marginStart="12dp"
                     android:background="@drawable/bg_edit_text_underline"
-                    android:focusable="false"
                     android:gravity="center"
                     android:hint="@string/Time_Hint"
                     android:inputType="time"

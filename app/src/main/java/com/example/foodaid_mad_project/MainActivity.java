@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(v -> {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.coveringFragment, new DonateFragment())
-                    .addToBackStack("Donate") // Add to back stack so "Back" button dismisses it
+                    .addToBackStack("Donate")
                     .commit();
         });
     }

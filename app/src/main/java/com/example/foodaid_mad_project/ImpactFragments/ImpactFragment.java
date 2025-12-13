@@ -27,7 +27,6 @@ public class ImpactFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Initialize Body Fragment
         if (savedInstanceState == null) {
             bodyFragment = new ImpactBodyFragment();
             getChildFragmentManager().beginTransaction()
@@ -38,7 +37,6 @@ public class ImpactFragment extends Fragment {
                     .findFragmentById(R.id.impact_body_fragment_container);
         }
 
-        // Handle Radio Group Selection
         RadioGroup timeRangeGroup = view.findViewById(R.id.impactTimeRange);
         timeRangeGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (bodyFragment == null) return;
