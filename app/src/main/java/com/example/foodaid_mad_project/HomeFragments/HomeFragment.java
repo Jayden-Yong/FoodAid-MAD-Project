@@ -87,6 +87,47 @@ public class HomeFragment extends Fragment {
         }
 
         tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
+
+        // Setup Switch View Button Logic
+        setupSwitchView(view);
+    }
+
+    private android.widget.ImageButton btnSwitchView;
+    private View mapContainer;
+    private boolean isMapVisible = true; // Apps starts with Map by default
+
+    private void setupSwitchView(View view) {
+        btnSwitchView = view.findViewById(R.id.btnSwitchView);
+        mapContainer = view.findViewById(R.id.MapFragment);
+
+        // Initial State (Map Visible, List Gone - set in XML, but ensure here)
+        mapContainer.setVisibility(View.VISIBLE);
+        rvFoodBanks.setVisibility(View.GONE);
+        if (btnSwitchView != null) {
+            btnSwitchView.setImageResource(R.drawable.ic_list_view); // Icon implies "Click to see List"
+
+            btnSwitchView.setOnClickListener(v -> toggleView());
+        }
+    }
+
+    private void toggleView() {
+        if (isMapVisible) {
+            // SWITCH TO LIST MODE
+            mapContainer.setVisibility(View.GONE);
+            rvFoodBanks.setVisibility(View.VISIBLE);
+
+            // Update Icon to show "Map" (so user knows they can go back)
+            btnSwitchView.setImageResource(R.drawable.ic_map_view);
+            isMapVisible = false;
+        } else {
+            // SWITCH TO MAP MODE
+            mapContainer.setVisibility(View.VISIBLE);
+            rvFoodBanks.setVisibility(View.GONE);
+
+            // Update Icon to show "List"
+            btnSwitchView.setImageResource(R.drawable.ic_list_view);
+            isMapVisible = true;
+        }
     }
 
 }

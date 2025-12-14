@@ -51,6 +51,16 @@
                 android:contentDescription="@string/QR_Code"
                 android:src="@drawable/ic_qr"
                 android:backgroundTint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btnSwitchView"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:layout_marginStart="8dp"
+                android:contentDescription="Switch View"
+                android:src="@drawable/ic_list_view"
+                android:backgroundTint="@color/white" />
         </LinearLayout>
     </LinearLayout>
 
