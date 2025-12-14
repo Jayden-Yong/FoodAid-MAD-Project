@@ -306,7 +306,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
         userData.put("email", email);
         userData.put("displayName", name);
         userData.put("userType", "student");
-        userData.put("favourites", "");
+        userData.put("favourites", java.util.Arrays.asList());
 
         if ("email".equals(providerType)) {
             userData.put("createdAt", System.currentTimeMillis());
