@@ -13,12 +13,13 @@ public class FoodItem implements Parcelable {
     private String imageUri; // For Database Data (Uploaded images)
     private double lat;
     private double lng;
+    private long postDurationMins;
 
     // Empty constructor needed for Firebase Firestore
     public FoodItem() {}
 
     // Constructor for Mock Data (using int Resource ID)
-    public FoodItem(String id, String name, String location, String quantity, String donator, int imageResId, double lat, double lng) {
+    public FoodItem(String id, String name, String location, String quantity, String donator, int imageResId, double lat, double lng, long postDurationMins) {
         this.id = id;
         this.name = name;
         this.location = location;
@@ -27,10 +28,11 @@ public class FoodItem implements Parcelable {
         this.imageResId = imageResId;
         this.lat = lat;
         this.lng = lng;
+        this.postDurationMins = postDurationMins;
     }
 
     // Constructor for Real Data (using String URI)
-    public FoodItem(String id, String name, String location, String quantity, String donator, String imageUri, double lat, double lng) {
+    public FoodItem(String id, String name, String location, String quantity, String donator, String imageUri, double lat, double lng, long postDurationMins) {
         this.id = id;
         this.name = name;
         this.location = location;
@@ -39,6 +41,7 @@ public class FoodItem implements Parcelable {
         this.imageUri = imageUri;
         this.lat = lat;
         this.lng = lng;
+        this.postDurationMins = postDurationMins;
     }
 
     protected FoodItem(Parcel in) {
@@ -51,6 +54,7 @@ public class FoodItem implements Parcelable {
         imageUri = in.readString(); // Read URI
         lat = in.readDouble();
         lng = in.readDouble();
+        postDurationMins = in.readLong();
     }
 
     public static final Creator<FoodItem> CREATOR = new Creator<FoodItem>() {
@@ -79,6 +83,7 @@ public class FoodItem implements Parcelable {
         dest.writeString(imageUri); // Write URI
         dest.writeDouble(lat);
         dest.writeDouble(lng);
+        dest.writeLong(postDurationMins);
     }
 
     // Getters
@@ -91,4 +96,5 @@ public class FoodItem implements Parcelable {
     public String getImageUri() { return imageUri; }
     public double getLat() { return lat; }
     public double getLng() { return lng; }
+    public long getPostDurationMins() { return postDurationMins; }
 }

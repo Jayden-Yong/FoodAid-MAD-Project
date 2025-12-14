@@ -48,6 +48,16 @@ public class MapPinItemFragment extends Fragment {
         ImageView ivImage = view.findViewById(R.id.selectedItemImage);
         ImageButton btnClose = view.findViewById(R.id.fragmentCloseButton);
         Button btnClaim = view.findViewById(R.id.selectedItemClaimButton);
+        TextView tvDuration = view.findViewById(R.id.selectedItemPostDuration);
+
+        // postDurationMins already stores minutes
+                long mins = foodItem.getPostDurationMins();
+                String durationText = mins >= 60
+                        ? (mins / 60) + " hrs ago"
+                        : mins + " mins ago";
+
+                tvDuration.setText(durationText);
+
 
         // Populate the views with food item data
         tvName.setText(foodItem.getName());
