@@ -68,7 +68,7 @@
         app:layout_constraintTop_toBottomOf="@id/homeHeader">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="344dp"
             android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:orientation="horizontal"
@@ -79,7 +79,7 @@
                 android:layout_height="20dp"
                 android:contentDescription="@string/Search_Icon"
                 android:src="@drawable/ic_search"
-                app:tint="@color/font_hint"/>
+                app:tint="@color/font_hint" />
 
             <EditText
                 android:id="@+id/etSearch"
