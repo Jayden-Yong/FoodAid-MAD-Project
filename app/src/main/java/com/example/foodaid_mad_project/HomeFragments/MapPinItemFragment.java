@@ -34,6 +34,79 @@ public class MapPinItemFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_map_pin_item, container, false);
     }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        if (foodItem == null) return; // Safety check
+
+        // Find views
+        TextView tvName = view.findViewById(R.id.selectedItemName);
+        TextView tvLocation = view.findViewById(R.id.selectedItemLocation);
+        TextView tvQuantity = view.findViewById(R.id.selectedItemQuantity);
+        TextView tvDonator = view.findViewById(R.id.selectedItemDonator);
+        ImageView ivImage = view.findViewById(R.id.selectedItemImage);
+        ImageButton btnClose = view.findViewById(R.id.fragmentCloseButton);
+        Button btnClaim = view.findViewById(R.id.selectedItemClaimButton);
+
+        // Populate the views with food item data
+        tvName.setText(foodItem.getName());
+        tvLocation.setText(foodItem.getLocation());
+        tvQuantity.setText("Qty: " + foodItem.getQuantity());
+        tvDonator.setText("By: " + foodItem.getDonator());
+
+        // Handle image (URI or resource)
+        if (foodItem.getImageUri() != null && !foodItem.getImageUri().isEmpty()) {
+            ivImage.setImageURI(Uri.parse(foodItem.getImageUri()));
+        } else if (foodItem.getImageResId() != 0) {
+            ivImage.setImageResource(foodItem.getImageResId());
+        } else {
+            ivImage.setImageResource(R.drawable.ic_launcher_background); // fallback
+        }
+
+        // Close button: hides the fragment
+        btnClose.setOnClickListener(v -> {
+            View containerView = getParentFragment() != null
+                    ? getParentFragment().getView().findViewById(R.id.MapPinFragment)
+                    : null;
+            if (containerView != null) {
+                containerView.setVisibility(View.GONE);
+            }
+        });
+
+        // Claim button: opens ItemDetailsFragment
+        btnClaim.setOnClickListener(v -> {
+            // Mock pickup times
+            String[] mockTimes = {"10:00 AM", "6:00 PM"};
+
+            // Parse quantity safely
+            int qty = 1;
+            try {
+                String qtyString = foodItem.getQuantity().replaceAll("[^0-9]", "");
+                if (!qtyString.isEmpty()) qty = Integer.parseInt(qtyString);
+            } catch (Exception ignored) {}
+
+            // Create new fragment
+            ItemDetailsFragment detailsFragment = new ItemDetailsFragment(
+                    foodItem.getName(),
+                    mockTimes,
+                    R.id.radioPantry,
+                    qty,
+                    foodItem.getLocation(),
+                    foodItem.getDonator()
+            );
+
+            // Replace current fragment in container
+            if (getActivity() != null) {
+                getActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.coveringFragment, detailsFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
+    }
+
+
 //    Vibe Coded map pin to use with Google Map
 //    @Override
 //    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {

@@ -125,6 +125,24 @@ public class HomeFragment extends Fragment
         });
     }
 
+    public void showMapPinDetails(FoodItem item) {
+        // Get the container
+        FragmentContainerView mapPinContainer = getView().findViewById(R.id.MapPinFragment);
+        if (mapPinContainer == null) return;
+
+        // Make container visible
+        mapPinContainer.setVisibility(View.VISIBLE);
+
+        // Create the fragment with the selected FoodItem
+        MapPinItemFragment pinFragment = new MapPinItemFragment(item);
+
+        // Replace the container with this fragment
+        getChildFragmentManager()
+                .beginTransaction()
+                .replace(R.id.MapPinFragment, pinFragment)
+                .commit();
+    }
+
 //    private void generateMockData() {
 //        mockFoodItems = new ArrayList<>();
 //        // Using local drawables for testing
