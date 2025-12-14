@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -82,6 +83,23 @@ public class HomeFragment extends Fragment
         }
         tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
 
+        // Initialize search EditText
+        EditText etSearch = view.findViewById(R.id.etSearch);
+
+        // Add search listener here
+        etSearch.setOnEditorActionListener((v, actionId, event) -> {
+            // Trigger only when the user presses "Search" or "Done"
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH ||
+                    actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
+
+                String query = etSearch.getText().toString().trim();
+                if (!query.isEmpty()) {
+                    searchLocation(query);
+                }
+                return true; // consume the event
+            }
+            return false;
+        });
 
         // --- Load MapFragment into FragmentContainerView ---
         getChildFragmentManager()
@@ -142,6 +160,51 @@ public class HomeFragment extends Fragment
                 .replace(R.id.MapPinFragment, pinFragment)
                 .commit();
     }
+
+    private void searchLocation(String query) {
+        MapFragment mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.MapFragment);
+        if (mapFragment == null) return;
+
+        List<FoodItem> items = mapFragment.getFoodItems();
+        if (items.isEmpty()) {
+            showFoodbankNotFoundMessage();
+            return;
+        }
+
+        FoodItem foundItem = null;
+        for (FoodItem item : items) {
+            if (item.getLocation() != null && item.getLocation().equalsIgnoreCase(query)) {
+                foundItem = item;
+                break;
+            }
+        }
+
+        if (foundItem != null) {
+            mapFragment.focusOnFoodItem(foundItem);
+        } else {
+            showFoodbankNotFoundMessage();
+        }
+    }
+
+    // Show centered message
+    private void showFoodbankNotFoundMessage() {
+        Toast toast = Toast.makeText(getContext(), "", Toast.LENGTH_SHORT);
+
+        TextView tv = new TextView(getContext());
+        tv.setText("Foodbank not found");
+        tv.setTextColor(android.graphics.Color.WHITE);
+        tv.setBackgroundColor(android.graphics.Color.parseColor("#AA000000")); // semi-transparent black
+        tv.setPadding(30, 20, 30, 20);
+        tv.setTextSize(16);
+        tv.setGravity(android.view.Gravity.CENTER);
+
+        toast.setView(tv);
+        toast.setGravity(android.view.Gravity.CENTER, 0, 0);
+        toast.show();
+    }
+
+
+
 
 //    private void generateMockData() {
 //        mockFoodItems = new ArrayList<>();

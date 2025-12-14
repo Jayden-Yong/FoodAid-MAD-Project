@@ -20,6 +20,7 @@ import org.osmdroid.config.Configuration;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
+import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
@@ -123,6 +124,9 @@ public class MapFragment extends Fragment {
         ));
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
 
+        // Remove default InfoWindow
+        marker.setInfoWindow(null);
+
         marker.setOnMarkerClickListener((m, mapView) -> {
             if (getParentFragment() instanceof HomeFragment) {
                 ((HomeFragment) getParentFragment()).showMapPinDetails(item);
@@ -132,6 +136,7 @@ public class MapFragment extends Fragment {
 
         mapView.getOverlays().add(marker);
     }
+
 
 
 
@@ -164,6 +169,45 @@ public class MapFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> e.printStackTrace());
     }
+
+    public void focusOnFoodItem(FoodItem item) {
+        if (item == null || mapView == null) return;
+
+        GeoPoint point = new GeoPoint(item.getLat(), item.getLng());
+
+        // Temporarily stop following user location
+        if (locationOverlay != null) {
+            locationOverlay.disableFollowLocation();
+        }
+
+        mapView.post(() -> {
+            IMapController controller = mapView.getController();
+            controller.setZoom(20.0);
+            controller.animateTo(point);
+
+            // Show the info window of the marker
+            for (Overlay overlay : mapView.getOverlays()) {
+                if (overlay instanceof Marker) {
+                    Marker marker = (Marker) overlay;
+                    if (marker.getPosition().equals(point)) {
+                        marker.showInfoWindow();
+                        break;
+                    }
+                }
+            }
+        });
+
+        // Show pin details in parent fragment
+        if (getParentFragment() instanceof HomeFragment) {
+            ((HomeFragment) getParentFragment()).showMapPinDetails(item);
+        }
+    }
+
+
+    public List<FoodItem> getFoodItems() {
+        return foodItems != null ? foodItems : new ArrayList<>();
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
