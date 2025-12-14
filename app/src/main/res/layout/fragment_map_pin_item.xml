@@ -95,7 +95,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="18dp"
             android:layout_marginStart="20dp"
-            android:text="@string/Food_Donate_Duration"
+            android:text=""
             android:textSize="14sp"
             android:fontFamily="@font/poppins_light"
             app:layout_constraintBottom_toBottomOf="parent"

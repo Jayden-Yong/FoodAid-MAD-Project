@@ -26,6 +26,10 @@ import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+
 public class MapFragment extends Fragment {
 
     private static final int LOCATION_REQUEST_CODE = 1001;
@@ -52,7 +56,7 @@ public class MapFragment extends Fragment {
         IMapController controller = mapView.getController();
         controller.setZoom(20.0);
         controller.setCenter(DEFAULT_LOCATION);
-
+/*
         // Setup mock data
         generateMockData();
 
@@ -60,6 +64,9 @@ public class MapFragment extends Fragment {
         for (FoodItem item : foodItems) {
             addFoodMarker(item);
         }
+*/
+        // Load food items from Firestore
+        loadFoodItemsFromFirestore();
 
         checkAndSetupLocation();
 
@@ -128,11 +135,34 @@ public class MapFragment extends Fragment {
 
 
 
-    private void generateMockData() {
+  /*  private void generateMockData() {
         foodItems = new ArrayList<>();
-        foodItems.add(new FoodItem("1", "Tiger Biscuits", "Universiti Malaya", "50 packs", "Student Council", R.drawable.ic_launcher_background, 3.1209, 101.6538));
-        foodItems.add(new FoodItem("2", "Leftover Catering", "Mid Valley", "20 kg", "Grand Hotel", R.drawable.ic_launcher_background, 3.1176, 101.6776));
-        foodItems.add(new FoodItem("3", "Canned Soup", "Jaya One", "100 cans", "Community NGO", R.drawable.ic_launcher_background, 3.1180, 101.6360));
+        foodItems.add(new FoodItem("1", "Tiger Biscuits", "Universiti Malaya", "50 packs", "Student Council", R.drawable.ic_launcher_background, 3.1209, 101.6538, 100));
+        foodItems.add(new FoodItem("2", "Leftover Catering", "Mid Valley", "20 kg", "Grand Hotel", R.drawable.ic_launcher_background, 3.1176, 101.6776, 545));
+        foodItems.add(new FoodItem("3", "Canned Soup", "Jaya One", "100 cans", "Community NGO", R.drawable.ic_launcher_background, 3.1180, 101.6360, 15));
+    }*/
+
+    private void loadFoodItemsFromFirestore() {
+
+        foodItems = new ArrayList<>();
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("foodbanks")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+
+                    for (QueryDocumentSnapshot doc : querySnapshot) {
+
+                        FoodItem item = doc.toObject(FoodItem.class);
+
+                        if (item != null) {
+                            foodItems.add(item);
+                            addFoodMarker(item);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> e.printStackTrace());
     }
 
     @Override
