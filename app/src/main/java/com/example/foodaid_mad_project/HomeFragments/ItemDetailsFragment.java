@@ -86,13 +86,80 @@ public class ItemDetailsFragment extends Fragment {
                 // Show Success Notification
                 FragmentManager fragmentManager = getParentFragmentManager();
                 fragmentManager.beginTransaction()
-                        .replace(R.id.ItemDetailsFragmentContainer, new ClaimNotifyFragment()) // Note: Ensure container
-                                                                                               // ID is correct in main
-                                                                                               // layout
+                        .replace(R.id.ItemDetailsFragmentContainer, new ClaimNotifyFragment())
                         .addToBackStack("ClaimSuccess")
                         .commit();
             });
         }
+
+        // Rate Button Logic
+        com.google.android.material.button.MaterialButton btnRate = view.findViewById(R.id.btnRate);
+        if (btnRate != null) {
+            btnRate.setOnClickListener(v -> showRatingDialog(sharedViewModel.getSelectedFoodBank().getValue()));
+        }
+    }
+
+    private void showRatingDialog(FoodBank foodBank) {
+        if (foodBank == null)
+            return;
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_rating, null); // We will create this layout
+                                                                                     // dynamically if needed or just
+                                                                                     // build it programmatically to
+                                                                                     // avoid creating new file
+
+        // Simpler approach: Build view programmatically to avoid creating multiple
+        // files
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(getContext());
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
+
+        final android.widget.RatingBar ratingBar = new android.widget.RatingBar(getContext());
+        ratingBar.setNumStars(5);
+        ratingBar.setStepSize(1);
+        android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.gravity = android.view.Gravity.CENTER;
+        ratingBar.setLayoutParams(lp);
+
+        final android.widget.EditText input = new android.widget.EditText(getContext());
+        input.setHint("Leave a review...");
+        layout.addView(ratingBar);
+        layout.addView(input);
+
+        builder.setView(layout);
+        builder.setTitle("Rate " + foodBank.getName());
+        builder.setPositiveButton("Submit", (dialog, which) -> {
+            float rating = ratingBar.getRating();
+            String comment = input.getText().toString();
+            submitReview(foodBank.getId(), rating, comment);
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
+    private void submitReview(String foodBankId, float rating, String comment) {
+        String userId = "anonymous";
+        if (com.example.foodaid_mad_project.UserManager.getInstance().getUser() != null) {
+            userId = com.example.foodaid_mad_project.UserManager.getInstance().getUser().getUid();
+        }
+
+        java.util.Map<String, Object> review = new java.util.HashMap<>();
+        review.put("userId", userId);
+        review.put("rating", rating);
+        review.put("comment", comment);
+        review.put("timestamp", com.google.firebase.firestore.FieldValue.serverTimestamp());
+
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("foodbanks").document(foodBankId).collection("reviews")
+                .add(review)
+                .addOnSuccessListener(docRef -> android.widget.Toast
+                        .makeText(getContext(), "Review Submitted!", android.widget.Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> android.widget.Toast
+                        .makeText(getContext(), "Error: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show());
     }
 
     private void populateUI(FoodBank foodBank) {
