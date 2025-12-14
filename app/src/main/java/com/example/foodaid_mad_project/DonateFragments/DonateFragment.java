@@ -37,10 +37,10 @@ public class DonateFragment extends Fragment {
     private String location;
     private String donator;
 
-
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_donate, container, false);
     }
 
@@ -55,14 +55,15 @@ public class DonateFragment extends Fragment {
         EditText etExpiryDate = view.findViewById(R.id.etExpiryDate);
         EditText etDescription = view.findViewById(R.id.etDescription);
         CardView cvUploadPhoto = view.findViewById(R.id.cvUploadPhoto);
-        //TODO:Location Setting variable
+        // TODO:Location Setting variable
         Spinner spinnerPickupMethod = view.findViewById(R.id.spinnerPickupMethod);
         EditText etTimeFrom = view.findViewById(R.id.etTimeFrom);
         EditText etTimeTo = view.findViewById(R.id.etTimeTo);
         CheckBox cbConfirm = view.findViewById(R.id.cbConfirm);
 
         // Set Spinner Item
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(requireContext(), R.array.Pickup_Method_List, R.layout.spinner_item_selected);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(requireContext(),
+                R.array.Pickup_Method_List, R.layout.spinner_item_selected);
         adapter.setDropDownViewResource(R.layout.spinner_pickup_method);
         spinnerPickupMethod.setAdapter(adapter);
         spinnerPickupMethod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -83,15 +84,16 @@ public class DonateFragment extends Fragment {
         toolBarTitle.setText(getString(R.string.String, "Donate Food"));
 
         // Set System Back action
-        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                // Manually pop the Donate Fragment
-                if (getParentFragmentManager().getBackStackEntryCount() > 0) {
-                    getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                }
-            }
-        });
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        // Manually pop the Donate Fragment
+                        if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                            getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                        }
+                    }
+                });
 
         // Set Toolbar navigation button
         Toolbar toolbar = view.findViewById(R.id.Toolbar);
@@ -107,22 +109,72 @@ public class DonateFragment extends Fragment {
         Button btnDonate = view.findViewById(R.id.btnDonate);
         if (btnDonate != null) {
             btnDonate.setOnClickListener(v -> {
-                //TODO: Save data to Firebase
+                // 1. Validate Inputs
+                String itemName = etItemName.getText().toString().trim();
+                String quantityStr = etQuantity.getText().toString().trim();
+                String weight = etWeight.getText().toString().trim();
+                String expiry = etExpiryDate.getText().toString().trim();
+                String desc = etDescription.getText().toString().trim();
+                String timeFrom = etTimeFrom.getText().toString().trim();
+                String timeTo = etTimeTo.getText().toString().trim();
+                // Spinner handling
+                String pickupMethod = spinnerPickupMethod.getSelectedItem() != null
+                        ? spinnerPickupMethod.getSelectedItem().toString()
+                        : "Pickup";
 
-                //TODO: get data from inputs and replace the test data
-                //Test data
-                title = "Tiger Biscuit Original Multipack (7 sachets)";
-                pickupTime = new String[]{"10:00AM", "12:00PM"};
-                category = R.id.radioPantry;
-                quantity = 100;
-                location = "Tasik Varsiti";
-                donator = "KMUM (Kesatuan Mahasiswa UM)";
+                if (itemName.isEmpty()) {
+                    etItemName.setError("Item Name is required");
+                    return;
+                }
+                if (quantityStr.isEmpty()) {
+                    etQuantity.setError("Quantity is required");
+                    return;
+                }
+                if (!cbConfirm.isChecked()) {
+                    Toast.makeText(getContext(), "Please confirm the information is accurate", Toast.LENGTH_SHORT)
+                            .show();
+                    return;
+                }
 
-                FragmentManager fragmentManager = getParentFragmentManager();
-                fragmentManager.beginTransaction()
-                        .replace(R.id.DonateFragmentContainer, new DonateNotifyFragment(title, pickupTime, category, quantity, location, donator))
-                        .addToBackStack("DonateSuccess")
-                        .commit();
+                int quantityVal = Integer.parseInt(quantityStr);
+
+                // 2. Get User Info
+                String userId = "anonymous";
+                try {
+                    if (com.example.foodaid_mad_project.UserManager.getInstance().getUser() != null) {
+                        userId = com.example.foodaid_mad_project.UserManager.getInstance().getUser().getUid();
+                    }
+                } catch (Exception e) {
+                    // Start safe
+                }
+
+                // 3. Create Object
+                com.example.foodaid_mad_project.Model.DonationItem item = new com.example.foodaid_mad_project.Model.DonationItem(
+                        userId, itemName, quantityVal, weight, expiry, pickupMethod, "University of Malaya", desc,
+                        timeFrom, timeTo);
+
+                // 4. Save to Firestore
+                com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore
+                        .getInstance();
+                db.collection("donations")
+                        .add(item)
+                        .addOnSuccessListener(documentReference -> {
+                            Toast.makeText(getContext(), "Donation Posted Successfully!", Toast.LENGTH_SHORT).show();
+
+                            // Navigate to Success
+                            // Using existing DonateNotifyFragment logic
+                            String[] times = new String[] { timeFrom, timeTo };
+                            FragmentManager fragmentManager = getParentFragmentManager();
+                            fragmentManager.beginTransaction()
+                                    .replace(R.id.DonateFragmentContainer,
+                                            new DonateNotifyFragment(itemName, times, 0, quantityVal,
+                                                    "University of Malaya", "Me"))
+                                    .addToBackStack("DonateSuccess")
+                                    .commit();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
             });
         }
     }
