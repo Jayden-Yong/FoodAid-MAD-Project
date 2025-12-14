@@ -168,6 +168,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:name="com.example.foodaid_mad_project.HomeFragments.MapPinItemFragment"
-        tools:layout="@layout/fragment_map_pin_item" />
+        tools:layout="@layout/fragment_map_pin_item"
+        android:visibility="gone"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
