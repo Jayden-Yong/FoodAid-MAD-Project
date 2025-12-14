@@ -121,6 +121,64 @@ public class ItemDetailsFragment extends Fragment {
 
         tvLocationLabel.setText(getString(R.string.Food_Location, foodBank.getAddress()));
         tvPostedBy.setText(getString(R.string.Food_Donator, foodBank.getOwnerId()));
+
+        // Setup Bookmarking
+        if (getView() != null) {
+            setupFavouriteButton(getView(), foodBank);
+        }
+    }
+
+    private void setupFavouriteButton(View view, FoodBank foodBank) {
+        android.widget.ImageButton btnFavourite = view.findViewById(R.id.btnFavourite);
+        if (btnFavourite == null)
+            return;
+
+        // Get Current User
+        com.example.foodaid_mad_project.AuthFragments.User user = com.example.foodaid_mad_project.UserManager
+                .getInstance().getUser();
+
+        if (user == null || foodBank.getId() == null)
+            return;
+
+        // 1. Initial State Check
+        boolean isFav = false;
+        if (user.getFavourites() != null && user.getFavourites().contains(foodBank.getId())) {
+            isFav = true;
+            btnFavourite.setImageResource(R.drawable.ic_favourite_check);
+        } else {
+            btnFavourite.setImageResource(R.drawable.ic_favourite_uncheck);
+        }
+
+        // 2. Click Listener
+        btnFavourite.setOnClickListener(v -> {
+            boolean currentFavState = false;
+            if (user.getFavourites() != null && user.getFavourites().contains(foodBank.getId())) {
+                currentFavState = true;
+            }
+
+            com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore
+                    .getInstance();
+            if (currentFavState) {
+                // Remove
+                db.collection("users").document(user.getUid())
+                        .update("favourites", com.google.firebase.firestore.FieldValue.arrayRemove(foodBank.getId()));
+
+                // Update Local User Object immediatley for responsiveness
+                if (user.getFavourites() != null)
+                    user.getFavourites().remove(foodBank.getId());
+                btnFavourite.setImageResource(R.drawable.ic_favourite_uncheck);
+            } else {
+                // Add
+                db.collection("users").document(user.getUid())
+                        .update("favourites", com.google.firebase.firestore.FieldValue.arrayUnion(foodBank.getId()));
+
+                // Update Local User Object
+                if (user.getFavourites() == null)
+                    user.setFavourites(new java.util.ArrayList<>());
+                user.getFavourites().add(foodBank.getId());
+                btnFavourite.setImageResource(R.drawable.ic_favourite_check);
+            }
+        });
     }
 
     private void navigateBack() {
