@@ -19,8 +19,8 @@ public class SharedViewModel extends ViewModel {
     private final MutableLiveData<FoodBank> selectedFoodBank = new MutableLiveData<>();
 
     public SharedViewModel() {
-        // Initialize with Mock Data for now (Project Requirement: UM integration first)
-        loadMockData();
+        // Initialize with Real Data from Firestore
+        fetchFoodBanks();
     }
 
     public LiveData<List<FoodBank>> getFoodBanks() {
@@ -50,62 +50,27 @@ public class SharedViewModel extends ViewModel {
         }
     }
 
-    private void loadMockData() {
-        allFoodBanks.clear();
+    private void fetchFoodBanks() {
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("foodbanks")
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        return;
+                    }
 
-        // 1. KK12 (Residential College)
-        allFoodBanks.add(new FoodBank(
-                "fb_kk12",
-                "KK12 Food Pantry",
-                "Food Pantry",
-                3.1256, 101.6525,
-                "Raja Dr. Nazrin Shah Residential College",
-                "Free dry foods for students.",
-                "03-12345678",
-                "24 Hours",
-                "https://example.com/kk12.jpg",
-                "admin_1"));
-
-        // 2. Cafe d'Rimba (FCSIT) - Requested Replacement
-        allFoodBanks.add(new FoodBank(
-                "fb_rimba",
-                "Cafe d'Rimba (FCSIT)",
-                "Soup Kitchen",
-                3.1282, 101.6507,
-                "Faculty of Computer Science and Information Technology",
-                "Hot meals available during lunch hours.",
-                "011-98765432",
-                "12:00 PM - 2:00 PM",
-                "https://example.com/rimba.jpg",
-                "admin_2"));
-
-        // 3. Main Library
-        allFoodBanks.add(new FoodBank(
-                "fb_library",
-                "Main Library Food Bank",
-                "Food Bank",
-                3.1215, 101.6545,
-                "Foyer, Main Library",
-                "Community shared food shelf.",
-                "03-55556666",
-                "8:00 AM - 10:00 PM",
-                "https://example.com/lib.jpg",
-                "admin_3"));
-
-        // 4. API (Academy of Islamic Studies)
-        allFoodBanks.add(new FoodBank(
-                "fb_api",
-                "API Community Fridge",
-                "Community Fridge",
-                3.1180, 101.6560,
-                "Academy of Islamic Studies Entrace",
-                "Chilled foods and drinks.",
-                "03-77778888",
-                "9:00 AM - 5:00 PM",
-                "https://example.com/api.jpg",
-                "admin_4"));
-
-        // Initial state: Show all
-        filteredFoodBanks.setValue(new ArrayList<>(allFoodBanks));
+                    if (value != null) {
+                        allFoodBanks.clear();
+                        for (com.google.firebase.firestore.QueryDocumentSnapshot doc : value) {
+                            FoodBank fb = doc.toObject(FoodBank.class);
+                            // Ensure ID is set from Document ID if not in model
+                            if (fb.getId() == null || fb.getId().isEmpty()) {
+                                fb.setId(doc.getId());
+                            }
+                            allFoodBanks.add(fb);
+                        }
+                        // Refresh the view with new data
+                        filteredFoodBanks.setValue(new ArrayList<>(allFoodBanks));
+                    }
+                });
     }
 }
