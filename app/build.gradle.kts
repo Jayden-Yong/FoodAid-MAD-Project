@@ -63,6 +63,9 @@ dependencies {
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
+    // Google Maps SDK
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
+
     // firestore database
     implementation("com.google.firebase:firebase-firestore")
 
