@@ -40,18 +40,32 @@ public class HomeFragment extends Fragment {
                 .get(com.example.foodaid_mad_project.SharedViewModel.class);
 
         // Setup RecyclerView
+        // Setup RecyclerView
         rvFoodBanks.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(getContext()));
         foodBankAdapter = new FoodBankAdapter(foodBank -> {
-            // Handle Item Click -> Navigate to Details
-            // TODO: Navigate to Details Fragment
-            android.widget.Toast
-                    .makeText(getContext(), "Clicked: " + foodBank.getName(), android.widget.Toast.LENGTH_SHORT).show();
+            // Handle Item Click -> Update ViewModel
+            // This will trigger the observer below to navigate
+            sharedViewModel.selectFoodBank(foodBank);
         });
         rvFoodBanks.setAdapter(foodBankAdapter);
 
-        // Observe Data
+        // Observe Data (List Updates)
         sharedViewModel.getFoodBanks().observe(getViewLifecycleOwner(), foodBanks -> {
             foodBankAdapter.setFoodBanks(foodBanks);
+        });
+
+        // Observe Selection (Navigation Logic)
+        sharedViewModel.getSelectedFoodBank().observe(getViewLifecycleOwner(), foodBank -> {
+            if (foodBank != null) {
+                // Navigate to Details Fragment
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new ItemDetailsFragment())
+                        .addToBackStack("HomeToDetails")
+                        .commit();
+
+                // Note: We don't clear selection immediately so the details page can read it.
+                // We rely on the ViewModel holding the state.
+            }
         });
 
         // Setup Filter Chips
