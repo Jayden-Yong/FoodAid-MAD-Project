@@ -4,22 +4,40 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentContainerView;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.foodaid_mad_project.AuthFragments.User;
+import com.example.foodaid_mad_project.Model.FoodBank;
 import com.example.foodaid_mad_project.R;
+import com.example.foodaid_mad_project.SharedViewModel;
 import com.example.foodaid_mad_project.UserManager;
+import com.example.foodaid_mad_project.Adapter.FoodBankAdapter;
+import com.google.android.material.chip.ChipGroup;
 
 public class HomeFragment extends Fragment {
 
-    private String email, username, welcomeDisplay;
+    // UI Elements
     private TextView tvWelcomeUser;
-    private androidx.recyclerview.widget.RecyclerView rvFoodBanks;
-    private FoodBankAdapter foodBankAdapter;
-    private com.example.foodaid_mad_project.SharedViewModel sharedViewModel;
-    private com.google.android.material.chip.ChipGroup chipGroupFilters;
+    private ImageButton btnToQR;
+    private ImageButton btnSwitchView;
+    private RecyclerView recyclerView;
+    private FragmentContainerView mapContainer;
+    private ChipGroup chipGroupFilters;
+    private FragmentContainerView mapPinContainer;
+
+    // Logic
+    private SharedViewModel sharedViewModel;
+    private FoodBankAdapter adapter;
+    private boolean isListView = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -28,120 +46,134 @@ public class HomeFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        tvWelcomeUser = view.findViewById(R.id.tvWelcomeUser);
-        rvFoodBanks = view.findViewById(R.id.rvFoodBanks);
+        // 1. Setup Logic & ViewModel
+        setupWelcomeMessage(view);
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
+
+        // 2. Setup Views
+        btnToQR = view.findViewById(R.id.btnToQR);
+        btnSwitchView = view.findViewById(R.id.btnSwitchView);
+        recyclerView = view.findViewById(R.id.rvFoodBanks);
+        mapContainer = view.findViewById(R.id.MapFragment);
         chipGroupFilters = view.findViewById(R.id.chipGroupFilters);
+        mapPinContainer = view.findViewById(R.id.MapPinFragment);
 
-        // Setup ViewModel
-        sharedViewModel = new androidx.lifecycle.ViewModelProvider(requireActivity())
-                .get(com.example.foodaid_mad_project.SharedViewModel.class);
+        // 3. Setup RecyclerView
+        setupRecyclerView();
 
-        // Setup RecyclerView
-        // Setup RecyclerView
-        rvFoodBanks.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(getContext()));
-        foodBankAdapter = new FoodBankAdapter(foodBank -> {
-            // Handle Item Click -> Update ViewModel
-            // This will trigger the observer below to navigate
-            sharedViewModel.selectFoodBank(foodBank);
+        // 4. Setup Map (Replace container with MapFragment OSM)
+        getChildFragmentManager().beginTransaction()
+                .replace(R.id.MapFragment, new MapFragment())
+                .commit();
+
+        // 5. Setup Listeners
+        setupListeners();
+
+        // 6. Observe Data
+        sharedViewModel.getFoodBanks().observe(getViewLifecycleOwner(), list -> {
+            adapter.setData(list);
+            // MapFragment also observes this automatically
         });
-        rvFoodBanks.setAdapter(foodBankAdapter);
 
-        // Observe Data (List Updates)
-        sharedViewModel.getFoodBanks().observe(getViewLifecycleOwner(), foodBanks -> {
-            foodBankAdapter.setFoodBanks(foodBanks);
-        });
-
-        // Observe Selection (Navigation Logic)
+        // Observe Selection for Navigation
         sharedViewModel.getSelectedFoodBank().observe(getViewLifecycleOwner(), foodBank -> {
             if (foodBank != null) {
-                // Navigate to Details Fragment
-                getParentFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new ItemDetailsFragment())
-                        .addToBackStack("HomeToDetails")
+                // Navigate to Full Details Page
+                ItemDetailsFragment detailsFragment = new ItemDetailsFragment(foodBank);
+                requireActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.coveringFragment, detailsFragment)
+                        .addToBackStack(null)
                         .commit();
 
-                // Note: We don't clear selection immediately so the details page can read it.
-                // We rely on the ViewModel holding the state.
+                // Clear selection to avoid re-triggering on back press if needed,
+                // but typically we want to keep state.
+                // If using SingleLiveEvent pattern, this wouldn't be needed.
             }
         });
+    }
 
-        // Setup Filter Chips
-        chipGroupFilters.setOnCheckedChangeListener((group, checkedId) -> {
-            String filterType = "All";
-            if (checkedId == R.id.chipPantry)
-                filterType = "Food Pantry";
-            else if (checkedId == R.id.chipLeftover)
-                filterType = "Soup Kitchen"; // Mapping for now
-            else if (checkedId == R.id.chipFreeTable)
-                filterType = "Community Fridge"; // Mapping for now
-
-            sharedViewModel.applyFilter(filterType);
-        });
-
-        // Setup User Greeting
+    private void setupWelcomeMessage(View view) {
+        tvWelcomeUser = view.findViewById(R.id.tvWelcomeUser);
         try {
             User user = UserManager.getInstance().getUser();
+            String welcomeDisplay = "Guest";
             if (user != null) {
-                email = user.getEmail();
-
+                String email = user.getEmail();
                 if (user.getFullName() != null) {
-                    username = user.getFullName();
-                } else {
-                    username = user.getDisplayName();
+                    welcomeDisplay = user.getFullName();
+                } else if (user.getDisplayName() != null) {
+                    welcomeDisplay = user.getDisplayName();
+                } else if (email != null) {
+                    welcomeDisplay = email.substring(0, email.indexOf("@")).toUpperCase();
                 }
-
-                welcomeDisplay = username;
             }
-
-        } catch (NullPointerException e) {
-            welcomeDisplay = "Guest";
-        }
-
-        tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
-
-        // Setup Switch View Button Logic
-        setupSwitchView(view);
-    }
-
-    private android.widget.ImageButton btnSwitchView;
-    private View mapContainer;
-    private boolean isMapVisible = true; // Apps starts with Map by default
-
-    private void setupSwitchView(View view) {
-        btnSwitchView = view.findViewById(R.id.btnSwitchView);
-        mapContainer = view.findViewById(R.id.MapFragment);
-
-        // Initial State (Map Visible, List Gone - set in XML, but ensure here)
-        mapContainer.setVisibility(View.VISIBLE);
-        rvFoodBanks.setVisibility(View.GONE);
-        if (btnSwitchView != null) {
-            btnSwitchView.setImageResource(R.drawable.ic_list_view); // Icon implies "Click to see List"
-
-            btnSwitchView.setOnClickListener(v -> toggleView());
+            tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
+        } catch (Exception e) {
+            tvWelcomeUser.setText("Hello Guest");
         }
     }
 
-    private void toggleView() {
-        if (isMapVisible) {
-            // SWITCH TO LIST MODE
-            mapContainer.setVisibility(View.GONE);
-            rvFoodBanks.setVisibility(View.VISIBLE);
+    private void setupRecyclerView() {
+        adapter = new FoodBankAdapter(getContext());
+        // On Item Click in List -> Select it
+        adapter.setOnItemClickListener(foodBank -> {
+            sharedViewModel.selectFoodBank(foodBank);
+        });
 
-            // Update Icon to show "Map" (so user knows they can go back)
-            btnSwitchView.setImageResource(R.drawable.ic_map_view);
-            isMapVisible = false;
-        } else {
-            // SWITCH TO MAP MODE
-            mapContainer.setVisibility(View.VISIBLE);
-            rvFoodBanks.setVisibility(View.GONE);
-
-            // Update Icon to show "List"
-            btnSwitchView.setImageResource(R.drawable.ic_list_view);
-            isMapVisible = true;
-        }
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(adapter);
     }
 
+    private void setupListeners() {
+        // QR Button
+        btnToQR.setOnClickListener(v -> {
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.coveringFragment, new QRFragment())
+                    .addToBackStack("QRFragment")
+                    .commit();
+        });
+
+        // Toggle View Button
+        btnSwitchView.setOnClickListener(v -> {
+            isListView = !isListView;
+            if (isListView) {
+                // Show List, Hide Map
+                mapContainer.setVisibility(View.GONE);
+                mapPinContainer.setVisibility(View.GONE); // Hide overlay if switching to list
+                recyclerView.setVisibility(View.VISIBLE);
+                btnSwitchView.setImageResource(R.drawable.ic_map); // Change icon to map
+            } else {
+                // Show Map, Hide List
+                recyclerView.setVisibility(View.GONE);
+                mapContainer.setVisibility(View.VISIBLE);
+                btnSwitchView.setImageResource(R.drawable.ic_list); // Change icon to list
+            }
+        });
+
+        // Filter Chips
+        chipGroupFilters.setOnCheckedChangeListener((group, checkedId) -> {
+            String filter = "All";
+            if (checkedId == R.id.chipPantry)
+                filter = "Food Pantry";
+            else if (checkedId == R.id.chipLeftover)
+                filter = "Soup Kitchen"; // Mapping "Leftover" to Soup Kitchen/Cooked
+            else if (checkedId == R.id.chipFreeTable)
+                filter = "Community Fridge";
+
+            sharedViewModel.applyFilter(filter);
+        });
+    }
+
+    // Called by MapFragment when a pin is clicked
+    public void showMapPinDetails(FoodBank fb) {
+        if (mapPinContainer != null) {
+            mapPinContainer.setVisibility(View.VISIBLE);
+            getChildFragmentManager().beginTransaction()
+                    .replace(R.id.MapPinFragment, new MapPinItemFragment(fb))
+                    .commit();
+        }
+    }
 }
