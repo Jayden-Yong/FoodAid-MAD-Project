@@ -33,10 +33,9 @@ public class CompleteProfileFragment extends Fragment {
     private Spinner spinnerCPFaculty, spinnerCPResidential;
     private MaterialButton btnCPComplete;
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+            Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_complete_profile, container, false);
     }
 
@@ -66,8 +65,7 @@ public class CompleteProfileFragment extends Fragment {
         ArrayAdapter<String> facultyAdapter = new ArrayAdapter<>(
                 requireContext(),
                 android.R.layout.simple_spinner_item,
-                facultyList
-        );
+                facultyList);
 
         facultyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCPFaculty.setAdapter(facultyAdapter);
@@ -93,8 +91,7 @@ public class CompleteProfileFragment extends Fragment {
         ArrayAdapter<String> residentialAdapter = new ArrayAdapter<>(
                 requireContext(),
                 android.R.layout.simple_spinner_item,
-                residentialList
-        );
+                residentialList);
 
         residentialAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCPResidential.setAdapter(residentialAdapter);
@@ -108,6 +105,28 @@ public class CompleteProfileFragment extends Fragment {
         btnCPComplete = view.findViewById(R.id.btnCPComplete);
 
         btnCPComplete.setOnClickListener(v -> onClickComplete());
+
+        // Handle Back Press to Sign Out (prevent trap)
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
+                new androidx.activity.OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        onClickSignOut();
+                    }
+                });
+    }
+
+    private void onClickSignOut() {
+        // Sign out from Firebase
+        com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
+        // Clear local user data
+        UserManager.getInstance().setUser(null);
+
+        // Redirect to AuthActivity
+        android.content.Intent intent = new android.content.Intent(requireActivity(),
+                com.example.foodaid_mad_project.AuthActivity.class);
+        startActivity(intent);
+        requireActivity().finish();
     }
 
     public void onClickComplete() {
@@ -148,12 +167,8 @@ public class CompleteProfileFragment extends Fragment {
         user.addAdditionalData(additionalUserData);
         UserManager.getInstance().setUser(user);
 
-        // navigate back to home fragment
-        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
-        HomeFragment homeFragment = new HomeFragment();
-        fragmentTransaction.replace(R.id.mainFragment, homeFragment);
-        fragmentTransaction.commit();
+        // navigate back to home fragment using Navigation Component
+        androidx.navigation.fragment.NavHostFragment.findNavController(this)
+                .navigate(R.id.action_completeProfile_to_home);
     }
 }

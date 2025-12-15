@@ -6,7 +6,8 @@ public class UserManager {
     private static UserManager instance;
     private User currentUser;
 
-    private UserManager() {}
+    private UserManager() {
+    }
 
     public static synchronized UserManager getInstance() {
         if (instance == null) {
@@ -21,5 +22,10 @@ public class UserManager {
 
     public User getUser() {
         return currentUser;
+    }
+
+    public void clear() {
+        currentUser = null;
+        instance = null;
     }
 }

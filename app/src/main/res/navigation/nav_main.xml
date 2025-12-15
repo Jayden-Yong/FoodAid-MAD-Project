@@ -32,4 +32,16 @@
         android:name="com.example.foodaid_mad_project.ProfileFragments.ProfileFragment"
         android:label="fragment_profile"
         tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/completeProfileFragment"
+        android:name="com.example.foodaid_mad_project.AuthFragments.CompleteProfileFragment"
+        android:label="fragment_complete_profile"
+        tools:layout="@layout/fragment_complete_profile">
+        <action
+            android:id="@+id/action_completeProfile_to_home"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/completeProfileFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
 </navigation>

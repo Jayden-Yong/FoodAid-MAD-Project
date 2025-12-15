@@ -21,6 +21,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Check for authentication
+        if (com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() == null) {
+            startActivity(new android.content.Intent(this, AuthActivity.class));
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
 
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
@@ -32,23 +40,16 @@ public class MainActivity extends AppCompatActivity {
             NavigationUI.setupWithNavController(bottomNav, navController);
 
             User user = UserManager.getInstance().getUser();
-            // TODO: replace with navigation
-            // Set mainFragment
-            if (savedInstanceState == null) {
-                FragmentManager fragmentManager = getSupportFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-                // Create HomeFragment instance, add HomeFragment to the mainFragment and run
-                HomeFragment homeFragment = new HomeFragment();
-                CompleteProfileFragment completeProfileFragment = new CompleteProfileFragment();
-
-                if (user.getFullName() == null) {
-                    fragmentTransaction.add(R.id.mainFragment, completeProfileFragment);
-                } else {
-                    fragmentTransaction.add(R.id.mainFragment, homeFragment);
-                }
-
-                fragmentTransaction.commit();
+            // Check if we need to navigate to Complete Profile
+            // We do this listener to wait for graph to be ready, but simple check is okay
+            // too
+            if (user != null && user.getFullName() == null) {
+                // Navigate to Complete Profile
+                // We use post to ensure the graph is fully initialized
+                bottomNav.post(() -> {
+                    navController.navigate(R.id.completeProfileFragment);
+                });
             }
 
             FloatingActionButton fab = findViewById(R.id.fabNewDonation);
@@ -57,6 +58,17 @@ public class MainActivity extends AppCompatActivity {
                         .replace(R.id.coveringFragment, new DonateFragment())
                         .addToBackStack("Donate")
                         .commit();
+            });
+
+            // Manage Bottom Nav and FAB Visibility
+            navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+                if (destination.getId() == R.id.completeProfileFragment) {
+                    bottomNav.setVisibility(android.view.View.GONE);
+                    fab.setVisibility(android.view.View.GONE);
+                } else {
+                    bottomNav.setVisibility(android.view.View.VISIBLE);
+                    fab.setVisibility(android.view.View.VISIBLE);
+                }
             });
         }
     }
