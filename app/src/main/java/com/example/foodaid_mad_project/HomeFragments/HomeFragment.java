@@ -82,15 +82,21 @@ public class HomeFragment extends Fragment {
         sharedViewModel.getSelectedFoodBank().observe(getViewLifecycleOwner(), foodBank -> {
             if (foodBank != null) {
                 // Navigate to Full Details Page
-                ItemDetailsFragment detailsFragment = new ItemDetailsFragment(foodBank);
+                // Corrected constructor usage
+                ItemDetailsFragment detailsFragment = new ItemDetailsFragment();
+                // We don't have a constructor with FoodBank, passing via ViewModel is correct
+                // SharedViewModel already holds SelectedFoodBank
+                // But if we wanted to pass arguments (not recommended if using ViewModel):
+                /*
+                 * Bundle args = new Bundle();
+                 * args.putParcelable("foodBank", foodBank);
+                 * detailsFragment.setArguments(args);
+                 */
+
                 requireActivity().getSupportFragmentManager().beginTransaction()
                         .replace(R.id.coveringFragment, detailsFragment)
                         .addToBackStack(null)
                         .commit();
-
-                // Clear selection to avoid re-triggering on back press if needed,
-                // but typically we want to keep state.
-                // If using SingleLiveEvent pattern, this wouldn't be needed.
             }
         });
     }
@@ -144,12 +150,12 @@ public class HomeFragment extends Fragment {
                 mapContainer.setVisibility(View.GONE);
                 mapPinContainer.setVisibility(View.GONE); // Hide overlay if switching to list
                 recyclerView.setVisibility(View.VISIBLE);
-                btnSwitchView.setImageResource(R.drawable.ic_map); // Change icon to map
+                btnSwitchView.setImageResource(R.drawable.ic_map_view); // Change icon to map
             } else {
                 // Show Map, Hide List
                 recyclerView.setVisibility(View.GONE);
                 mapContainer.setVisibility(View.VISIBLE);
-                btnSwitchView.setImageResource(R.drawable.ic_list); // Change icon to list
+                btnSwitchView.setImageResource(R.drawable.ic_list_view); // Change icon to list
             }
         });
 

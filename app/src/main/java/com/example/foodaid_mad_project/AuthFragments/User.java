@@ -14,10 +14,11 @@ public class User {
     private long createdAt;
     private List<String> dietaryPreferences;
 
+    public User() {
+    }
 
-    public User() {}
-
-    public User(String uid, String email, String fullName, String displayName, String userType, String faculty, String residentialCollege, long createdAt, List<String> dietaryPreferences) {
+    public User(String uid, String email, String fullName, String displayName, String userType, String faculty,
+            String residentialCollege, long createdAt, List<String> dietaryPreferences) {
         this.uid = uid;
         this.email = email;
         this.displayName = displayName;
@@ -41,11 +42,17 @@ public class User {
         return displayName;
     }
 
-    public String getFaculty() { return faculty; }
+    public String getFaculty() {
+        return faculty;
+    }
 
-    public String getResidentialCollege() { return residentialCollege; }
+    public String getResidentialCollege() {
+        return residentialCollege;
+    }
 
-    public String getFullName() { return fullName; }
+    public String getFullName() {
+        return fullName;
+    }
 
     public String getUserType() {
         return userType;
@@ -59,10 +66,30 @@ public class User {
         return dietaryPreferences;
     }
 
+    private String role;
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
     public void addAdditionalData(Map<String, Object> additionalData) {
         this.fullName = (String) additionalData.get("fullName");
         this.faculty = (String) additionalData.get("faculty");
         this.residentialCollege = (String) additionalData.get("residentialCollege");
         this.dietaryPreferences = (List<String>) additionalData.get("dietaryPreferences");
+    }
+
+    private List<String> favourites;
+
+    public List<String> getFavourites() {
+        return favourites;
+    }
+
+    public void setFavourites(List<String> favourites) {
+        this.favourites = favourites;
     }
 }

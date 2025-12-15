@@ -32,9 +32,11 @@ public class DonateNotifyFragment extends Fragment {
     private String location;
     private String donator;
 
-    public DonateNotifyFragment() {}
+    public DonateNotifyFragment() {
+    }
 
-    public DonateNotifyFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator){
+    public DonateNotifyFragment(String title, String[] pickupTime, int category, int quantity, String location,
+            String donator) {
         this.title = title;
         this.pickupTime = pickupTime;
         this.category = category;
@@ -45,7 +47,8 @@ public class DonateNotifyFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_donate_notify, container, false);
     }
 
@@ -56,11 +59,40 @@ public class DonateNotifyFragment extends Fragment {
         btnViewItem = view.findViewById(R.id.btnViewItem);
         btnBackToHome = view.findViewById(R.id.btnBackToHome);
 
+        // Initialize ViewModel
+        com.example.foodaid_mad_project.SharedViewModel sharedViewModel = new androidx.lifecycle.ViewModelProvider(
+                requireActivity()).get(com.example.foodaid_mad_project.SharedViewModel.class);
+
         btnViewItem.setOnClickListener(v -> {
+
+            // Create a temporary FoodBank object to represent this donation
+            com.example.foodaid_mad_project.Model.FoodBank tempFoodBank = new com.example.foodaid_mad_project.Model.FoodBank();
+            tempFoodBank.setId("temp_" + System.currentTimeMillis());
+            tempFoodBank.setName(title);
+            tempFoodBank.setAddress(location);
+            tempFoodBank.setOwnerId(donator);
+
+            // Join pickup times
+            StringBuilder hours = new StringBuilder();
+            if (pickupTime != null) {
+                for (String time : pickupTime)
+                    hours.append(time).append(" ");
+            }
+            java.util.Map<String, String> hoursMap = new java.util.HashMap<>();
+            hoursMap.put("Hours", hours.toString().trim());
+            tempFoodBank.setOperatingHours(hoursMap);
+
+            // Map Category (assuming int maps to something meaningful or just use generic)
+            tempFoodBank.setType(category == 1 ? "Halal" : "Non-Halal");
+            tempFoodBank.setDescription("Quantity: " + quantity); // Store quantity in description for now
+
+            // Set selection in ViewModel
+            sharedViewModel.selectFoodBank(tempFoodBank);
+
             getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
             getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
             getParentFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment, new ItemDetailsFragment(title, pickupTime, category, quantity, location, donator))
+                    .replace(R.id.coveringFragment, new ItemDetailsFragment())
                     .addToBackStack("ItemDetail")
                     .commit();
         });

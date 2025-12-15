@@ -69,6 +69,12 @@ dependencies {
     // firestore database
     implementation("com.google.firebase:firebase-firestore")
 
+    // OSMMaps
+    implementation("org.osmdroid:osmdroid-android:6.1.16")
+
+    // Glide
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
 }

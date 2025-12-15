@@ -173,13 +173,13 @@ public class ItemDetailsFragment extends Fragment {
         // To: %s" if that's what XML expects.
         // For now, I'll assume passing the whole string or split if possible.
         // Simpler: Just set text directly to avoid format errors if strict.
-        tvPickupTime.setText("Time: " + foodBank.getOperatingHours());
+        tvPickupTime.setText("Time: " + foodBank.getFormattedOperatingHours());
 
         // Mapping Type to Category Radio Button (Visual only)
         if (foodBank.getType().equalsIgnoreCase("Food Pantry")) {
-            radioGroupCategory.check(R.id.radioButtonHalal); // Example mapping
+            radioGroupCategory.check(R.id.radioPantry);
         } else {
-            radioGroupCategory.check(R.id.radioButtonNonHalal);
+            radioGroupCategory.check(R.id.radioLeftover); // Default or other mapping
         }
 
         // Quantity: FoodBanks don't have "Quantity" in the same way as single items.

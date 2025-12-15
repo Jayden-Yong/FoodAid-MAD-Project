@@ -168,6 +168,19 @@
         app:layout_constraintStart_toStartOf="parent"
         android:name="com.example.foodaid_mad_project.HomeFragments.MapFragment" />
 
+    <!-- Map Pin Overlay Container -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/MapPinFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:visibility="gone"
+        android:elevation="10dp" />
+
     <!-- List View (Initially Hidden or overlay) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvFoodBanks"

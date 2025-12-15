@@ -12,7 +12,7 @@ public class FoodBank implements Parcelable {
     private String address;
     private String description;
     private String contactNumber;
-    private String operatingHours;
+    private java.util.Map<String, String> operatingHours; // Changed to Map
     private float rating;
     private int ratingCount;
     private String imageUrl;
@@ -25,7 +25,7 @@ public class FoodBank implements Parcelable {
     }
 
     public FoodBank(String id, String name, String type, double latitude, double longitude,
-            String address, String description, String contactNumber, String operatingHours,
+            String address, String description, String contactNumber, java.util.Map<String, String> operatingHours,
             String imageUrl, String ownerId) {
         this.id = id;
         this.name = name;
@@ -108,11 +108,11 @@ public class FoodBank implements Parcelable {
         this.contactNumber = contactNumber;
     }
 
-    public String getOperatingHours() {
+    public java.util.Map<String, String> getOperatingHours() {
         return operatingHours;
     }
 
-    public void setOperatingHours(String operatingHours) {
+    public void setOperatingHours(java.util.Map<String, String> operatingHours) {
         this.operatingHours = operatingHours;
     }
 
@@ -166,7 +166,19 @@ public class FoodBank implements Parcelable {
         address = in.readString();
         description = in.readString();
         contactNumber = in.readString();
-        operatingHours = in.readString();
+        // Read Map
+        int size = in.readInt();
+        if (size >= 0) {
+            operatingHours = new java.util.HashMap<>(size);
+            for (int i = 0; i < size; i++) {
+                String key = in.readString();
+                String value = in.readString();
+                operatingHours.put(key, value);
+            }
+        } else {
+            operatingHours = null;
+        }
+
         rating = in.readFloat();
         ratingCount = in.readInt();
         imageUrl = in.readString();
@@ -184,7 +196,16 @@ public class FoodBank implements Parcelable {
         dest.writeString(address);
         dest.writeString(description);
         dest.writeString(contactNumber);
-        dest.writeString(operatingHours);
+        // Write Map
+        if (operatingHours == null) {
+            dest.writeInt(-1);
+        } else {
+            dest.writeInt(operatingHours.size());
+            for (java.util.Map.Entry<String, String> entry : operatingHours.entrySet()) {
+                dest.writeString(entry.getKey());
+                dest.writeString(entry.getValue());
+            }
+        }
         dest.writeFloat(rating);
         dest.writeInt(ratingCount);
         dest.writeString(imageUrl);
@@ -208,4 +229,29 @@ public class FoodBank implements Parcelable {
             return new FoodBank[size];
         }
     };
+
+    // Helper methods for compatibility
+    public double getLat() {
+        return latitude;
+    }
+
+    public double getLng() {
+        return longitude;
+    }
+
+    public String getLocation() {
+        return address != null ? address : latitude + ", " + longitude;
+    }
+
+    // Helper to format operating hours for display
+    public String getFormattedOperatingHours() {
+        if (operatingHours == null || operatingHours.isEmpty()) {
+            return "Not Available";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (java.util.Map.Entry<String, String> entry : operatingHours.entrySet()) {
+            sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+        }
+        return sb.toString().trim();
+    }
 }

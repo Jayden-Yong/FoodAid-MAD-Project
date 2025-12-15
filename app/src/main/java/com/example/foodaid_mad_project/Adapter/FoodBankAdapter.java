@@ -1,5 +1,6 @@
-package com.example.foodaid_mad_project.HomeFragments;
+package com.example.foodaid_mad_project.Adapter;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,19 +18,24 @@ import java.util.List;
 public class FoodBankAdapter extends RecyclerView.Adapter<FoodBankAdapter.ViewHolder> {
 
     private List<FoodBank> foodBanks = new ArrayList<>();
-    private final OnItemClickListener listener;
+    private Context context;
+    private OnItemClickListener listener;
 
     public interface OnItemClickListener {
         void onItemClick(FoodBank foodBank);
     }
 
-    public FoodBankAdapter(OnItemClickListener listener) {
-        this.listener = listener;
+    public FoodBankAdapter(Context context) {
+        this.context = context;
     }
 
-    public void setFoodBanks(List<FoodBank> foodBanks) {
+    public void setData(List<FoodBank> foodBanks) {
         this.foodBanks = foodBanks;
         notifyDataSetChanged();
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
     }
 
     @NonNull
@@ -67,10 +73,15 @@ public class FoodBankAdapter extends RecyclerView.Adapter<FoodBankAdapter.ViewHo
         public void bind(FoodBank foodBank, OnItemClickListener listener) {
             tvName.setText(foodBank.getName());
             tvType.setText(foodBank.getType());
-            tvLocation.setText(foodBank.getAddress());
+            // Use getLocation() for compatibility or getAddress()
+            tvLocation.setText(foodBank.getAddress() != null ? foodBank.getAddress() : foodBank.getLocation());
             tvRating.setText(String.format("⭐ %.1f", foodBank.getRating()));
 
-            itemView.setOnClickListener(v -> listener.onItemClick(foodBank));
+            itemView.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onItemClick(foodBank);
+                }
+            });
         }
     }
 }
