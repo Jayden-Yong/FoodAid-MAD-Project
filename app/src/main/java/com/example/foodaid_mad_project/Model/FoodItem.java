@@ -27,6 +27,11 @@ public class FoodItem implements Parcelable {
     private double lng;
     private long postDurationMins;
 
+    // --- FIELDS FROM DonationItem (For DonateFragment compatibility) ---
+    private String pickupMethod;
+    private String pickupTimeFrom;
+    private String pickupTimeTo;
+
     // Empty constructor for Firestore
     public FoodItem() {
     }
@@ -92,6 +97,9 @@ public class FoodItem implements Parcelable {
         lat = in.readDouble();
         lng = in.readDouble();
         postDurationMins = in.readLong();
+        pickupMethod = in.readString();
+        pickupTimeFrom = in.readString();
+        pickupTimeTo = in.readString();
     }
 
     public static final Creator<FoodItem> CREATOR = new Creator<FoodItem>() {
@@ -133,6 +141,9 @@ public class FoodItem implements Parcelable {
         dest.writeDouble(lat);
         dest.writeDouble(lng);
         dest.writeLong(postDurationMins);
+        dest.writeString(pickupMethod);
+        dest.writeString(pickupTimeFrom);
+        dest.writeString(pickupTimeTo);
     }
 
     // Getters and Setters - HEAD
@@ -281,5 +292,29 @@ public class FoodItem implements Parcelable {
 
     public void setPostDurationMins(long postDurationMins) {
         this.postDurationMins = postDurationMins;
+    }
+
+    public String getPickupMethod() {
+        return pickupMethod;
+    }
+
+    public void setPickupMethod(String pickupMethod) {
+        this.pickupMethod = pickupMethod;
+    }
+
+    public String getPickupTimeFrom() {
+        return pickupTimeFrom;
+    }
+
+    public void setPickupTimeFrom(String pickupTimeFrom) {
+        this.pickupTimeFrom = pickupTimeFrom;
+    }
+
+    public String getPickupTimeTo() {
+        return pickupTimeTo;
+    }
+
+    public void setPickupTimeTo(String pickupTimeTo) {
+        this.pickupTimeTo = pickupTimeTo;
     }
 }

@@ -148,17 +148,41 @@ public class DonateFragment extends Fragment {
                     // Start safe
                 }
 
-                // 3. Create Object
-                com.example.foodaid_mad_project.Model.DonationItem item = new com.example.foodaid_mad_project.Model.DonationItem(
-                        userId, itemName, quantityVal, weight, expiry, pickupMethod, "University of Malaya", desc,
-                        timeFrom, timeTo);
+                // 3. Create Object (Reference FoodItem directly)
+                com.example.foodaid_mad_project.Model.FoodItem item = new com.example.foodaid_mad_project.Model.FoodItem();
+                item.setDonorId(userId); // donorId
+                item.setName(itemName);
+                item.setQuantity(String.valueOf(quantityVal)); // String quantity
+
+                // Parse Weight
+                double weightVal = 0.0;
+                try {
+                    String cleanWeight = weight.replaceAll("[^\\d.]", "");
+                    if (!cleanWeight.isEmpty()) {
+                        weightVal = Double.parseDouble(cleanWeight);
+                    }
+                } catch (NumberFormatException e) {
+                    weightVal = 0.0;
+                }
+                item.setWeightKg(weightVal);
+
+                item.setExpiryDate(expiry);
+                item.setPickupMethod(pickupMethod);
+                item.setLocation("University of Malaya");
+                item.setDescription(desc);
+                item.setPickupTimeFrom(timeFrom);
+                item.setPickupTimeTo(timeTo);
+                item.setStatus("AVAILABLE");
+                item.setTimestamp(System.currentTimeMillis());
+                item.setDonator(userId); // Set both for compatibility
 
                 // 4. Save to Firestore
                 com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore
                         .getInstance();
-                db.collection("donations")
+                db.collection("donations") // Writing to donations collection
                         .add(item)
                         .addOnSuccessListener(documentReference -> {
+                            item.setId(documentReference.getId()); // Set ID back
                             Toast.makeText(getContext(), "Donation Posted Successfully!", Toast.LENGTH_SHORT).show();
 
                             // Navigate to Success

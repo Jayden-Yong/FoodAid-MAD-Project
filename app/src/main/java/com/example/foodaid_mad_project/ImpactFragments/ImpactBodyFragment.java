@@ -134,14 +134,18 @@ public class ImpactBodyFragment extends Fragment {
 
         allUserItems.clear();
 
-        db.collection("food_items")
+        allUserItems.clear();
+
+        // 1. Fetch Donations (User is Donor)
+        db.collection("donations")
                 .whereEqualTo("donorId", currentUser.getUid())
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     List<FoodItem> donatedItems = querySnapshot.toObjects(FoodItem.class);
                     allUserItems.addAll(donatedItems);
 
-                    db.collection("food_items")
+                    // 2. Fetch Claims (User is Claimee)
+                    db.collection("donations")
                             .whereEqualTo("claimeeId", currentUser.getUid())
                             .get()
                             .addOnSuccessListener(claimSnapshot -> {
@@ -150,7 +154,7 @@ public class ImpactBodyFragment extends Fragment {
                                 for (FoodItem item : claimedItems) {
                                     boolean exists = false;
                                     for (FoodItem existing : allUserItems) {
-                                        if (existing.getId().equals(item.getId())) {
+                                        if (existing.getId() != null && existing.getId().equals(item.getId())) {
                                             exists = true;
                                             break;
                                         }
@@ -308,15 +312,34 @@ public class ImpactBodyFragment extends Fragment {
         for (FoodItem item : allUserItems) {
             if (item.getTimestamp() >= startTime && item.getTimestamp() < endTime) {
                 filteredItems.add(item);
+
+                // If User Donated this item
                 if (item.getDonorId() != null && item.getDonorId().equals(currentUser.getUid())) {
                     donatedCount++;
-                    // Only count saved weight if donation was successful (assumed) or simply
-                    // tracking potential
+                    // Only count saved weight if it is NOT available anymore (meaning it was
+                    // claimed/saved)
+                    // OR if we assume all donations count as potential saving.
+                    // Let's assume all donations user made are "saved" from waste for now,
+                    // or strictly check status. User probably wants to see total weight of
+                    // everything they put in.
                     savedWeight += item.getWeightKg();
                 }
+
+                // If User Claimed this item
                 if (item.getClaimeeId() != null && item.getClaimeeId().equals(currentUser.getUid())) {
                     claimedCount++;
-                    savedWeight += item.getWeightKg(); // Claiming also saves food
+                    // If I claim it, I haven't "saved" it in the same sense as the donor,
+                    // but usually "Food Saved" stats aggregate total movement.
+                    // To avoid double counting in a global sense, we might separate.
+                    // But for PERSONAL impact:
+                    // Donor: I saved X kg by giving it away.
+                    // Claimee: I rescued X kg?
+                    // Let's count weight for both actions to make the user feel good.
+                    // Check if we already counted it (if user is both donor and claimee - testing
+                    // only)
+                    if (item.getDonorId() == null || !item.getDonorId().equals(currentUser.getUid())) {
+                        savedWeight += item.getWeightKg();
+                    }
                 }
             }
         }
