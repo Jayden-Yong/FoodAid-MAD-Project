@@ -46,31 +46,37 @@
                 app:singleSelection="true">
 
                 <RadioButton
-                    android:id="@+id/radioPantry"
+                    android:id="@+id/radioMenuRahmah"
                     style="@style/FoodAidDonateTypeBtnStyle"
                     android:layout_width="0dp"
                     android:layout_height="35dp"
                     android:layout_weight="1"
-                    android:text="@string/Filter_Pantry"
+                    android:text="Menu Rahmah"
+                    android:textAlignment="center"
+                    android:textSize="12sp"
                     android:textAllCaps="false"/>
 
                 <RadioButton
-                    android:id="@+id/radioLeftover"
+                    android:id="@+id/radioCafeLeftover"
                     style="@style/FoodAidDonateTypeBtnStyle"
                     android:layout_width="0dp"
                     android:layout_height="35dp"
                     android:layout_weight="1"
                     android:layout_marginHorizontal="8dp"
-                    android:text="@string/Filter_Leftover"
+                    android:text="Cafe Leftover"
+                    android:textAlignment="center"
+                    android:textSize="12sp"
                     android:textAllCaps="false"/>
 
                 <RadioButton
-                    android:id="@+id/radioFreeTable"
+                    android:id="@+id/radioEventLeftover"
                     style="@style/FoodAidDonateTypeBtnStyle"
                     android:layout_width="0dp"
                     android:layout_height="35dp"
                     android:layout_weight="1"
-                    android:text="@string/Filter_Free_Table"
+                    android:text="Event Leftover"
+                    android:textAlignment="center"
+                    android:textSize="12sp"
                     android:textAllCaps="false"/>
             </RadioGroup>
 
@@ -139,6 +145,29 @@
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/containerPrice"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="90dp"
+                            android:layout_height="wrap_content"
+                            android:text="Price (RM)"
+                            android:textStyle="bold" />
+                        <EditText
+                            android:id="@+id/etPrice"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_edit_text_underline"
+                            android:inputType="numberDecimal"
+                            android:padding="8dp"
+                            android:textSize="14sp"
+                            android:hint="0.00" />
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
@@ -159,27 +188,7 @@
                             android:textSize="14sp" />
                     </LinearLayout>
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-                        <TextView
-                            android:layout_width="90dp"
-                            android:layout_height="wrap_content"
-                            android:text="@string/Expiry_Date"
-                            android:textStyle="bold" />
-                        <EditText
-                            android:id="@+id/etExpiryDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/bg_edit_text_underline"
-                            android:inputType="date"
-                            android:padding="8dp"
-                            android:textSize="14sp"
-                            tools:hint="DD/MM/YYYY" />
-                    </LinearLayout>
+                    <!-- Expiry Date removed -->
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -189,7 +198,7 @@
                             android:layout_width="90dp"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="@string/Description"
+                            android:text="Notes"
                             android:textStyle="bold" />
                         <EditText
                             android:id="@+id/etDescription"
@@ -197,7 +206,7 @@
                             android:layout_height="wrap_content"
                             android:background="@null"
                             android:gravity="top"
-                            android:hint="List ingredients, allergens, etc."
+                            android:hint="List ingredients, allergens, or event details."
                             android:inputType="textMultiLine"
                             android:minLines="4"
                             android:padding="8dp"
@@ -206,43 +215,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/Upload_Photos"
-                android:textColor="#1A1A1A"
-                android:textStyle="bold" />
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cvUploadPhoto"
-                android:layout_width="match_parent"
-                android:layout_height="120dp"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="#F5F5F5"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp">
-
-                <TextView
-                    android:id="@+id/tvUploadPlaceholder"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp"
-                    android:drawablePadding="8dp"
-                    android:text="@string/Upload_From_Gallery"
-                    android:textStyle="bold"
-                    android:layout_gravity="center"
-                    app:drawableTopCompat="@drawable/ic_photo"/>
-
-                <ImageView
-                    android:id="@+id/ivSelectedPhoto"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:visibility="gone"
-                    android:contentDescription="@string/Food_Image" />
-
-            </androidx.cardview.widget.CardView>
+            <!-- Photo Upload removed -->
 
             <TextView
                 android:layout_width="wrap_content"
@@ -258,17 +231,16 @@
                 android:layout_marginTop="12dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
-
-                <EditText
-                    android:id="@+id/etLocationSearch"
+                
+                <TextView
+                    android:id="@+id/tvLocationAddress"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_edit_text_underline"
-                    android:hint="Search address (e.g. University Malaya)"
-                    android:inputType="textPostalAddress"
+                    android:text="Tap GPS or Pin to set location"
                     android:padding="8dp"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:textColor="#333333"/>
 
                 <ImageButton
                     android:id="@+id/btnSearchLocation"
@@ -278,46 +250,20 @@
                     android:background="@drawable/bg_donate_type_btn"
                     android:src="@drawable/ic_search"
                     app:tint="@color/primary_color"
-                    android:contentDescription="Search Location" />
+                    android:contentDescription="Use GPS" />
+                    
+                 <ImageButton
+                    android:id="@+id/btnPinLocation"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_donate_type_btn"
+                    android:src="@drawable/ic_custom_pin"
+                    app:tint="@color/primary_color"
+                    android:contentDescription="Pin on Map" />
             </LinearLayout>
 
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginTop="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp">
-
-                <FrameLayout
-                    android:id="@+id/mapFragmentContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-
-            </androidx.cardview.widget.CardView>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/Pickup_Method"
-                android:textColor="#1A1A1A"
-                android:textStyle="bold" />
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="#F5F5F5"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp">
-                <Spinner
-                    android:id="@+id/spinnerPickupMethod"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:padding="12dp"
-                    android:prompt="@string/Pickup_Method_Spinner"
-                    android:popupBackground="@drawable/bg_spinner_popup"/>
-            </androidx.cardview.widget.CardView>
+            <!-- Spinner Removed -->
 
             <TextView
                 android:layout_width="wrap_content"
@@ -343,29 +289,83 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginHorizontal="12dp"
                     android:background="@drawable/bg_edit_text_underline"
-                    android:gravity="center"
-                    android:hint="@string/Time_Hint"
-                    android:inputType="time"
-                    android:padding="8dp" />
+                    android:hint="Start Time"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:padding="8dp"
+                    android:textSize="14sp" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/to"
-                    android:textStyle="bold" />
+                    android:paddingHorizontal="8dp"
+                    android:text="-"
+                    android:textColor="#1A1A1A"
+                    android:textSize="16sp" />
+
                 <EditText
                     android:id="@+id/etTimeTo"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginStart="12dp"
                     android:background="@drawable/bg_edit_text_underline"
-                    android:gravity="center"
-                    android:hint="@string/Time_Hint"
-                    android:inputType="time"
-                    android:padding="8dp" />
+                    android:hint="End Time"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:padding="8dp"
+                    android:textSize="14sp" />
             </LinearLayout>
+
+            <!-- Photo Upload Container -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Add Photo"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:layout_marginBottom="8dp"/>
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:background="#F5F5F5">
+
+                        <ImageView
+                            android:id="@+id/ivFoodImage"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/ic_camera"
+                            android:padding="60dp"
+                            app:tint="#BDBDBD"/>
+
+                        <TextView
+                            android:id="@+id/tvAddPhotoHint"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom|center_horizontal"
+                            android:layout_marginBottom="16dp"
+                            android:text="Tap to upload"
+                            android:textColor="#757575"/>
+                    </FrameLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
             <CheckBox
                 android:id="@+id/cbConfirm"

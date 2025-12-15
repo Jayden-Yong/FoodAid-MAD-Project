@@ -20,16 +20,19 @@
 
         <TextView
             android:id="@+id/tvWelcomeUser"
-            android:layout_width="220dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="@string/Welcome_User"
             android:textSize="20sp"
             android:textAlignment="textStart"
             android:fontFamily="@font/poppins_bold"
-            android:elevation="1dp"/>
+            android:elevation="1dp"
+            android:ellipsize="end"
+            android:maxLines="1"/>
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="end"
             android:elevation="0dp">
@@ -41,15 +44,6 @@
                 android:layout_gravity="center"
                 android:contentDescription="@string/Notification_Bell"
                 android:src="@drawable/ic_notification"
-                android:backgroundTint="@color/white" />
-
-            <ImageButton
-                android:id="@+id/btnToQR"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="center"
-                android:contentDescription="@string/QR_Code"
-                android:src="@drawable/ic_qr"
                 android:backgroundTint="@color/white" />
 
             <ImageButton
@@ -134,25 +128,25 @@
                 android:text="@string/Filter_All" />
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/chipPantry"
+                android:id="@+id/chipMenuRahmah"
                 style="@style/FoodAidChipStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/Filter_Pantry" />
+                android:text="Menu Rahmah" />
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/chipLeftover"
+                android:id="@+id/chipCafeLeftover"
                 style="@style/FoodAidChipStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/Filter_Leftover" />
+                android:text="Leftover" />
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/chipFreeTable"
+                android:id="@+id/chipEventLeftover"
                 style="@style/FoodAidChipStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/Filter_Free_Table" />
+                android:text="Event" />
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
 

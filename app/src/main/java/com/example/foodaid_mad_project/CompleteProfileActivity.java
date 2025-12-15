@@ -39,13 +39,15 @@ public class CompleteProfileActivity extends AppCompatActivity {
 
         // populate faculty spinner
         spinnerCPFaculty = findViewById(R.id.spinnerCPFaculty);
-        ArrayAdapter<CharSequence> adapterFaculty = ArrayAdapter.createFromResource(this, R.array.Faculty_List, R.layout.spinner_item_selected);
+        ArrayAdapter<CharSequence> adapterFaculty = ArrayAdapter.createFromResource(this, R.array.Faculty_List,
+                R.layout.spinner_item_selected);
         adapterFaculty.setDropDownViewResource(R.layout.spinner_pickup_method);
         spinnerCPFaculty.setAdapter(adapterFaculty);
 
         // populate residential college spinner
         spinnerCPResidential = findViewById(R.id.spinnerCPResidential);
-        ArrayAdapter<CharSequence> adapterResidential = ArrayAdapter.createFromResource(this, R.array.Residential_College_List, R.layout.spinner_item_selected);
+        ArrayAdapter<CharSequence> adapterResidential = ArrayAdapter.createFromResource(this,
+                R.array.Residential_College_List, R.layout.spinner_item_selected);
         adapterResidential.setDropDownViewResource(R.layout.spinner_pickup_method);
         spinnerCPResidential.setAdapter(adapterResidential);
 
@@ -63,7 +65,8 @@ public class CompleteProfileActivity extends AppCompatActivity {
     public void onClickComplete(View view) {
         String fullName = etFullName.getText().toString();
         String faculty = spinnerCPFaculty.getSelectedItemId() == 0 ? "" : spinnerCPFaculty.getSelectedItem().toString();
-        String residentialCollege = spinnerCPResidential.getSelectedItemId() == 0 ? "" : spinnerCPResidential.getSelectedItem().toString();
+        String residentialCollege = spinnerCPResidential.getSelectedItemId() == 0 ? ""
+                : spinnerCPResidential.getSelectedItem().toString();
         List<String> dietaryPreferences = new ArrayList<>();
 
         if (cbNone.isChecked()) {
@@ -95,7 +98,9 @@ public class CompleteProfileActivity extends AppCompatActivity {
         DocumentReference userRef = db.collection("users").document(uid);
         userRef.update(additionalUserData)
                 .addOnSuccessListener(aVoid -> {
-                    user.addAdditionalData(additionalUserData);
+                    if (additionalUserData.containsKey("fullName")) {
+                        user.setName((String) additionalUserData.get("fullName"));
+                    }
                     UserManager.getInstance().setUser(user);
 
                     Toast.makeText(this, "Profile Completed!", Toast.LENGTH_SHORT).show();

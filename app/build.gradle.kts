@@ -61,6 +61,7 @@ dependencies {
     // TODO: Add the dependencies for Firebase products you want to use
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-storage")
 
     // google sign in dependencies
     implementation("androidx.credentials:credentials:1.3.0")
@@ -69,9 +70,11 @@ dependencies {
 
     // Google Maps SDK
     implementation("com.google.android.gms:play-services-maps:19.0.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
 
     // firestore database
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.firebaseui:firebase-ui-firestore:8.0.2")
 
     // OSMMaps
     implementation("org.osmdroid:osmdroid-android:6.1.16")

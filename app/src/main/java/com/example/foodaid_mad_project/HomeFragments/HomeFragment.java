@@ -27,7 +27,7 @@ public class HomeFragment extends Fragment {
 
     // UI Elements
     private TextView tvWelcomeUser;
-    private ImageButton btnToQR;
+    private ImageButton btnToNotification;
     private ImageButton btnSwitchView;
     private RecyclerView recyclerView;
     private FragmentContainerView mapContainer;
@@ -54,7 +54,8 @@ public class HomeFragment extends Fragment {
         sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
         // 2. Setup Views
-        btnToQR = view.findViewById(R.id.btnToQR);
+        btnToNotification = view.findViewById(R.id.btnToNotification);
+
         btnSwitchView = view.findViewById(R.id.btnSwitchView);
         recyclerView = view.findViewById(R.id.rvFoodBanks);
         mapContainer = view.findViewById(R.id.MapFragment);
@@ -108,15 +109,13 @@ public class HomeFragment extends Fragment {
             String welcomeDisplay = "Guest";
             if (user != null) {
                 String email = user.getEmail();
-                if (user.getFullName() != null) {
-                    welcomeDisplay = user.getFullName();
-                } else if (user.getDisplayName() != null) {
-                    welcomeDisplay = user.getDisplayName();
+                if (user.getName() != null) {
+                    welcomeDisplay = user.getName();
                 } else if (email != null) {
                     welcomeDisplay = email.substring(0, email.indexOf("@")).toUpperCase();
                 }
             }
-            tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
+            tvWelcomeUser.setText(getString(R.string.Welcome_User, welcomeDisplay));
         } catch (Exception e) {
             tvWelcomeUser.setText("Hello Guest");
         }
@@ -134,13 +133,16 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupListeners() {
-        // QR Button
-        btnToQR.setOnClickListener(v -> {
-            requireActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment, new QRFragment())
-                    .addToBackStack("QRFragment")
-                    .commit();
-        });
+
+        // Notification Button
+        if (btnToNotification != null) {
+            btnToNotification.setOnClickListener(v -> {
+                requireActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.coveringFragment, new NotificationFragment())
+                        .addToBackStack("NotificationFragment")
+                        .commit();
+            });
+        }
 
         // Toggle View Button
         btnSwitchView.setOnClickListener(v -> {
@@ -162,12 +164,12 @@ public class HomeFragment extends Fragment {
         // Filter Chips
         chipGroupFilters.setOnCheckedChangeListener((group, checkedId) -> {
             String filter = "All";
-            if (checkedId == R.id.chipPantry)
-                filter = "Food Pantry";
-            else if (checkedId == R.id.chipLeftover)
-                filter = "Soup Kitchen"; // Mapping "Leftover" to Soup Kitchen/Cooked
-            else if (checkedId == R.id.chipFreeTable)
-                filter = "Community Fridge";
+            if (checkedId == R.id.chipMenuRahmah)
+                filter = "Menu Rahmah";
+            else if (checkedId == R.id.chipCafeLeftover)
+                filter = "Leftover";
+            else if (checkedId == R.id.chipEventLeftover)
+                filter = "Event";
 
             sharedViewModel.applyFilter(filter);
         });

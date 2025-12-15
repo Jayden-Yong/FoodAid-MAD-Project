@@ -60,22 +60,27 @@ public class FoodBankAdapter extends RecyclerView.Adapter<FoodBankAdapter.ViewHo
         private final TextView tvName;
         private final TextView tvType;
         private final TextView tvLocation;
-        private final TextView tvRating;
+        private final TextView tvPrice;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tvFoodBankName);
             tvType = itemView.findViewById(R.id.tvFoodBankType);
             tvLocation = itemView.findViewById(R.id.tvFoodBankLocation);
-            tvRating = itemView.findViewById(R.id.tvRating);
+            tvPrice = itemView.findViewById(R.id.tvPrice);
         }
 
         public void bind(FoodBank foodBank, OnItemClickListener listener) {
             tvName.setText(foodBank.getName());
-            tvType.setText(foodBank.getType());
+            tvType.setText(foodBank.getCategory());
             // Use getLocation() for compatibility or getAddress()
             tvLocation.setText(foodBank.getAddress() != null ? foodBank.getAddress() : foodBank.getLocation());
-            tvRating.setText(String.format("⭐ %.1f", foodBank.getRating()));
+
+            if (foodBank.getPrice() <= 0) {
+                tvPrice.setText("Free");
+            } else {
+                tvPrice.setText(String.format("RM %.2f", foodBank.getPrice()));
+            }
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) {

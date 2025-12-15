@@ -44,10 +44,28 @@
         app:layout_constraintTop_toBottomOf="@id/authLogoTop" />
 
     <EditText
-        android:id="@+id/etRegisterEmail"
+        android:id="@+id/etFullName"
         android:layout_width="0dp"
         android:layout_height="50dp"
         android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="26dp"
+        android:background="@drawable/bg_input_field"
+        android:hint="Full Name"
+        android:inputType="textPersonName"
+        android:paddingTop="4dp"
+        android:paddingHorizontal="16dp"
+        android:textSize="16sp"
+        android:fontFamily="@font/poppins_regular"
+        android:autofillHints="name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvRegisterTitle" />
+
+    <EditText
+        android:id="@+id/etRegisterEmail"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="16dp"
         android:layout_marginHorizontal="26dp"
         android:background="@drawable/bg_input_field"
         android:hint="@string/Prompt_Email"
@@ -59,7 +77,7 @@
         android:autofillHints="emailAddress"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvRegisterTitle" />
+        app:layout_constraintTop_toBottomOf="@id/etFullName" />
 
     <LinearLayout
         android:id="@+id/etRegisterPasswordContainer"

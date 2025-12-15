@@ -59,7 +59,7 @@ public class MapPinItemFragment extends Fragment {
         // Populate the views with FoodBank data
         tvName.setText(foodBank.getName());
         tvLocation.setText(foodBank.getLocation());
-        tvQuantity.setText("Type: " + foodBank.getType()); // Using Type as we don't have Quantity in FoodBank model yet
+        tvQuantity.setText("Category: " + foodBank.getCategory()); // Using Category as Type legacy replacement
         tvDonator.setText("Hours: " + foodBank.getFormattedOperatingHours()); // Using Hours as Donator proxy
 
         // Handle image using Glide

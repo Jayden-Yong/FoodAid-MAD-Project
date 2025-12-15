@@ -1,29 +1,321 @@
+> Task :app:clean
 > Task :app:preBuild UP-TO-DATE
 > Task :app:preDebugBuild UP-TO-DATE
 > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
-> Task :app:javaPreCompileDebug UP-TO-DATE
-> Task :app:checkDebugAarMetadata UP-TO-DATE
-> Task :app:processDebugNavigationResources UP-TO-DATE
-> Task :app:compileDebugNavigationResources UP-TO-DATE
-> Task :app:generateDebugResValues UP-TO-DATE
-> Task :app:processDebugGoogleServices UP-TO-DATE
-> Task :app:mapDebugSourceSetPaths UP-TO-DATE
-> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:javaPreCompileDebug
+> Task :app:processDebugNavigationResources
+> Task :app:generateDebugResValues
+> Task :app:checkDebugAarMetadata
+> Task :app:processDebugGoogleServices
+> Task :app:compileDebugNavigationResources
+> Task :app:mapDebugSourceSetPaths
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:parseDebugLocalResources
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:mergeDebugShaders
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets
+> Task :app:compressDebugAssets
+> Task :app:processDebugJavaRes NO-SOURCE
+> Task :app:desugarDebugFileDependencies
+> Task :app:mergeDebugJniLibFolders
+> Task :app:checkDebugDuplicateClasses
+> Task :app:mergeDebugNativeLibs
+> Task :app:mergeDebugResources
+> Task :app:validateSigningDebug
+> Task :app:mergeLibDexDebug
+> Task :app:writeDebugAppMetadata
+> Task :app:writeDebugSigningConfigVersions
+> Task :app:processDebugManifestForPackage
 
-> Task :app:mergeDebugResources FAILED
-ERROR: [drawable/ic_custom_pin] D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\res\drawable\ic_custom_pin.png [drawable/ic_custom_pin] D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\res\drawable\ic_custom_pin.xml: Resource and asset merger: Duplicate resources
+> Task :app:stripDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libdatastore_shared_counter.so. Run with --info option to learn more.
+
+> Task :app:mergeDebugJavaResource
+> Task :app:processDebugResources
+
+> Task :app:compileDebugJavaWithJavac FAILED
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:41: error: cannot find symbol
+        this.address = address;
+            ^
+  symbol: variable address
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:42: error: cannot find symbol
+        this.latitude = latitude;
+            ^
+  symbol: variable latitude
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:43: error: cannot find symbol
+        this.longitude = longitude;
+            ^
+  symbol: variable longitude
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:132: error: cannot find symbol
+        return latitude;
+               ^
+  symbol:   variable latitude
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:137: error: cannot find symbol
+        this.latitude = latitude;
+            ^
+  symbol: variable latitude
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:142: error: cannot find symbol
+        return longitude;
+               ^
+  symbol:   variable longitude
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:147: error: cannot find symbol
+        this.longitude = longitude;
+            ^
+  symbol: variable longitude
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:152: error: cannot find symbol
+        return address;
+               ^
+  symbol:   variable address
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:157: error: cannot find symbol
+        this.address = address;
+            ^
+  symbol: variable address
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:186: error: cannot find symbol
+        return imageUrl;
+               ^
+  symbol:   variable imageUrl
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:191: error: cannot find symbol
+        this.imageUrl = imageUrl;
+            ^
+  symbol: variable imageUrl
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:223: error: cannot find symbol
+        latitude = in.readDouble();
+        ^
+  symbol:   variable latitude
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:224: error: cannot find symbol
+        longitude = in.readDouble();
+        ^
+  symbol:   variable longitude
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:225: error: cannot find symbol
+        address = in.readString();
+        ^
+  symbol:   variable address
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:241: error: cannot find symbol
+        imageUrl = in.readString();
+        ^
+  symbol:   variable imageUrl
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:259: error: cannot find symbol
+        dest.writeDouble(latitude);
+                         ^
+  symbol:   variable latitude
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:260: error: cannot find symbol
+        dest.writeDouble(longitude);
+                         ^
+  symbol:   variable longitude
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:261: error: cannot find symbol
+        dest.writeString(address);
+                         ^
+  symbol:   variable address
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:274: error: cannot find symbol
+        dest.writeString(imageUrl);
+                         ^
+  symbol:   variable imageUrl
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:299: error: cannot find symbol
+        return latitude;
+               ^
+  symbol:   variable latitude
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:304: error: cannot find symbol
+        return longitude;
+               ^
+  symbol:   variable longitude
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:309: error: cannot find symbol
+        return address != null ? address : latitude + ", " + longitude;
+               ^
+  symbol:   variable address
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:309: error: cannot find symbol
+        return address != null ? address : latitude + ", " + longitude;
+                                 ^
+  symbol:   variable address
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:309: error: cannot find symbol
+        return address != null ? address : latitude + ", " + longitude;
+                                           ^
+  symbol:   variable latitude
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:309: error: cannot find symbol
+        return address != null ? address : latitude + ", " + longitude;
+                                                             ^
+  symbol:   variable longitude
+  location: class FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\DonateFragments\DonateNotifyFragment.java:86: error: cannot find symbol
+            tempFoodBank.setType(category == 1 ? "Halal" : "Non-Halal");
+                        ^
+  symbol:   method setType(category =[...]alal")
+  location: variable tempFoodBank of type FoodBank
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\DonateFragments\DonateNotifyFragment.java:87: error: cannot find symbol
+            tempFoodBank.setDescription("Quantity: " + quantity); // Store quantity in description for now
+                        ^
+  symbol:   method setDescription(String)
+  location: variable tempFoodBank of type FoodBank
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+27 errors
+
+> Task :app:mergeExtDexDebug
+
+[Incubating] Problems report is available at: file:///D:/Documents/GitHub/FoodAid-MAD-Project/build/reports/problems/problems-report.html
 
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':app:mergeDebugResources'.
-> [drawable/ic_custom_pin] D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\res\drawable\ic_custom_pin.png	[drawable/ic_custom_pin] D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\res\drawable\ic_custom_pin.xml: Error: Duplicate resources
+Execution failed for task ':app:compileDebugJavaWithJavac'.
+> Compilation failed; see the compiler output below.
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:41: error: cannot find symbol
+          this.address = address;
+              ^
+    symbol: variable address
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:42: error: cannot find symbol
+          this.latitude = latitude;
+              ^
+    symbol: variable latitude
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:43: error: cannot find symbol
+          this.longitude = longitude;
+              ^
+    symbol: variable longitude
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:132: error: cannot find symbol
+          return latitude;
+                 ^
+    symbol:   variable latitude
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:137: error: cannot find symbol
+          this.latitude = latitude;
+              ^
+    symbol: variable latitude
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:142: error: cannot find symbol
+          return longitude;
+                 ^
+    symbol:   variable longitude
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:147: error: cannot find symbol
+          this.longitude = longitude;
+              ^
+    symbol: variable longitude
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:152: error: cannot find symbol
+          return address;
+                 ^
+    symbol:   variable address
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:157: error: cannot find symbol
+          this.address = address;
+              ^
+    symbol: variable address
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:186: error: cannot find symbol
+          return imageUrl;
+                 ^
+    symbol:   variable imageUrl
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:191: error: cannot find symbol
+          this.imageUrl = imageUrl;
+              ^
+    symbol: variable imageUrl
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:223: error: cannot find symbol
+          latitude = in.readDouble();
+          ^
+    symbol:   variable latitude
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:224: error: cannot find symbol
+          longitude = in.readDouble();
+          ^
+    symbol:   variable longitude
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:225: error: cannot find symbol
+          address = in.readString();
+          ^
+    symbol:   variable address
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:241: error: cannot find symbol
+          imageUrl = in.readString();
+          ^
+    symbol:   variable imageUrl
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:259: error: cannot find symbol
+          dest.writeDouble(latitude);
+                           ^
+    symbol:   variable latitude
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:260: error: cannot find symbol
+          dest.writeDouble(longitude);
+                           ^
+    symbol:   variable longitude
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:261: error: cannot find symbol
+          dest.writeString(address);
+                           ^
+    symbol:   variable address
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:274: error: cannot find symbol
+          dest.writeString(imageUrl);
+                           ^
+    symbol:   variable imageUrl
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:299: error: cannot find symbol
+          return latitude;
+                 ^
+    symbol:   variable latitude
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:304: error: cannot find symbol
+          return longitude;
+                 ^
+    symbol:   variable longitude
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:309: error: cannot find symbol
+          return address != null ? address : latitude + ", " + longitude;
+                 ^
+    symbol:   variable address
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:309: error: cannot find symbol
+          return address != null ? address : latitude + ", " + longitude;
+                                   ^
+    symbol:   variable address
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:309: error: cannot find symbol
+          return address != null ? address : latitude + ", " + longitude;
+                                             ^
+    symbol:   variable latitude
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\Model\FoodBank.java:309: error: cannot find symbol
+          return address != null ? address : latitude + ", " + longitude;
+                                                               ^
+    symbol:   variable longitude
+    location: class FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\DonateFragments\DonateNotifyFragment.java:86: error: cannot find symbol
+              tempFoodBank.setType(category == 1 ? "Halal" : "Non-Halal");
+                          ^
+    symbol:   method setType(category =[...]alal")
+    location: variable tempFoodBank of type FoodBank
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\DonateFragments\DonateNotifyFragment.java:87: error: cannot find symbol
+              tempFoodBank.setDescription("Quantity: " + quantity); // Store quantity in description for now
+                          ^
+    symbol:   method setDescription(String)
+    location: variable tempFoodBank of type FoodBank
+  Note: Some input files use or override a deprecated API.
+  Note: Recompile with -Xlint:deprecation for details.
+  27 errors
 
 * Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
+> Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights.
-> Get more help at https://help.gradle.org.
 
-BUILD FAILED in 1s
-9 actionable tasks: 1 executed, 8 up-to-date
+BUILD FAILED in 9s
+33 actionable tasks: 33 executed

@@ -81,7 +81,7 @@
 
     <!-- Home -->
     <string name="Home">Home</string>
-    <string name="Welcome_User">Good %1$s, %2$s</string><!-- To be formatted in backend - morning/afternoon/evening, user -->
+    <string name="Welcome_User">Welcome, %1$s</string>
     <string name="Notification_Bell">Notification Bell</string>
     <string name="QR_Code">QR Code</string>
     <string name="Search_Icon">Search Icon</string>
@@ -105,7 +105,7 @@
     <string name="Pickup_Time">Pickup Time: %1$s – %2$s</string><!-- Time(##:## AM/PM) -->
     <string name="Claim_Successful">Claim Successful!</string>
     <string name="Category">Category:</string>
-    <string name="Claim_Guide">Please show your QR code during pickup for verification.</string>
+    <string name="Claim_Guide">You can collect your food at the location.</string>
     <string name="View_QR_Code">View QR Code</string>
     <string name="Back_to_Home">Back to Home</string>
 
@@ -313,4 +313,5 @@
         <item>Yearly</item>
     </string-array>
 
+    <string name="desc_issue_icon">Issue Icon</string>
 </resources>

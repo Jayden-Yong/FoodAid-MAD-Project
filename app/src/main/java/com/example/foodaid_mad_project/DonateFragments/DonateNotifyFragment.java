@@ -83,8 +83,9 @@ public class DonateNotifyFragment extends Fragment {
             tempFoodBank.setOperatingHours(hoursMap);
 
             // Map Category (assuming int maps to something meaningful or just use generic)
-            tempFoodBank.setType(category == 1 ? "Halal" : "Non-Halal");
-            tempFoodBank.setDescription("Quantity: " + quantity); // Store quantity in description for now
+            // Map Category (assuming int maps to something meaningful or just use generic)
+            tempFoodBank.setCategory(category == 1 ? "Halal" : "Non-Halal");
+            tempFoodBank.setNotes("Quantity: " + quantity); // Store quantity in description for now
 
             // Set selection in ViewModel
             sharedViewModel.selectFoodBank(tempFoodBank);

@@ -19,6 +19,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Source;
 
 @SuppressLint("CustomSplashScreen")
 public class SplashActivity extends AppCompatActivity {
@@ -46,15 +47,35 @@ public class SplashActivity extends AppCompatActivity {
                         checkAndNavigate();
                     })
                     .addOnFailureListener(e -> {
-                        Log.e("SplashActivity", "Failed to fetch user data", e);
-                        isDataReady = true; // Proceed anyway, handle null downstream
-                        checkAndNavigate();
+                        Log.e("SplashActivity", "Failed to fetch user data from server, trying cache.", e);
+                        // Try to fetch from cache if server fails
+                        db.collection("users").document(currentUser.getUid()).get(Source.CACHE)
+                                .addOnSuccessListener(documentSnapshot -> {
+                                    User user = documentSnapshot.toObject(User.class);
+                                    UserManager.getInstance().setUser(user);
+                                    isDataReady = true;
+                                    checkAndNavigate();
+                                })
+                                .addOnFailureListener(e2 -> {
+                                    Log.e("SplashActivity",
+                                            "Failed to fetch user data from cache too. Creating fallback user.", e2);
+                                    // Fallback to a minimal user object deriving from FirebaseAuth
+                                    // Fallback to a minimal user object deriving from FirebaseAuth
+                                    User fallbackUser = new User(
+                                            currentUser.getUid(),
+                                            currentUser.getEmail(),
+                                            currentUser.getDisplayName() != null ? currentUser.getDisplayName()
+                                                    : "User");
+                                    UserManager.getInstance().setUser(fallbackUser);
+                                    isDataReady = true;
+                                    checkAndNavigate();
+                                });
                     });
         } else {
             isDataReady = true;
         }
 
-        long animationDuration = 4100;
+        long animationDuration = 2000;
         long startTime = System.currentTimeMillis();
         splashScreen.setKeepOnScreenCondition(() -> {
             long elapsedTime = System.currentTimeMillis() - startTime;
@@ -62,6 +83,17 @@ public class SplashActivity extends AppCompatActivity {
             // time out waiting)
             return elapsedTime < animationDuration;
         });
+
+        // Safety Timeout: If data takes too long (e.g. 8 seconds), force logout and
+        // retry
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (!isDataReady && !isFinishing()) {
+                Log.w("SplashActivity", "Data fetch timed out. Forcing logout.");
+                mAuth.signOut();
+                isAnimationDone = true; // Force allowing navigation
+                checkAndNavigate();
+            }
+        }, 8000);
 
         splashScreen.setOnExitAnimationListener(splashScreenViewProvider -> {
             final View splashScreenView = splashScreenViewProvider.getView();
@@ -88,7 +120,8 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void checkAndNavigate() {
-        // Only navigate if both the exit animation is done AND the data fetching is complete
+        // Only navigate if both the exit animation is done AND the data fetching is
+        // complete
         if (!isAnimationDone)
             return;
 

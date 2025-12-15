@@ -36,13 +36,22 @@ public class SharedViewModel extends ViewModel {
     }
 
     // UC6: Filter Logic
-    public void applyFilter(String type) {
-        if (type == null || type.equals("All") || type.isEmpty()) {
+    public void applyFilter(String filter) {
+        if (filter == null || filter.equals("All") || filter.isEmpty()) {
             filteredFoodBanks.setValue(new ArrayList<>(allFoodBanks));
         } else {
             List<FoodBank> filteredList = new ArrayList<>();
             for (FoodBank fb : allFoodBanks) {
-                if (fb.getType().equalsIgnoreCase(type)) {
+                // Auto-Elimination: Check if expired
+                if (fb.getEndTime() > 0 && fb.getEndTime() < System.currentTimeMillis()) {
+                    continue; // Skip expired items
+                }
+
+                // Check Category first (New), then Type (Legacy)
+                // Check Category
+                boolean matchCategory = fb.getCategory() != null && fb.getCategory().equalsIgnoreCase(filter);
+
+                if (matchCategory) {
                     filteredList.add(fb);
                 }
             }

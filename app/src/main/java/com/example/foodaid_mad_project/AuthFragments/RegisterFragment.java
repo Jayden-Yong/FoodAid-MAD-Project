@@ -29,7 +29,7 @@ import androidx.credentials.exceptions.GetCredentialException;
 import androidx.fragment.app.Fragment;
 
 import com.example.foodaid_mad_project.AuthActivity;
-import com.example.foodaid_mad_project.CompleteProfileActivity;
+// import com.example.foodaid_mad_project.CompleteProfileActivity; // Removed
 import com.example.foodaid_mad_project.MainActivity;
 import com.example.foodaid_mad_project.R;
 import com.example.foodaid_mad_project.UserManager;
@@ -56,7 +56,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     private CredentialManager credentialManager;
-    private EditText etRegisterEmail, etRegisterPassword, etRegisterConfirmPassword;
+    private EditText etRegisterEmail, etRegisterPassword, etRegisterConfirmPassword, etFullName;
     private CheckBox btnCheckPassword, btnCheckConfirmPassword;
     private MaterialButton btnRegister, btnGoogle;
 
@@ -83,6 +83,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
         credentialManager = CredentialManager.create(requireContext());
         db = FirebaseFirestore.getInstance();
 
+        etFullName = view.findViewById(R.id.etFullName);
         etRegisterEmail = view.findViewById(R.id.etRegisterEmail);
         etRegisterPassword = view.findViewById(R.id.etRegisterPassword);
         etRegisterConfirmPassword = view.findViewById(R.id.etRegisterConfirmPassword);
@@ -154,12 +155,13 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
     }
 
     private void registerNewUser() {
+        String fullName = etFullName.getText().toString().trim();
         String email = etRegisterEmail.getText().toString().trim();
         String password = etRegisterPassword.getText().toString();
         String confirmPassword = etRegisterConfirmPassword.getText().toString();
 
         // input validations
-        if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+        if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(getContext(), "Please enter all credentials", Toast.LENGTH_LONG).show();
             return;
         }
@@ -185,7 +187,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
                 .addOnSuccessListener(authResult -> {
                     FirebaseUser user = authResult.getUser();
                     if (user != null) {
-                        saveUserToFirestore(user, "email");
+                        saveUserToFirestore(user, "email", fullName);
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -279,7 +281,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
                     if (task.isSuccessful()) {
                         FirebaseUser user = auth.getCurrentUser();
                         if (user != null) {
-                            saveUserToFirestore(user, "google");
+                            saveUserToFirestore(user, "google", null);
                         }
                     } else {
                         String errorMessage = task.getException() != null
@@ -290,10 +292,14 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
                 });
     }
 
-    private void saveUserToFirestore(FirebaseUser user, String providerType) {
+    private void saveUserToFirestore(FirebaseUser user, String providerType, String manualFullName) {
         String uid = user.getUid();
         String email = user.getEmail();
         String name = user.getDisplayName();
+
+        if (manualFullName != null && !manualFullName.isEmpty()) {
+            name = manualFullName; // Use manual name if provided (Email Sign Up)
+        }
 
         if (name == null || name.isEmpty()) {
             if (email != null && email.contains("@")) {
@@ -303,18 +309,14 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
             }
         }
 
+        // Ensure fullName is set in Model
+        String finalName = name;
+
         Map<String, Object> userData = new HashMap<>();
         userData.put("uid", uid);
         userData.put("email", email);
-        userData.put("displayName", name);
-        userData.put("userType", "student");
-        userData.put("favourites", java.util.Arrays.asList());
-
-        if ("email".equals(providerType)) {
-            userData.put("createdAt", System.currentTimeMillis());
-        } else {
-            userData.put("lastLogin", System.currentTimeMillis());
-        }
+        userData.put("name", finalName); // Combined name
+        // Removed: displayName, fullName, userType, createdAt, lastLogin
 
         db.collection("users").document(uid).set(userData, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
@@ -327,7 +329,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
 
                                 Toast.makeText(getContext(), "Registration/Login successful!", Toast.LENGTH_LONG)
                                         .show();
-                                startActivity(new Intent(getContext(), CompleteProfileActivity.class));
+                                startActivity(new Intent(getContext(), MainActivity.class)); // Redirect to Main
                                 requireActivity().finish();
                             })
                             .addOnFailureListener(e -> {

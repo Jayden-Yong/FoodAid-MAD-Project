@@ -52,7 +52,7 @@ public class ProfileFragment extends Fragment {
         User currentUser = UserManager.getInstance().getUser();
 
         if (currentUser != null) {
-            tvUserName.setText(currentUser.getFullName() != null ? currentUser.getFullName() : "User");
+            tvUserName.setText(currentUser.getName() != null ? currentUser.getName() : "User");
             // Using Email as the ID/Matric placeholder for now as per plan
             tvUserId.setText(currentUser.getEmail() != null ? currentUser.getEmail() : "N/A");
         }

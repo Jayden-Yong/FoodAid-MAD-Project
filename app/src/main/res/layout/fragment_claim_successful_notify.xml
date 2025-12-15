@@ -74,29 +74,14 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tvClaimTitle" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnViewQr"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:layout_marginHorizontal="40dp"
-                android:paddingVertical="8dp"
-                android:text="@string/View_QR_Code"
-                android:textAllCaps="false"
-                android:textSize="16sp"
-                android:fontFamily="@font/poppins_bold"
-                app:backgroundTint="@color/primary_color"
-                app:cornerRadius="25dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tvClaimGuide" />
+
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnBackToHome"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
+
                 android:layout_marginHorizontal="40dp"
                 android:paddingVertical="8dp"
                 android:text="@string/Back_to_Home"
@@ -107,7 +92,8 @@
                 app:cornerRadius="25dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/btnViewQr"
+                app:layout_constraintTop_toBottomOf="@id/tvClaimGuide"
+                android:layout_marginTop="20dp"
                 app:strokeColor="@color/primary_color"
                 app:strokeWidth="2dp" />
 

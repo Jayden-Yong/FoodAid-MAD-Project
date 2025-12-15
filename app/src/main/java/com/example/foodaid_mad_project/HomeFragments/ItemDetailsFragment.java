@@ -92,161 +92,147 @@ public class ItemDetailsFragment extends Fragment {
             });
         }
 
-        // Rate Button Logic
-        com.google.android.material.button.MaterialButton btnRate = view.findViewById(R.id.btnRate);
-        if (btnRate != null) {
-            btnRate.setOnClickListener(v -> showRatingDialog(sharedViewModel.getSelectedFoodBank().getValue()));
+    }
+
+    private void populateUI(FoodBank foodBank) {
+        tvProductTitle.setText(foodBank.getName()); // Just Name
+
+        // Show Operating Hours or Pickup Times
+        String timeInfo = "Time: ";
+        if (foodBank.getOperatingHours() != null && foodBank.getOperatingHours().containsKey("Time")) {
+            timeInfo += foodBank.getOperatingHours().get("Time");
+        } else {
+            timeInfo += "Flexible";
+        }
+        tvPickupTime.setText(timeInfo);
+
+        // Category mapping
+        if (foodBank.getCategory() != null) {
+            if (foodBank.getCategory().equalsIgnoreCase("Menu Rahmah"))
+                radioGroupCategory.check(R.id.radioPantry); // Reuse ID for now or need to update XML IDs to match if I
+                                                            // care about visual toggle
+            else if (foodBank.getCategory().equalsIgnoreCase("Event"))
+                radioGroupCategory.check(R.id.radioFreeTable);
+            else
+                radioGroupCategory.check(R.id.radioLeftover);
+        }
+
+        // Quantity logic
+        String status = "Quantity: " + foodBank.getQuantity();
+        if (foodBank.getPrice() > 0) {
+            status += String.format(" | RM %.2f", foodBank.getPrice());
+        }
+        tvQuantity.setText(status);
+
+        tvLocationLabel.setText(foodBank.getAddress());
+        // Show Notes/Desc
+        if (foodBank.getNotes() != null && !foodBank.getNotes().isEmpty()) {
+            tvPostedBy.setText("Notes: " + foodBank.getNotes());
+        } else {
+            tvPostedBy.setText("Owner: " + foodBank.getOwnerId());
+        }
+
+        // Setup Bookmarking
+        // Bookmarking removed as per requirements
+
+        // Update Claim Button Text
+        Button btnClaim = getView().findViewById(R.id.btnClaim);
+        if (btnClaim != null) {
+            btnClaim.setText("Collect Request");
+            btnClaim.setOnClickListener(v -> showCollectDialog(foodBank));
         }
     }
 
-    private void showRatingDialog(FoodBank foodBank) {
-        if (foodBank == null)
-            return;
-
+    private void showCollectDialog(FoodBank foodBank) {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_rating, null); // We will create this layout
-                                                                                     // dynamically if needed or just
-                                                                                     // build it programmatically to
-                                                                                     // avoid creating new file
-
-        // Simpler approach: Build view programmatically to avoid creating multiple
-        // files
-        android.widget.LinearLayout layout = new android.widget.LinearLayout(getContext());
-        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
-        layout.setPadding(50, 40, 50, 10);
-
-        final android.widget.RatingBar ratingBar = new android.widget.RatingBar(getContext());
-        ratingBar.setNumStars(5);
-        ratingBar.setStepSize(1);
-        android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
-                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
-                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.gravity = android.view.Gravity.CENTER;
-        ratingBar.setLayoutParams(lp);
+        builder.setTitle("Collect Item");
+        builder.setMessage("Enter quantity to collect (Max: " + foodBank.getQuantity() + ")");
 
         final android.widget.EditText input = new android.widget.EditText(getContext());
-        input.setHint("Leave a review...");
-        layout.addView(ratingBar);
-        layout.addView(input);
+        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        builder.setView(input);
 
-        builder.setView(layout);
-        builder.setTitle("Rate " + foodBank.getName());
-        builder.setPositiveButton("Submit", (dialog, which) -> {
-            float rating = ratingBar.getRating();
-            String comment = input.getText().toString();
-            submitReview(foodBank.getId(), rating, comment);
+        builder.setPositiveButton("Confirm", (dialog, which) -> {
+            String qtyStr = input.getText().toString();
+            if (!qtyStr.isEmpty()) {
+                int qtyToCollect = Integer.parseInt(qtyStr);
+                processCollection(foodBank, qtyToCollect);
+            }
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
         builder.show();
     }
 
-    private void submitReview(String foodBankId, float rating, String comment) {
-        String userId = "anonymous";
-        if (com.example.foodaid_mad_project.UserManager.getInstance().getUser() != null) {
-            userId = com.example.foodaid_mad_project.UserManager.getInstance().getUser().getUid();
+    private void processCollection(FoodBank foodBank, int qtyToCollect) {
+        if (qtyToCollect <= 0 || qtyToCollect > foodBank.getQuantity()) {
+            android.widget.Toast.makeText(getContext(), "Invalid Quantity", android.widget.Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        java.util.Map<String, Object> review = new java.util.HashMap<>();
-        review.put("userId", userId);
-        review.put("rating", rating);
-        review.put("comment", comment);
-        review.put("timestamp", com.google.firebase.firestore.FieldValue.serverTimestamp());
+        int newQuantity = foodBank.getQuantity() - qtyToCollect;
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore
+                .getInstance();
 
-        com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                .collection("foodbanks").document(foodBankId).collection("reviews")
-                .add(review)
-                .addOnSuccessListener(docRef -> android.widget.Toast
-                        .makeText(getContext(), "Review Submitted!", android.widget.Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> android.widget.Toast
-                        .makeText(getContext(), "Error: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show());
-    }
-
-    private void populateUI(FoodBank foodBank) {
-        tvProductTitle.setText(getString(R.string.Food_Name, foodBank.getName()));
-
-        // Map "Operating Hours" -> "Pickup Time"
-        // If string formatting is strict in strings.xml, we use basic setting or try to
-        // match
-        // Assuming strings.xml uses format args, we pass values.
-        // If OperatingHours is a single string, we might need to conform to "From: %s
-        // To: %s" if that's what XML expects.
-        // For now, I'll assume passing the whole string or split if possible.
-        // Simpler: Just set text directly to avoid format errors if strict.
-        tvPickupTime.setText("Time: " + foodBank.getFormattedOperatingHours());
-
-        // Mapping Type to Category Radio Button (Visual only)
-        if (foodBank.getType().equalsIgnoreCase("Food Pantry")) {
-            radioGroupCategory.check(R.id.radioPantry);
+        if (newQuantity == 0) {
+            // Item finished -> Prompt Review -> Delete
+            showRatingDialog(foodBank, db);
         } else {
-            radioGroupCategory.check(R.id.radioLeftover); // Default or other mapping
-        }
-
-        // Quantity: FoodBanks don't have "Quantity" in the same way as single items.
-        // We'll show "Available" or a generic message.
-        tvQuantity.setText("Status: Open");
-
-        tvLocationLabel.setText(getString(R.string.Food_Location, foodBank.getAddress()));
-        tvPostedBy.setText(getString(R.string.Food_Donator, foodBank.getOwnerId()));
-
-        // Setup Bookmarking
-        if (getView() != null) {
-            setupFavouriteButton(getView(), foodBank);
+            // Update Quantity
+            db.collection("foodbanks").document(foodBank.getId())
+                    .update("quantity", newQuantity)
+                    .addOnSuccessListener(aVoid -> {
+                        android.widget.Toast
+                                .makeText(getContext(), "Collected Successfully!", android.widget.Toast.LENGTH_SHORT)
+                                .show();
+                        getParentFragmentManager().popBackStack(); // Go back
+                    });
         }
     }
 
-    private void setupFavouriteButton(View view, FoodBank foodBank) {
-        android.widget.ImageButton btnFavourite = view.findViewById(R.id.btnFavourite);
-        if (btnFavourite == null)
-            return;
+    private void showRatingDialog(FoodBank foodBank, com.google.firebase.firestore.FirebaseFirestore db) {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
+        builder.setTitle("Rate this Item");
 
-        // Get Current User
-        com.example.foodaid_mad_project.AuthFragments.User user = com.example.foodaid_mad_project.UserManager
-                .getInstance().getUser();
+        // Simple Layout for Rating
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(getContext());
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
 
-        if (user == null || foodBank.getId() == null)
-            return;
+        android.widget.RatingBar ratingBar = new android.widget.RatingBar(getContext());
+        ratingBar.setNumStars(5);
+        ratingBar.setStepSize(1);
+        ratingBar.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT));
 
-        // 1. Initial State Check
-        boolean isFav = false;
-        if (user.getFavourites() != null && user.getFavourites().contains(foodBank.getId())) {
-            isFav = true;
-            btnFavourite.setImageResource(R.drawable.ic_favourite_check);
-        } else {
-            btnFavourite.setImageResource(R.drawable.ic_favourite_uncheck);
-        }
+        layout.addView(ratingBar);
+        builder.setView(layout);
 
-        // 2. Click Listener
-        btnFavourite.setOnClickListener(v -> {
-            boolean currentFavState = false;
-            if (user.getFavourites() != null && user.getFavourites().contains(foodBank.getId())) {
-                currentFavState = true;
-            }
+        builder.setPositiveButton("Submit & Finish", (dialog, which) -> {
+            // Delete Item regardless of rating for now (as per requirement to delete on 0)
+            // Ideally we save the rating to the User/Owner profile but for this scope we
+            // just acknowledge it.
+            float rating = ratingBar.getRating();
+            android.widget.Toast.makeText(getContext(), "Function Rating: " + rating, android.widget.Toast.LENGTH_SHORT)
+                    .show();
 
-            com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore
-                    .getInstance();
-            if (currentFavState) {
-                // Remove
-                db.collection("users").document(user.getUid())
-                        .update("favourites", com.google.firebase.firestore.FieldValue.arrayRemove(foodBank.getId()));
-
-                // Update Local User Object immediatley for responsiveness
-                if (user.getFavourites() != null)
-                    user.getFavourites().remove(foodBank.getId());
-                btnFavourite.setImageResource(R.drawable.ic_favourite_uncheck);
-            } else {
-                // Add
-                db.collection("users").document(user.getUid())
-                        .update("favourites", com.google.firebase.firestore.FieldValue.arrayUnion(foodBank.getId()));
-
-                // Update Local User Object
-                if (user.getFavourites() == null)
-                    user.setFavourites(new java.util.ArrayList<>());
-                user.getFavourites().add(foodBank.getId());
-                btnFavourite.setImageResource(R.drawable.ic_favourite_check);
-            }
+            // Delete
+            db.collection("foodbanks").document(foodBank.getId())
+                    .delete()
+                    .addOnSuccessListener(aVoid -> {
+                        android.widget.Toast
+                                .makeText(getContext(), "Item Completed & Removed!", android.widget.Toast.LENGTH_SHORT)
+                                .show();
+                        getParentFragmentManager().popBackStack();
+                    });
         });
+
+        builder.setCancelable(false); // Must rate or acknowledge
+        builder.show();
     }
+
+    // setupFavouriteButton removed as per requirements
 
     private void navigateBack() {
         if (getParentFragmentManager().getBackStackEntryCount() > 0) {

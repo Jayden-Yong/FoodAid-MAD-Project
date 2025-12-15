@@ -40,21 +40,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:src="@drawable/ic_launcher_background" />
         
-            <ImageButton
-                    android:id="@+id/btnFavourite"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_margin="16dp"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginEnd="20dp"
-                    android:paddingTop="10dp"
-                    android:paddingRight="10dp"
-                    android:background="@drawable/bg_circle_white"
-                    android:src="@drawable/ic_favourite_uncheck"
-                    android:contentDescription="Bookmark"
-                    android:elevation="4dp"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+            <!-- Favourite button removed as per requirements -->
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/tvTag"
@@ -218,19 +204,7 @@
                 android:fontFamily="@font/poppins_semi_bold"
                 app:layout_constraintTop_toBottomOf="@+id/cvMap" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnRate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Rate &amp; Review"
-                android:textSize="14sp"
-                app:icon="@drawable/ic_favourite_uncheck"
-                app:iconTint="@color/white"
-                app:cornerRadius="20dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tvPostedBy" />
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

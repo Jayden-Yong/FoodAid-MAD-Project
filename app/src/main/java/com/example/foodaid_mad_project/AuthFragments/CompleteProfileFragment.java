@@ -164,7 +164,9 @@ public class CompleteProfileFragment extends Fragment {
         DocumentReference userRef = db.collection("users").document(uid);
         userRef.update(additionalUserData);
 
-        user.addAdditionalData(additionalUserData);
+        if (additionalUserData.containsKey("fullName")) {
+            user.setName((String) additionalUserData.get("fullName"));
+        }
         UserManager.getInstance().setUser(user);
 
         // navigate back to home fragment using Navigation Component

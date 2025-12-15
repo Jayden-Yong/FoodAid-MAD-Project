@@ -3,44 +3,52 @@ package com.example.foodaid_mad_project.Model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.firebase.firestore.IgnoreExtraProperties;
+
+@IgnoreExtraProperties
 public class FoodBank implements Parcelable {
     private String id;
     private String name;
-    private String type; // e.g., "Soup Kitchen", "Food Pantry"
-    private double latitude;
-    private double longitude;
-    private String address;
-    private String description;
-    private String contactNumber;
-    private java.util.Map<String, String> operatingHours; // Changed to Map
-    private float rating;
-    private int ratingCount;
-    private String imageUrl;
-    private boolean isVerified;
+    // New Listing Data
+    private String category; // "Menu Rahmah", "Leftover", "Event"
+    private double price; // For Rahmah/Leftover
+    private Object quantity; // Can be int or String in Firestore
+    private String status; // "AVAILABLE" or "COMPLETED"
+    private String notes; // Description/Notes
+    private long endTime; // Timestamp for auto-elimination
+    private long timestamp; // Creation time/Notes
     private String ownerId;
 
-    // Default constructor required for calls to
-    // DataSnapshot.getValue(FoodBank.class)
+    // Legacy mapping (Type -> Category)
+    private java.util.Map<String, String> operatingHours;
+    private float rating;
+    private int ratingCount;
+    private boolean isVerified;
+
+    // Persisted fields required for Map/Display
+    private String address;
+    private double latitude;
+    private double longitude;
+    private String imageUrl;
+
     public FoodBank() {
     }
 
-    public FoodBank(String id, String name, String type, double latitude, double longitude,
-            String address, String description, String contactNumber, java.util.Map<String, String> operatingHours,
-            String imageUrl, String ownerId) {
+    public FoodBank(String id, String name, String category, double price, int quantity, String status, String notes,
+            String ownerId, String address, double latitude, double longitude) {
         this.id = id;
         this.name = name;
-        this.type = type;
+        this.category = category;
+        this.price = price;
+        this.quantity = quantity;
+        this.status = status;
+        this.notes = notes;
+        this.ownerId = ownerId;
+        this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.address = address;
-        this.description = description;
-        this.contactNumber = contactNumber;
-        this.operatingHours = operatingHours;
-        this.imageUrl = imageUrl;
-        this.ownerId = ownerId;
-        this.rating = 0.0f;
+        this.rating = 0f;
         this.ratingCount = 0;
-        this.isVerified = false; // Default to pending
     }
 
     // Getters and Setters
@@ -60,52 +68,99 @@ public class FoodBank implements Parcelable {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
+    public String getCategory() {
+        return category;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setCategory(String category) {
+        this.category = category;
     }
 
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public int getQuantity() {
+        if (quantity instanceof Number) {
+            return ((Number) quantity).intValue();
+        } else if (quantity instanceof String) {
+            try {
+                return Integer.parseInt((String) quantity);
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+    public void setQuantity(Object quantity) {
+        this.quantity = quantity;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    @com.google.firebase.firestore.PropertyName("lat")
     public double getLatitude() {
         return latitude;
     }
 
+    @com.google.firebase.firestore.PropertyName("lat")
     public void setLatitude(double latitude) {
         this.latitude = latitude;
     }
 
+    @com.google.firebase.firestore.PropertyName("lng")
     public double getLongitude() {
         return longitude;
     }
 
+    @com.google.firebase.firestore.PropertyName("lng")
     public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
 
+    @com.google.firebase.firestore.PropertyName("location")
     public String getAddress() {
         return address;
     }
 
+    @com.google.firebase.firestore.PropertyName("location")
     public void setAddress(String address) {
         this.address = address;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getContactNumber() {
-        return contactNumber;
-    }
-
-    public void setContactNumber(String contactNumber) {
-        this.contactNumber = contactNumber;
     }
 
     public java.util.Map<String, String> getOperatingHours() {
@@ -132,10 +187,12 @@ public class FoodBank implements Parcelable {
         this.ratingCount = ratingCount;
     }
 
+    @com.google.firebase.firestore.PropertyName("imageUri")
     public String getImageUrl() {
         return imageUrl;
     }
 
+    @com.google.firebase.firestore.PropertyName("imageUri")
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
@@ -160,12 +217,18 @@ public class FoodBank implements Parcelable {
     protected FoodBank(Parcel in) {
         id = in.readString();
         name = in.readString();
-        type = in.readString();
+        // New Fields
+        category = in.readString();
+        price = in.readDouble();
+        quantity = in.readInt();
+        status = in.readString();
+        notes = in.readString();
+        endTime = in.readLong();
+        timestamp = in.readLong();
+
         latitude = in.readDouble();
         longitude = in.readDouble();
         address = in.readString();
-        description = in.readString();
-        contactNumber = in.readString();
         // Read Map
         int size = in.readInt();
         if (size >= 0) {
@@ -190,12 +253,18 @@ public class FoodBank implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(id);
         dest.writeString(name);
-        dest.writeString(type);
+        // New Fields
+        dest.writeString(category);
+        dest.writeDouble(price);
+        dest.writeInt(getQuantity());
+        dest.writeString(status);
+        dest.writeString(notes);
+        dest.writeLong(endTime);
+        dest.writeLong(timestamp);
+
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
         dest.writeString(address);
-        dest.writeString(description);
-        dest.writeString(contactNumber);
         // Write Map
         if (operatingHours == null) {
             dest.writeInt(-1);
@@ -231,19 +300,23 @@ public class FoodBank implements Parcelable {
     };
 
     // Helper methods for compatibility
+    @com.google.firebase.firestore.Exclude
     public double getLat() {
         return latitude;
     }
 
+    @com.google.firebase.firestore.Exclude
     public double getLng() {
         return longitude;
     }
 
+    @com.google.firebase.firestore.Exclude
     public String getLocation() {
         return address != null ? address : latitude + ", " + longitude;
     }
 
     // Helper to format operating hours for display
+    @com.google.firebase.firestore.Exclude
     public String getFormattedOperatingHours() {
         if (operatingHours == null || operatingHours.isEmpty()) {
             return "Not Available";

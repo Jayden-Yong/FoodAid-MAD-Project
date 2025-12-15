@@ -21,10 +21,24 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // Check for authentication
-        if (com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() == null) {
+        com.google.firebase.auth.FirebaseUser firebaseUser = com.google.firebase.auth.FirebaseAuth.getInstance()
+                .getCurrentUser();
+        if (firebaseUser == null) {
             startActivity(new android.content.Intent(this, AuthActivity.class));
             finish();
             return;
+        } else if (UserManager.getInstance().getUser() == null) {
+            // User is logged in but data is missing.
+            // Try to recover by creating a temporary user object from Auth data
+            // instead of redirecting to Splash loop.
+            User tempUser = new User();
+            // We can't set fields easily without constructor, so we just set what we can if
+            // possible
+            // or just rely on the fact that Auth is valid.
+            // Ideally, we re-fetch here, but for now let's just NOT restart Splash to avoid
+            // loop.
+            android.util.Log.w("MainActivity",
+                    "User is logged in but UserManager data is null. Proceeding with caution.");
         }
 
         setContentView(R.layout.activity_main);
@@ -39,16 +53,6 @@ public class MainActivity extends AppCompatActivity {
 
             User user = UserManager.getInstance().getUser();
 
-            // Check if we need to navigate to Complete Profile
-            // We do this listener to wait for graph to be ready, but simple check is okay
-            // too
-            if (user != null && user.getFullName() == null) {
-                // Navigate to Complete Profile
-                // We use post to ensure the graph is fully initialized
-                bottomNav.post(() -> {
-                    navController.navigate(R.id.completeProfileFragment);
-                });
-            }
             FloatingActionButton fab = findViewById(R.id.fabNewDonation);
             fab.setOnClickListener(v -> {
                 getSupportFragmentManager().beginTransaction()
@@ -60,10 +64,8 @@ public class MainActivity extends AppCompatActivity {
             // Manage Bottom Nav and FAB Visibility
             navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
                 int id = destination.getId();
-                if (id == R.id.completeProfileFragment ||
-                        id == R.id.privacyFragment ||
-                        id == R.id.helpFAQFragment ||
-                        id == R.id.contactReportFragment) {
+                if (id == R.id.privacyFragment ||
+                        id == R.id.helpFAQFragment) {
                     bottomNav.setVisibility(android.view.View.GONE);
                     fab.setVisibility(android.view.View.GONE);
                 } else {

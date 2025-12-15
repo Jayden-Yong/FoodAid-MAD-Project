@@ -284,17 +284,38 @@ public class LoginFragment extends Fragment {
     private void fetchUserAndNavigate(String uid) {
         db.collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    com.example.foodaid_mad_project.AuthFragments.User currentUser = documentSnapshot
-                            .toObject(com.example.foodaid_mad_project.AuthFragments.User.class);
-                    UserManager.getInstance().setUser(currentUser);
+                    if (documentSnapshot.exists()) {
+                        com.example.foodaid_mad_project.AuthFragments.User currentUser = documentSnapshot
+                                .toObject(com.example.foodaid_mad_project.AuthFragments.User.class);
+                        UserManager.getInstance().setUser(currentUser);
+                        navigateToMain();
+                    } else {
+                        // Create new user
+                        String email = auth.getCurrentUser().getEmail();
+                        String name = auth.getCurrentUser().getDisplayName();
+                        com.example.foodaid_mad_project.AuthFragments.User newUser = new com.example.foodaid_mad_project.AuthFragments.User(
+                                uid, email, name);
 
-                    Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_LONG).show();
-                    startActivity(new Intent(getContext(), MainActivity.class));
-                    requireActivity().finish();
+                        db.collection("users").document(uid).set(newUser)
+                                .addOnSuccessListener(aVoid -> {
+                                    UserManager.getInstance().setUser(newUser);
+                                    navigateToMain();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(getContext(), "Failed to create user: " + e.getMessage(),
+                                            Toast.LENGTH_LONG).show();
+                                });
+                    }
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Failed to retrieve user data: " + e.getMessage(), Toast.LENGTH_LONG)
                             .show();
                 });
+    }
+
+    private void navigateToMain() {
+        Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_LONG).show();
+        startActivity(new Intent(getContext(), MainActivity.class));
+        requireActivity().finish();
     }
 }

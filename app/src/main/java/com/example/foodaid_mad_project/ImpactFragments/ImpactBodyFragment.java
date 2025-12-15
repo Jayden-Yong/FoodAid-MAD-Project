@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.foodaid_mad_project.AuthFragments.User;
 import com.example.foodaid_mad_project.Model.FoodItem;
+import com.example.foodaid_mad_project.Model.FoodBank;
 import com.example.foodaid_mad_project.R;
 import com.example.foodaid_mad_project.UserManager;
 import com.github.mikephil.charting.charts.BarChart;
@@ -120,54 +121,40 @@ public class ImpactBodyFragment extends Fragment {
     }
 
     private void fetchUserImpactData() {
-        // Fetch items where user is donor OR claimee
-        // Firestore doesn't support OR queries natively well for this combined list
-        // without multiple queries
-        // We will fetch all items (likely from a global 'food_items' collection or
-        // similar)
-        // ideally efficient method: fetch items where donorId == uid AND items where
-        // claimeeId == uid
-
-        // For simplicity, let's assume valid implementation has a 'food_items'
-        // collection
-        // In reality, if volume is high, we need better indexing or structure.
-
         allUserItems.clear();
 
-        allUserItems.clear();
-
-        // 1. Fetch Donations (User is Donor)
-        db.collection("donations")
-                .whereEqualTo("donorId", currentUser.getUid())
+        // Query 'foodbanks' collection where current user is the owner (Donor)
+        db.collection("foodbanks")
+                .whereEqualTo("ownerId", currentUser.getUid())
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    List<FoodItem> donatedItems = querySnapshot.toObjects(FoodItem.class);
-                    allUserItems.addAll(donatedItems);
+                    if (querySnapshot != null) {
+                        List<FoodBank> myFoodBanks = querySnapshot.toObjects(FoodBank.class);
+                        for (FoodBank fb : myFoodBanks) {
+                            // Map FoodBank to FoodItem
+                            FoodItem item = new FoodItem();
+                            item.setId(fb.getId());
+                            item.setName(fb.getName());
+                            // Use getQuantity as weight proxy (assuming 1 unit ~ 1kg or just count)
+                            // Ideally we would add unit/weight field to FoodBank
+                            item.setWeightKg(fb.getQuantity());
+                            item.setDonorId(fb.getOwnerId());
+                            item.setStatus(fb.getStatus());
+                            // Use timestamp if available, else endTime, else now (fallback)
+                            long time = fb.getTimestamp();
+                            if (time == 0)
+                                time = fb.getEndTime();
+                            if (time == 0)
+                                time = System.currentTimeMillis();
+                            item.setTimestamp(time);
 
-                    // 2. Fetch Claims (User is Claimee)
-                    db.collection("donations")
-                            .whereEqualTo("claimeeId", currentUser.getUid())
-                            .get()
-                            .addOnSuccessListener(claimSnapshot -> {
-                                List<FoodItem> claimedItems = claimSnapshot.toObjects(FoodItem.class);
-                                // Avoid duplicates if user claimed their own item (edge case)
-                                for (FoodItem item : claimedItems) {
-                                    boolean exists = false;
-                                    for (FoodItem existing : allUserItems) {
-                                        if (existing.getId() != null && existing.getId().equals(item.getId())) {
-                                            exists = true;
-                                            break;
-                                        }
-                                    }
-                                    if (!exists)
-                                        allUserItems.add(item);
-                                }
-                                updateViewMode(currentMode);
-                            });
+                            allUserItems.add(item);
+                        }
+                    }
+                    updateViewMode(currentMode);
                 })
                 .addOnFailureListener(e -> {
                     Log.e("ImpactBodyFragment", "Error fetching data", e);
-                    // Fallback to offline/empty
                     updateViewMode(currentMode);
                 });
     }
