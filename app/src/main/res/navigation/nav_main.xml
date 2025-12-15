@@ -44,4 +44,10 @@
             app:popUpTo="@id/completeProfileFragment"
             app:popUpToInclusive="true" />
     </fragment>
+
+    <fragment
+        android:id="@+id/mapFragment"
+        android:name="com.example.foodaid_mad_project.HomeFragments.MapFragment"
+        android:label="fragment_map"
+        tools:layout="@layout/fragment_map" />
 </navigation>

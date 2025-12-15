@@ -12,9 +12,7 @@ import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.example.foodaid_mad_project.AuthFragments.CompleteProfileFragment;
 import com.example.foodaid_mad_project.AuthFragments.User;
-import com.example.foodaid_mad_project.HomeFragments.HomeFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -51,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
                     navController.navigate(R.id.completeProfileFragment);
                 });
             }
-
             FloatingActionButton fab = findViewById(R.id.fabNewDonation);
             fab.setOnClickListener(v -> {
                 getSupportFragmentManager().beginTransaction()

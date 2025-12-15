@@ -219,12 +219,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
                 android:layout_marginTop="12dp"
-                android:clickable="true"
-                android:focusable="true"
                 app:cardBackgroundColor="#F5F5F5"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp">
+
                 <TextView
+                    android:id="@+id/tvUploadPlaceholder"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="8dp"
@@ -233,6 +233,15 @@
                     android:textStyle="bold"
                     android:layout_gravity="center"
                     app:drawableTopCompat="@drawable/ic_photo"/>
+
+                <ImageView
+                    android:id="@+id/ivSelectedPhoto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    android:contentDescription="@string/Food_Image" />
+
             </androidx.cardview.widget.CardView>
 
             <TextView
@@ -243,17 +252,47 @@
                 android:textColor="#1A1A1A"
                 android:textStyle="bold" />
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <EditText
+                    android:id="@+id/etLocationSearch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_edit_text_underline"
+                    android:hint="Search address (e.g. University Malaya)"
+                    android:inputType="textPostalAddress"
+                    android:padding="8dp"
+                    android:textSize="14sp" />
+
+                <ImageButton
+                    android:id="@+id/btnSearchLocation"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_donate_type_btn"
+                    android:src="@drawable/ic_search"
+                    app:tint="@color/primary_color"
+                    android:contentDescription="Search Location" />
+            </LinearLayout>
+
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:layout_marginTop="12dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp">
-                <!-- Map -->
-                <androidx.fragment.app.FragmentContainerView
+
+                <FrameLayout
                     android:id="@+id/mapFragmentContainer"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
+
             </androidx.cardview.widget.CardView>
 
             <TextView

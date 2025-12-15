@@ -524,7 +524,7 @@ public class ImpactBodyFragment extends Fragment {
         }
     }
 
-    // 3. Year Adapter
+    // 3. Year Adapter (Uses fragment_year_contribution.xml)
     private class YearAdapter extends RecyclerView.Adapter<YearAdapter.ViewHolder> {
         List<FoodItem> data;
 
