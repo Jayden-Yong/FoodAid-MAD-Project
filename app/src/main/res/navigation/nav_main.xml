@@ -31,7 +31,17 @@
         android:id="@+id/profileFragment"
         android:name="com.example.foodaid_mad_project.ProfileFragments.ProfileFragment"
         android:label="fragment_profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_profile_to_privacy"
+            app:destination="@id/privacyFragment" />
+        <action
+            android:id="@+id/action_profile_to_helpFAQ"
+            app:destination="@id/helpFAQFragment" />
+        <action
+            android:id="@+id/action_profile_to_contactReport"
+            app:destination="@id/contactReportFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/completeProfileFragment"
@@ -50,4 +60,22 @@
         android:name="com.example.foodaid_mad_project.HomeFragments.MapFragment"
         android:label="fragment_map"
         tools:layout="@layout/fragment_map" />
+
+    <fragment
+        android:id="@+id/privacyFragment"
+        android:name="com.example.foodaid_mad_project.ProfileFragments.PrivacyFragment"
+        android:label="fragment_privacy"
+        tools:layout="@layout/fragment_privacy" />
+
+    <fragment
+        android:id="@+id/helpFAQFragment"
+        android:name="com.example.foodaid_mad_project.ProfileFragments.HelpFAQFragment"
+        android:label="fragment_help_faq"
+        tools:layout="@layout/fragment_help_faq" />
+
+    <fragment
+        android:id="@+id/contactReportFragment"
+        android:name="com.example.foodaid_mad_project.ProfileFragments.ContactReportFragment"
+        android:label="fragment_contact_report"
+        tools:layout="@layout/fragment_contact_report" />
 </navigation>

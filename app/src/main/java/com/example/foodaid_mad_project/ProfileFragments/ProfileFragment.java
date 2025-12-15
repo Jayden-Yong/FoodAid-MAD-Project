@@ -23,6 +23,16 @@ public class ProfileFragment extends Fragment {
     private TextView tvUserName, tvUserId;
     private Button btnLogout;
 
+    private long lastClickTime = 0;
+
+    private boolean isSafeToClick() {
+        if (System.currentTimeMillis() - lastClickTime < 1000) {
+            return false;
+        }
+        lastClickTime = System.currentTimeMillis();
+        return true;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
@@ -63,26 +73,21 @@ public class ProfileFragment extends Fragment {
 
         // Navigation to Settings Fragments
         view.findViewById(R.id.btnPrivacySettings).setOnClickListener(v -> {
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment, new PrivacyFragment()) // Assuming 'frame_layout' is the container
-                                                                           // in
-                    // MainActivity
-                    .addToBackStack(null)
-                    .commit();
+            if (!isSafeToClick())
+                return;
+            androidx.navigation.Navigation.findNavController(v).navigate(R.id.action_profile_to_privacy);
         });
 
         view.findViewById(R.id.btnHelpFAQ).setOnClickListener(v -> {
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment, new HelpFAQFragment())
-                    .addToBackStack(null)
-                    .commit();
+            if (!isSafeToClick())
+                return;
+            androidx.navigation.Navigation.findNavController(v).navigate(R.id.action_profile_to_helpFAQ);
         });
 
         view.findViewById(R.id.btnContactReport).setOnClickListener(v -> {
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment, new ContactReportFragment())
-                    .addToBackStack(null)
-                    .commit();
+            if (!isSafeToClick())
+                return;
+            androidx.navigation.Navigation.findNavController(v).navigate(R.id.action_profile_to_contactReport);
         });
     }
 }

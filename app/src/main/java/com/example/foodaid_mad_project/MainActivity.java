@@ -59,7 +59,11 @@ public class MainActivity extends AppCompatActivity {
 
             // Manage Bottom Nav and FAB Visibility
             navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-                if (destination.getId() == R.id.completeProfileFragment) {
+                int id = destination.getId();
+                if (id == R.id.completeProfileFragment ||
+                        id == R.id.privacyFragment ||
+                        id == R.id.helpFAQFragment ||
+                        id == R.id.contactReportFragment) {
                     bottomNav.setVisibility(android.view.View.GONE);
                     fab.setVisibility(android.view.View.GONE);
                 } else {

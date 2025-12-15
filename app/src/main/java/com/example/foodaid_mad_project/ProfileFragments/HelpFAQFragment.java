@@ -25,6 +25,6 @@ public class HelpFAQFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         ImageButton btnBack = view.findViewById(R.id.btnBack);
-        btnBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
+        btnBack.setOnClickListener(v -> androidx.navigation.Navigation.findNavController(v).popBackStack());
     }
 }

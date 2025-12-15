@@ -36,7 +36,7 @@ public class ContactReportFragment extends Fragment {
         etSubject = view.findViewById(R.id.etSubject);
         etMessage = view.findViewById(R.id.etMessage);
 
-        btnBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
+        btnBack.setOnClickListener(v -> androidx.navigation.Navigation.findNavController(v).popBackStack());
 
         btnSendEmail.setOnClickListener(v -> sendEmail());
     }
