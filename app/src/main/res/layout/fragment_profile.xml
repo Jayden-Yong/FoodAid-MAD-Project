@@ -199,8 +199,12 @@
                     android:padding="4dp">
 
                     <RelativeLayout
+                        android:id="@+id/btnChangePassword"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground"
                         android:padding="12dp">
                         <TextView
                             android:layout_width="wrap_content"
@@ -225,8 +229,12 @@
                         android:layout_marginEnd="12dp"/>
 
                     <RelativeLayout
+                        android:id="@+id/btnPrivacySettings"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground"
                         android:padding="12dp">
                         <TextView
                             android:layout_width="wrap_content"
@@ -356,8 +364,12 @@
                     android:padding="4dp">
 
                     <RelativeLayout
+                        android:id="@+id/btnHelpFAQ"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground"
                         android:padding="12dp">
                         <TextView
                             android:layout_width="wrap_content"
@@ -382,8 +394,12 @@
                         android:layout_marginEnd="12dp"/>
 
                     <RelativeLayout
+                        android:id="@+id/btnContactReport"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground"
                         android:padding="12dp">
                         <TextView
                             android:layout_width="wrap_content"

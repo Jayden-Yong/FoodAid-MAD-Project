@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <TextView
+        android:id="@+id/tvPageTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Privacy Policy"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:layout_marginTop="50dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_back_button"
+        app:tint="#000000"
+        android:contentDescription="@string/Back_Desc"
+        android:layout_marginStart="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/tvPageTitle"
+        app:layout_constraintTop_toTopOf="@id/tvPageTitle" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:padding="24dp"
+        app:layout_constraintTop_toBottomOf="@id/tvPageTitle"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="#333333"
+            android:lineSpacingExtra="4dp"
+            android:fontFamily="@font/poppins_regular"
+            android:text="1. Introduction\nWelcome to FoodAid. We respect your privacy and are committed to protecting your personal data.\n\n2. Data We Collect\nWe may collect personal identification information (Name, Matric No, Email) and usage data (Location, Donations, Claims).\n\n3. How We Use Your Data\n- To facilitate food donations and claims.\n- To verify student status.\n- To improve our app services.\n\n4. Data Security\nWe implement security measures to ensure your data is safe. We do not share your personal data with third parties without consent, except as required by law.\n\n5. Your Rights\nYou have the right to access, correct, or delete your personal data. You can manage your preferences in the Settings menu.\n\n6. Changes to This Policy\nWe may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.\n\n7. Contact Us\nIf you have any questions about this Privacy Policy, please contact us." />
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

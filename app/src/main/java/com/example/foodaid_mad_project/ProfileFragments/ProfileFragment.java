@@ -60,5 +60,29 @@ public class ProfileFragment extends Fragment {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         });
+
+        // Navigation to Settings Fragments
+        view.findViewById(R.id.btnPrivacySettings).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.coveringFragment, new PrivacyFragment()) // Assuming 'frame_layout' is the container
+                                                                           // in
+                    // MainActivity
+                    .addToBackStack(null)
+                    .commit();
+        });
+
+        view.findViewById(R.id.btnHelpFAQ).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.coveringFragment, new HelpFAQFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
+        view.findViewById(R.id.btnContactReport).setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.coveringFragment, new ContactReportFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
     }
 }
