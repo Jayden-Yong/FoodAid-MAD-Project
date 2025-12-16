@@ -86,17 +86,8 @@ public class MapPinItemFragment extends Fragment {
 
         // Claim button: opens ItemDetailsFragment
         btnClaim.setOnClickListener(v -> {
-            // Mock pickup times
-            String[] mockTimes = { "10:00 AM", "6:00 PM" };
-
-            // Create new fragment
-            ItemDetailsFragment detailsFragment = new ItemDetailsFragment(
-                    foodItem.getTitle(),
-                    mockTimes,
-                    R.id.radioPantry, // This ID might be wrong, passing int category
-                    foodItem.getWeight(),
-                    foodItem.getLocationName(),
-                    foodItem.getDonatorName());
+            // Create new fragment with the FoodItem object
+            ItemDetailsFragment detailsFragment = new ItemDetailsFragment(foodItem);
 
             // Replace current fragment in container
             if (getActivity() != null) {
