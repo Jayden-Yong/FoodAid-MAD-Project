@@ -1,68 +1,83 @@
 package com.example.foodaid_mad_project.AuthFragments;
 
 import java.util.List;
-import java.util.Map;
 
 public class User {
     private String uid;
     private String email;
-    private String fullName;
-    private String displayName;
-    private String userType;
-    private String faculty;
-    private String residentialCollege;
-    private long createdAt;
-    private List<String> dietaryPreferences;
+    private String displayName; // Populated from Registration or Google
+    private String photoUrl; // Firebase Storage URL
+    private List<String> earnedBadges; // List of Badge IDs (e.g., "badge_10kg")
+    private String userType; // "student"
+    private long createdAt; // Timestamp
 
+    public User() {
+    }
 
-    public User() {}
-
-    public User(String uid, String email, String fullName, String displayName, String userType, String faculty, String residentialCollege, long createdAt, List<String> dietaryPreferences) {
+    public User(String uid, String email, String displayName, String photoUrl, List<String> earnedBadges,
+            String userType, long createdAt) {
         this.uid = uid;
         this.email = email;
         this.displayName = displayName;
+        this.photoUrl = photoUrl;
+        this.earnedBadges = earnedBadges;
         this.userType = userType;
         this.createdAt = createdAt;
-        this.dietaryPreferences = dietaryPreferences;
-        this.faculty = faculty;
-        this.residentialCollege = residentialCollege;
-        this.fullName = fullName;
     }
 
     public String getUid() {
         return uid;
     }
 
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
     public String getEmail() {
         return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getDisplayName() {
         return displayName;
     }
 
-    public String getFaculty() { return faculty; }
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
 
-    public String getResidentialCollege() { return residentialCollege; }
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
 
-    public String getFullName() { return fullName; }
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
+
+    public List<String> getEarnedBadges() {
+        return earnedBadges;
+    }
+
+    public void setEarnedBadges(List<String> earnedBadges) {
+        this.earnedBadges = earnedBadges;
+    }
 
     public String getUserType() {
         return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
     }
 
     public long getCreatedAt() {
         return createdAt;
     }
 
-    public List<String> getDiet() {
-        return dietaryPreferences;
-    }
-
-    public void addAdditionalData(Map<String, Object> additionalData) {
-        this.fullName = (String) additionalData.get("fullName");
-        this.faculty = (String) additionalData.get("faculty");
-        this.residentialCollege = (String) additionalData.get("residentialCollege");
-        this.dietaryPreferences = (List<String>) additionalData.get("dietaryPreferences");
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
     }
 }

@@ -26,36 +26,38 @@ public class ItemDetailsFragment extends Fragment {
     private String title;
     private String[] pickupTime;
     private int category;
-    private int quantity;
+    private double weight; // Changed from int quantity
     private String location;
     private String donator;
     private String imageUri;
-
 
     private TextView tvProductTitle, tvPickupTime, tvQuantity, tvLocationLabel, tvPostedBy;
     ImageView ivProductImage;
     private RadioGroup radioGroupCategory;
 
+    public ItemDetailsFragment() {
+    }
 
-    public ItemDetailsFragment() {}
-
-    public ItemDetailsFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator, String imageUri){
+    public ItemDetailsFragment(String title, String[] pickupTime, int category, double weight, String location,
+            String donator, String imageUri) {
         this.title = title;
         this.pickupTime = pickupTime;
         this.category = category;
-        this.quantity = quantity;
+        this.weight = weight;
         this.location = location;
         this.donator = donator;
         this.imageUri = imageUri;
     }
 
-    public ItemDetailsFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator){
-        this(title, pickupTime, category, quantity, location, donator, null);
+    public ItemDetailsFragment(String title, String[] pickupTime, int category, double weight, String location,
+            String donator) {
+        this(title, pickupTime, category, weight, location, donator, null);
     }
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_item_details, container, false);
     }
 
@@ -72,13 +74,14 @@ public class ItemDetailsFragment extends Fragment {
         radioGroupCategory = view.findViewById(R.id.radioGroupCategory);
 
         tvProductTitle.setText(getString(R.string.Food_Name, title));
-        if(pickupTime != null && pickupTime.length >= 2) {
+        if (pickupTime != null && pickupTime.length >= 2) {
             tvPickupTime.setText(getString(R.string.Pickup_Time, pickupTime[0], pickupTime[1]));
         }
-        tvQuantity.setText(getString(R.string.Food_Quantity, quantity));
+        tvQuantity.setText("Weight: " + weight + " kg"); // Updated text binding
         tvLocationLabel.setText(getString(R.string.Food_Location, location));
         tvPostedBy.setText(getString(R.string.Food_Donator, donator));
-        if (category != 0) radioGroupCategory.check(category);
+        if (category != 0)
+            radioGroupCategory.check(category);
 
         if (imageUri != null) {
             ivProductImage.setImageURI(Uri.parse(imageUri));
@@ -87,16 +90,18 @@ public class ItemDetailsFragment extends Fragment {
         TextView toolBarTitle = view.findViewById(R.id.toolbarTitle);
         toolBarTitle.setText(getString(R.string.String, "Food Aid Details"));
 
-        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                // Manually pop the Donate Fragment
-                if (getParentFragmentManager().getBackStackEntryCount() > 0) {
-                    getParentFragmentManager().popBackStack("ItemDetail", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                    getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                }
-            }
-        });
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        // Manually pop the Donate Fragment
+                        if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                            getParentFragmentManager().popBackStack("ItemDetail",
+                                    FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                            getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                        }
+                    }
+                });
 
         Toolbar toolbar = view.findViewById(R.id.Toolbar);
         if (toolbar != null) {
@@ -111,9 +116,9 @@ public class ItemDetailsFragment extends Fragment {
         Button btnClaim = view.findViewById(R.id.btnClaim);
         if (btnClaim != null) {
             btnClaim.setOnClickListener(v -> {
-                //TODO: Save data to Firebase
+                // TODO: Save data to Firebase
 
-                //TODO: Call Success Dialog
+                // TODO: Call Success Dialog
                 FragmentManager fragmentManager = getParentFragmentManager();
                 fragmentManager.beginTransaction()
                         .replace(R.id.ItemDetailsFragmentContainer, new ClaimNotifyFragment())

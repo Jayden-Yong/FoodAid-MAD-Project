@@ -19,18 +19,20 @@ public class DonateNotifyFragment extends Fragment {
     private String title;
     private String[] pickupTime;
     private int category;
-    private int quantity;
+    private double weight; // Changed from int quantity
     private String location;
     private String donator;
     private String imageUri;
 
-    public DonateNotifyFragment() {}
+    public DonateNotifyFragment() {
+    }
 
-    public DonateNotifyFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator, String imageUri){
+    public DonateNotifyFragment(String title, String[] pickupTime, int category, double weight, String location,
+            String donator, String imageUri) {
         this.title = title;
         this.pickupTime = pickupTime;
         this.category = category;
-        this.quantity = quantity;
+        this.weight = weight;
         this.location = location;
         this.donator = donator;
         this.imageUri = imageUri; // Save it
@@ -38,7 +40,8 @@ public class DonateNotifyFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_donate_notify, container, false);
     }
 
@@ -54,7 +57,8 @@ public class DonateNotifyFragment extends Fragment {
             getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
             requireActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment, new ItemDetailsFragment(title, pickupTime, category, quantity, location, donator, imageUri))
+                    .replace(R.id.coveringFragment,
+                            new ItemDetailsFragment(title, pickupTime, category, weight, location, donator, imageUri))
                     .addToBackStack("ItemDetail")
                     .commit();
         });

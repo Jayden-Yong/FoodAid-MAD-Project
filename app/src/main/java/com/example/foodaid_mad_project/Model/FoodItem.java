@@ -4,57 +4,72 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class FoodItem implements Parcelable {
-    private String id;
-    private String name;
-    private String location;
-    private String quantity;
-    private String donator;
-    private int imageResId; // For Mock Data (Local images)
-    private String imageUri; // For Database Data (Uploaded images)
-    private double lat;
-    private double lng;
-    private long postDurationMins;
+    private String donationId; // Document ID
+    private String donatorId; // User UID
+    private String donatorName; // For display
+    private String title;
+    private String category; // "GROCERIES" or "MEALS"
+    private String pickupMethod; // "MEET_UP" or "FREE_TABLE"
+    private String locationName; // Address text
+    private double latitude;
+    private double longitude;
+    private String imageUri; // Storage URL
+
+    // Impact & Time Logic
+    private double weight; // TOTAL Weight in KG
+    private long startTime; // Pick-up start (Unix Millis)
+    private long endTime; // Expiry time (Unix Millis)
+
+    // Status Logic
+    private String status; // "AVAILABLE" or "CLAIMED"
+    private String claimedBy; // UID of claimer (null if available)
+    private long timestamp; // Posted time
 
     // Empty constructor needed for Firebase Firestore
-    public FoodItem() {}
-
-    // Constructor for Mock Data (using int Resource ID)
-    public FoodItem(String id, String name, String location, String quantity, String donator, int imageResId, double lat, double lng, long postDurationMins) {
-        this.id = id;
-        this.name = name;
-        this.location = location;
-        this.quantity = quantity;
-        this.donator = donator;
-        this.imageResId = imageResId;
-        this.lat = lat;
-        this.lng = lng;
-        this.postDurationMins = postDurationMins;
+    public FoodItem() {
     }
 
-    // Constructor for Real Data (using String URI)
-    public FoodItem(String id, String name, String location, String quantity, String donator, String imageUri, double lat, double lng, long postDurationMins) {
-        this.id = id;
-        this.name = name;
-        this.location = location;
-        this.quantity = quantity;
-        this.donator = donator;
+    // Full Constructor
+    public FoodItem(String donationId, String donatorId, String donatorName, String title,
+            String category, String pickupMethod, String locationName,
+            double latitude, double longitude, String imageUri,
+            double weight, long startTime, long endTime,
+            String status, String claimedBy, long timestamp) {
+        this.donationId = donationId;
+        this.donatorId = donatorId;
+        this.donatorName = donatorName;
+        this.title = title;
+        this.category = category;
+        this.pickupMethod = pickupMethod;
+        this.locationName = locationName;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.imageUri = imageUri;
-        this.lat = lat;
-        this.lng = lng;
-        this.postDurationMins = postDurationMins;
+        this.weight = weight;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.status = status;
+        this.claimedBy = claimedBy;
+        this.timestamp = timestamp;
     }
 
     protected FoodItem(Parcel in) {
-        id = in.readString();
-        name = in.readString();
-        location = in.readString();
-        quantity = in.readString();
-        donator = in.readString();
-        imageResId = in.readInt();
-        imageUri = in.readString(); // Read URI
-        lat = in.readDouble();
-        lng = in.readDouble();
-        postDurationMins = in.readLong();
+        donationId = in.readString();
+        donatorId = in.readString();
+        donatorName = in.readString();
+        title = in.readString();
+        category = in.readString();
+        pickupMethod = in.readString();
+        locationName = in.readString();
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+        imageUri = in.readString();
+        weight = in.readDouble();
+        startTime = in.readLong();
+        endTime = in.readLong();
+        status = in.readString();
+        claimedBy = in.readString();
+        timestamp = in.readLong();
     }
 
     public static final Creator<FoodItem> CREATOR = new Creator<FoodItem>() {
@@ -70,31 +85,157 @@ public class FoodItem implements Parcelable {
     };
 
     @Override
-    public int describeContents() { return 0; }
+    public int describeContents() {
+        return 0;
+    }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(id);
-        dest.writeString(name);
-        dest.writeString(location);
-        dest.writeString(quantity);
-        dest.writeString(donator);
-        dest.writeInt(imageResId);
-        dest.writeString(imageUri); // Write URI
-        dest.writeDouble(lat);
-        dest.writeDouble(lng);
-        dest.writeLong(postDurationMins);
+        dest.writeString(donationId);
+        dest.writeString(donatorId);
+        dest.writeString(donatorName);
+        dest.writeString(title);
+        dest.writeString(category);
+        dest.writeString(pickupMethod);
+        dest.writeString(locationName);
+        dest.writeDouble(latitude);
+        dest.writeDouble(longitude);
+        dest.writeString(imageUri);
+        dest.writeDouble(weight);
+        dest.writeLong(startTime);
+        dest.writeLong(endTime);
+        dest.writeString(status);
+        dest.writeString(claimedBy);
+        dest.writeLong(timestamp);
     }
 
-    // Getters
-    public String getId() { return id; }
-    public String getName() { return name; }
-    public String getLocation() { return location; }
-    public String getQuantity() { return quantity; }
-    public String getDonator() { return donator; }
-    public int getImageResId() { return imageResId; }
-    public String getImageUri() { return imageUri; }
-    public double getLat() { return lat; }
-    public double getLng() { return lng; }
-    public long getPostDurationMins() { return postDurationMins; }
+    // Getters and Setters
+
+    public String getDonationId() {
+        return donationId;
+    }
+
+    public void setDonationId(String donationId) {
+        this.donationId = donationId;
+    }
+
+    public String getDonatorId() {
+        return donatorId;
+    }
+
+    public void setDonatorId(String donatorId) {
+        this.donatorId = donatorId;
+    }
+
+    public String getDonatorName() {
+        return donatorName;
+    }
+
+    public void setDonatorName(String donatorName) {
+        this.donatorName = donatorName;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getPickupMethod() {
+        return pickupMethod;
+    }
+
+    public void setPickupMethod(String pickupMethod) {
+        this.pickupMethod = pickupMethod;
+    }
+
+    public String getLocationName() {
+        return locationName;
+    }
+
+    public void setLocationName(String locationName) {
+        this.locationName = locationName;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getImageUri() {
+        return imageUri;
+    }
+
+    public void setImageUri(String imageUri) {
+        this.imageUri = imageUri;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getClaimedBy() {
+        return claimedBy;
+    }
+
+    public void setClaimedBy(String claimedBy) {
+        this.claimedBy = claimedBy;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
 }

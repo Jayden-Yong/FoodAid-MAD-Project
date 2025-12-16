@@ -29,7 +29,6 @@ import androidx.credentials.exceptions.GetCredentialException;
 import androidx.fragment.app.Fragment;
 
 import com.example.foodaid_mad_project.AuthActivity;
-import com.example.foodaid_mad_project.CompleteProfileActivity;
 import com.example.foodaid_mad_project.MainActivity;
 import com.example.foodaid_mad_project.R;
 import com.example.foodaid_mad_project.UserManager;
@@ -294,6 +293,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
         String uid = user.getUid();
         String email = user.getEmail();
         String name = user.getDisplayName();
+        String photoUrl = (user.getPhotoUrl() != null) ? user.getPhotoUrl().toString() : null;
 
         if (name == null || name.isEmpty()) {
             if (email != null && email.contains("@")) {
@@ -307,8 +307,9 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
         userData.put("uid", uid);
         userData.put("email", email);
         userData.put("displayName", name);
+        userData.put("photoUrl", photoUrl);
+        userData.put("earnedBadges", new java.util.ArrayList<String>());
         userData.put("userType", "student");
-        userData.put("favourites", "");
 
         if ("email".equals(providerType)) {
             userData.put("createdAt", System.currentTimeMillis());
@@ -327,7 +328,10 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
 
                                 Toast.makeText(getContext(), "Registration/Login successful!", Toast.LENGTH_LONG)
                                         .show();
-                                startActivity(new Intent(getContext(), CompleteProfileActivity.class));
+
+                                Intent intent = new Intent(getContext(), MainActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
                                 requireActivity().finish();
                             })
                             .addOnFailureListener(e -> {

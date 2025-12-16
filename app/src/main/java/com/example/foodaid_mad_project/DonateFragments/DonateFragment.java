@@ -47,8 +47,8 @@ import java.util.Locale;
 
 // Implement OnMapReadyCallback
 public class DonateFragment extends Fragment
-//    Vibe Coded map location search using Google Map
-//        implements OnMapReadyCallback
+// Vibe Coded map location search using Google Map
+// implements OnMapReadyCallback
 {
 
     private String title;
@@ -85,7 +85,8 @@ public class DonateFragment extends Fragment
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_donate, container, false);
     }
 
@@ -116,26 +117,27 @@ public class DonateFragment extends Fragment
         ivSelectedPhoto = view.findViewById(R.id.ivSelectedPhoto);
         tvUploadPlaceholder = view.findViewById(R.id.tvUploadPlaceholder);
 
-        //    Vibe Coded map location search using Google Map
+        // Vibe Coded map location search using Google Map
         // --- Map Initialization ---
         // Get the map fragment from the container
-//        Fragment mapFragment = getChildFragmentManager().findFragmentById(R.id.mapFragmentContainer);
-//        if (mapFragment == null) {
-//            mapFragment = SupportMapFragment.newInstance();
-//            getChildFragmentManager().beginTransaction()
-//                    .add(R.id.mapFragmentContainer, mapFragment)
-//                    .commit();
-//        }
-//        // Load the map asynchronously
-//        if (mapFragment instanceof SupportMapFragment) {
-//            ((SupportMapFragment) mapFragment).getMapAsync(this);
-//        }
+        // Fragment mapFragment =
+        // getChildFragmentManager().findFragmentById(R.id.mapFragmentContainer);
+        // if (mapFragment == null) {
+        // mapFragment = SupportMapFragment.newInstance();
+        // getChildFragmentManager().beginTransaction()
+        // .add(R.id.mapFragmentContainer, mapFragment)
+        // .commit();
+        // }
+        // // Load the map asynchronously
+        // if (mapFragment instanceof SupportMapFragment) {
+        // ((SupportMapFragment) mapFragment).getMapAsync(this);
+        // }
 
         // --- Search Button Logic ---
         btnSearchLocation.setOnClickListener(v -> {
             String searchString = etLocationSearch.getText().toString();
             if (!searchString.isEmpty()) {
-//                searchLocation(searchString);
+                // searchLocation(searchString);
             } else {
                 Toast.makeText(getContext(), "Please enter a location to search", Toast.LENGTH_SHORT).show();
             }
@@ -151,19 +153,21 @@ public class DonateFragment extends Fragment
         }
 
         // Spinner Setup
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(requireContext(), R.array.Pickup_Method_List, R.layout.spinner_item_selected);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(requireContext(),
+                R.array.Pickup_Method_List, R.layout.spinner_item_selected);
         adapter.setDropDownViewResource(R.layout.spinner_pickup_method);
         spinnerPickupMethod.setAdapter(adapter);
 
         // Navigation Logic
-        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                if (getParentFragmentManager().getBackStackEntryCount() > 0) {
-                    getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                }
-            }
-        });
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                            getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                        }
+                    }
+                });
 
         Toolbar toolbar = view.findViewById(R.id.Toolbar);
         if (toolbar != null) {
@@ -180,20 +184,20 @@ public class DonateFragment extends Fragment
             btnDonate.setOnClickListener(v -> {
                 // Input Gathering
                 title = etItemName.getText().toString();
-                quantityStr = etQuantity.getText().toString();
-                String weight = etWeight.getText().toString();
+                // quantityStr = etQuantity.getText().toString(); // Removed per new flow
+                String weightStr = etWeight.getText().toString();
                 String expiry = etExpiryDate.getText().toString();
                 String desc = etDescription.getText().toString();
                 String timeFrom = etTimeFrom.getText().toString();
                 String timeTo = etTimeTo.getText().toString();
 
                 // Validation
-                if(toggleGroupDonationType.getCheckedRadioButtonId() == -1){
+                if (toggleGroupDonationType.getCheckedRadioButtonId() == -1) {
                     Toast.makeText(getContext(), "Please select a donation type", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                if (title.isEmpty() || quantityStr.isEmpty() || weight.isEmpty() || expiry.isEmpty() || desc.isEmpty()){
+                if (title.isEmpty() || weightStr.isEmpty() || expiry.isEmpty() || desc.isEmpty()) {
                     Toast.makeText(getContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -203,13 +207,7 @@ public class DonateFragment extends Fragment
                     return;
                 }
 
-//    Vibe Coded map location search using Google Map
-//                if (location == null || location.isEmpty()) {
-//                    Toast.makeText(getContext(), "Please search or select a location on the map", Toast.LENGTH_SHORT).show();
-//                    return;
-//                }
-
-                if (etTimeFrom.getText().toString().isEmpty() || etTimeTo.getText().toString().isEmpty()){
+                if (etTimeFrom.getText().toString().isEmpty() || etTimeTo.getText().toString().isEmpty()) {
                     Toast.makeText(getContext(), "Please fill in all time fields", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -221,89 +219,106 @@ public class DonateFragment extends Fragment
 
                 // Save Logic (Mocked)
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                donator = (user != null) ? user.getEmail().substring(0, user.getEmail().indexOf("@")).toUpperCase() : "Anonymous";
+                donator = (user != null) ? user.getEmail().substring(0, user.getEmail().indexOf("@")).toUpperCase()
+                        : "Anonymous";
 
-                pickupTime = new String[]{timeFrom, timeTo};
+                pickupTime = new String[] { timeFrom, timeTo };
                 category = toggleGroupDonationType.getCheckedRadioButtonId();
+
+                double weight = 0.0;
+                try {
+                    weight = Double.parseDouble(weightStr);
+                } catch (NumberFormatException e) {
+                    Toast.makeText(getContext(), "Invalid weight format", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 String imageUriString = selectedImageUri.toString();
                 FragmentManager fragmentManager = getParentFragmentManager();
                 fragmentManager.beginTransaction()
-                        .replace(R.id.DonateFragmentContainer, new DonateNotifyFragment(title, pickupTime, category, Integer.parseInt(quantityStr), location, donator, imageUriString))
+                        .replace(R.id.DonateFragmentContainer,
+                                new DonateNotifyFragment(title, pickupTime, category, weight, location, donator,
+                                        imageUriString))
                         .addToBackStack("DonateSuccess")
                         .commit();
             });
         }
     }
 
-//    Vibe Coded map location search using Google Map
-//    // --- Map Callback ---
-//    @Override
-//    public void onMapReady(@NonNull GoogleMap googleMap) {
-//        mMap = googleMap;
-//
-//        // Default: Kuala Lumpur
-//        LatLng defaultLocation = new LatLng(3.1390, 101.6869);
-//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 10));
-//
-//        // Map Click Listener: Allow user to pin point manually
-//        mMap.setOnMapClickListener(latLng -> {
-//            mMap.clear(); // Remove old marker
-//            mMap.addMarker(new MarkerOptions().position(latLng).title("Selected Location"));
-//            selectedLatLng = latLng;
-//
-//            // Reverse Geocode: Get address from LatLng
-//            getAddressFromLatLng(latLng);
-//        });
-//    }
-//
-//    // Helper: Search Location by Text
-//    private void searchLocation(String locationName) {
-//        if (mMap == null) {
-//            Toast.makeText(getContext(), "Map is not ready yet", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
-//        try {
-//            List<Address> addressList = geocoder.getFromLocationName(locationName, 1);
-//            if (addressList != null && !addressList.isEmpty()) {
-//                Address address = addressList.get(0);
-//                LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
-//
-//                mMap.clear();
-//                mMap.addMarker(new MarkerOptions().position(latLng).title(locationName));
-//                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-//
-//                // Save data
-//                selectedLatLng = latLng;
-//                location = address.getAddressLine(0); // Full address string
-//                // Update EditText to show full resolved address
-//                etLocationSearch.setText(location);
-//            } else {
-//                Toast.makeText(getContext(), "Location not found", Toast.LENGTH_SHORT).show();
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            Toast.makeText(getContext(), "Error searching location", Toast.LENGTH_SHORT).show();
-//        }
-//    }
-//
-//    // Helper: Get Address from Pin Point
-//    private void getAddressFromLatLng(LatLng latLng) {
-//        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
-//        try {
-//            List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
-//            if (addresses != null && !addresses.isEmpty()) {
-//                location = addresses.get(0).getAddressLine(0);
-//                etLocationSearch.setText(location); // Update UI
-//            } else {
-//                location = "Selected Coordinates: " + latLng.latitude + ", " + latLng.longitude;
-//                etLocationSearch.setText(location);
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            location = "Unknown Location";
-//        }
-//    }
+    // Vibe Coded map location search using Google Map
+    // // --- Map Callback ---
+    // @Override
+    // public void onMapReady(@NonNull GoogleMap googleMap) {
+    // mMap = googleMap;
+    //
+    // // Default: Kuala Lumpur
+    // LatLng defaultLocation = new LatLng(3.1390, 101.6869);
+    // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 10));
+    //
+    // // Map Click Listener: Allow user to pin point manually
+    // mMap.setOnMapClickListener(latLng -> {
+    // mMap.clear(); // Remove old marker
+    // mMap.addMarker(new MarkerOptions().position(latLng).title("Selected
+    // Location"));
+    // selectedLatLng = latLng;
+    //
+    // // Reverse Geocode: Get address from LatLng
+    // getAddressFromLatLng(latLng);
+    // });
+    // }
+    //
+    // // Helper: Search Location by Text
+    // private void searchLocation(String locationName) {
+    // if (mMap == null) {
+    // Toast.makeText(getContext(), "Map is not ready yet",
+    // Toast.LENGTH_SHORT).show();
+    // return;
+    // }
+    //
+    // Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+    // try {
+    // List<Address> addressList = geocoder.getFromLocationName(locationName, 1);
+    // if (addressList != null && !addressList.isEmpty()) {
+    // Address address = addressList.get(0);
+    // LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+    //
+    // mMap.clear();
+    // mMap.addMarker(new MarkerOptions().position(latLng).title(locationName));
+    // mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+    //
+    // // Save data
+    // selectedLatLng = latLng;
+    // location = address.getAddressLine(0); // Full address string
+    // // Update EditText to show full resolved address
+    // etLocationSearch.setText(location);
+    // } else {
+    // Toast.makeText(getContext(), "Location not found",
+    // Toast.LENGTH_SHORT).show();
+    // }
+    // } catch (IOException e) {
+    // e.printStackTrace();
+    // Toast.makeText(getContext(), "Error searching location",
+    // Toast.LENGTH_SHORT).show();
+    // }
+    // }
+    //
+    // // Helper: Get Address from Pin Point
+    // private void getAddressFromLatLng(LatLng latLng) {
+    // Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+    // try {
+    // List<Address> addresses = geocoder.getFromLocation(latLng.latitude,
+    // latLng.longitude, 1);
+    // if (addresses != null && !addresses.isEmpty()) {
+    // location = addresses.get(0).getAddressLine(0);
+    // etLocationSearch.setText(location); // Update UI
+    // } else {
+    // location = "Selected Coordinates: " + latLng.latitude + ", " +
+    // latLng.longitude;
+    // etLocationSearch.setText(location);
+    // }
+    // } catch (IOException e) {
+    // e.printStackTrace();
+    // location = "Unknown Location";
+    // }
+    // }
 }
