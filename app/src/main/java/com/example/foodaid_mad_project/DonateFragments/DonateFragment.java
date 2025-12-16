@@ -195,6 +195,33 @@ public class DonateFragment extends Fragment {
         adapter.setDropDownViewResource(R.layout.spinner_pickup_method);
         spinnerPickupMethod.setAdapter(adapter);
 
+        TextView tvTimeLabelFrom = view.findViewById(R.id.tvTimeLabelFrom);
+        TextView tvTimeLabelTo = view.findViewById(R.id.tvTimeLabelTo);
+
+        spinnerPickupMethod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selected = parent.getItemAtPosition(position).toString();
+                if (selected.equalsIgnoreCase("Free Table")) {
+                    tvTimeLabelFrom.setText("Drop Off:");
+                    etTimeFrom.setHint("Time");
+                    tvTimeLabelTo.setText("Expiry:");
+                    etTimeTo.setHint("Time");
+                } else {
+                    // Default to Meet Up
+                    tvTimeLabelFrom.setText("Start:");
+                    etTimeFrom.setHint("Time");
+                    tvTimeLabelTo.setText("End:");
+                    etTimeTo.setHint("Time");
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
+            }
+        });
+
         // Navigation Logic
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
                 new OnBackPressedCallback(true) {
