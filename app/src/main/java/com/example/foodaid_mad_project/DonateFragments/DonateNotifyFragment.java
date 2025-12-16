@@ -56,9 +56,18 @@ public class DonateNotifyFragment extends Fragment {
             getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
             getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
+            // Construct valid FoodItem from fragments existing data
+            String catString = (category == 1) ? "MEALS" : "GROCERIES";
+            // Timestamps are missing in this fragments arguments, using 0 for now as
+            // placeholder
+            // Ideally DonateNotifyFragment should receive the full FoodItem object
+            com.example.foodaid_mad_project.Model.FoodItem item = new com.example.foodaid_mad_project.Model.FoodItem(
+                    null, null, donator, title, catString, "MEET_UP", location,
+                    0, 0, imageUri, weight, 0, 0, "AVAILABLE", null, System.currentTimeMillis());
+
             requireActivity().getSupportFragmentManager().beginTransaction()
                     .replace(R.id.coveringFragment,
-                            new ItemDetailsFragment(title, pickupTime, category, weight, location, donator, imageUri))
+                            new ItemDetailsFragment(item))
                     .addToBackStack("ItemDetail")
                     .commit();
         });

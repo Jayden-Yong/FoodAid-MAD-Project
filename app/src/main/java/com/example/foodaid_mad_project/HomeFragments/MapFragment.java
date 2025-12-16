@@ -114,7 +114,7 @@ public class MapFragment extends Fragment {
 
     private void addFoodMarker(FoodItem item) {
         Marker marker = new Marker(mapView);
-        marker.setPosition(new GeoPoint(item.getLat(), item.getLng()));
+        marker.setPosition(new GeoPoint(item.getLatitude(), item.getLongitude()));
         marker.setIcon(AppCompatResources.getDrawable(
                 requireContext(),
                 R.drawable.ic_custom_pin));
@@ -208,7 +208,7 @@ public class MapFragment extends Fragment {
         if (item == null || mapView == null)
             return;
 
-        GeoPoint point = new GeoPoint(item.getLat(), item.getLng());
+        GeoPoint point = new GeoPoint(item.getLatitude(), item.getLongitude());
 
         // Temporarily stop following user location
         if (locationOverlay != null) {

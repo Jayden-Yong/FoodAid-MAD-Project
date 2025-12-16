@@ -80,4 +80,17 @@ public class User {
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
     }
+
+    public void addAdditionalData(java.util.Map<String, Object> data) {
+        // This is a helper for local updates, though ideally User object should have
+        // these fields
+        // For now, we rely on Firestore for these extra fields if they aren't in the
+        // model
+        // or we add them to the model.
+        // Let's add them to the model for completeness if we want strong typing
+    }
+
+    public String getName() {
+        return displayName;
+    }
 }

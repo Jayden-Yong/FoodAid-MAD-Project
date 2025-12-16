@@ -131,16 +131,16 @@ public class HomeFragment extends Fragment
         // ((SupportMapFragment) mapFragment).getMapAsync(this);
         // }
 
-        // To QR Page
-        btnToQR = view.findViewById(R.id.btnToQR);
-        btnToQR.setOnClickListener(v -> {
-            // Use requireActivity().getSupportFragmentManager() because coveringFragment
-            // belongs to MainActivity, not the NavHostFragment.
-            requireActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment, new QRFragment())
-                    .addToBackStack("QRFragment")
-                    .commit();
-        });
+        // QR Page Access Removed
+        /*
+         * btnToQR = view.findViewById(R.id.btnToQR);
+         * btnToQR.setOnClickListener(v -> {
+         * requireActivity().getSupportFragmentManager().beginTransaction()
+         * .replace(R.id.coveringFragment, new QRFragment())
+         * .addToBackStack("QRFragment")
+         * .commit();
+         * });
+         */
     }
 
     public void showMapPinDetails(FoodItem item) {

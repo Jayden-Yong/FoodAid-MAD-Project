@@ -19,7 +19,8 @@ public class ClaimNotifyFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_claim_successful_notify, container, false);
     }
 
@@ -31,12 +32,12 @@ public class ClaimNotifyFragment extends Fragment {
         btnBackToHome = view.findViewById(R.id.btnBackToHome);
 
         btnViewQr.setOnClickListener(v -> {
-            getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            // QR Functionality removed, redirecting to home/details or showing toast
+            android.widget.Toast.makeText(getContext(), "QR Feature Disabled", android.widget.Toast.LENGTH_SHORT)
+                    .show();
+            // Optional: Auto-close
             getParentFragmentManager().popBackStack("ItemDetail", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment, new QRFragment())
-                    .addToBackStack("QR")
-                    .commit();
+            getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
         });
 
         btnBackToHome.setOnClickListener(v -> {

@@ -61,6 +61,7 @@ dependencies {
     // TODO: Add the dependencies for Firebase products you want to use
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
 
     // google sign in dependencies
     implementation("androidx.credentials:credentials:1.3.0")
