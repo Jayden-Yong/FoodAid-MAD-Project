@@ -44,6 +44,18 @@ import com.google.firebase.auth.FirebaseUser;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Calendar;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import android.app.TimePickerDialog;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.foodaid_mad_project.Model.FoodItem;
 
 // Implement OnMapReadyCallback
 public class DonateFragment extends Fragment
@@ -52,11 +64,16 @@ public class DonateFragment extends Fragment
 {
 
     private String title;
-    private String[] pickupTime;
-    private int category;
-    private String quantityStr;
+    private long startTime;
+    private long endTime;
+    private String categoryStr;
+    private String pickupMethodStr;
     private String location; // Stores the selected address string
     private String donator;
+    private String donatorId;
+
+    private FirebaseFirestore db;
+    private StorageReference storageReference;
 
     private ImageView ivSelectedPhoto;
     private TextView tvUploadPlaceholder;
@@ -67,10 +84,16 @@ public class DonateFragment extends Fragment
     private GoogleMap mMap;
     private LatLng selectedLatLng; // Stores the selected coordinates
     private EditText etLocationSearch;
+    private EditText etTimeFrom, etTimeTo;
+    private Calendar calendar;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        db = FirebaseFirestore.getInstance();
+        storageReference = FirebaseStorage.getInstance().getReference();
+        calendar = Calendar.getInstance();
+
         pickMedia = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
             if (uri != null) {
                 selectedImageUri = uri;
@@ -97,15 +120,19 @@ public class DonateFragment extends Fragment
         // --- View Binding ---
         RadioGroup toggleGroupDonationType = view.findViewById(R.id.toggleGroupDonationType);
         EditText etItemName = view.findViewById(R.id.etItemName);
-        EditText etQuantity = view.findViewById(R.id.etQuantity);
+        // quantity removed
         EditText etWeight = view.findViewById(R.id.etWeight);
         EditText etExpiryDate = view.findViewById(R.id.etExpiryDate);
         EditText etDescription = view.findViewById(R.id.etDescription);
         CardView cvUploadPhoto = view.findViewById(R.id.cvUploadPhoto);
         Spinner spinnerPickupMethod = view.findViewById(R.id.spinnerPickupMethod);
-        EditText etTimeFrom = view.findViewById(R.id.etTimeFrom);
-        EditText etTimeTo = view.findViewById(R.id.etTimeTo);
+        etTimeFrom = view.findViewById(R.id.etTimeFrom);
+        etTimeTo = view.findViewById(R.id.etTimeTo);
         CheckBox cbConfirm = view.findViewById(R.id.cbConfirm);
+
+        // Time Picker Logic
+        etTimeFrom.setOnClickListener(v -> showTimePickerDialog(etTimeFrom, true));
+        etTimeTo.setOnClickListener(v -> showTimePickerDialog(etTimeTo, false));
 
         // Location Search Views
         etLocationSearch = view.findViewById(R.id.etLocationSearch);
@@ -184,12 +211,8 @@ public class DonateFragment extends Fragment
             btnDonate.setOnClickListener(v -> {
                 // Input Gathering
                 title = etItemName.getText().toString();
-                // quantityStr = etQuantity.getText().toString(); // Removed per new flow
                 String weightStr = etWeight.getText().toString();
-                String expiry = etExpiryDate.getText().toString();
                 String desc = etDescription.getText().toString();
-                String timeFrom = etTimeFrom.getText().toString();
-                String timeTo = etTimeTo.getText().toString();
 
                 // Validation
                 if (toggleGroupDonationType.getCheckedRadioButtonId() == -1) {
@@ -197,7 +220,15 @@ public class DonateFragment extends Fragment
                     return;
                 }
 
-                if (title.isEmpty() || weightStr.isEmpty() || expiry.isEmpty() || desc.isEmpty()) {
+                int selectedId = toggleGroupDonationType.getCheckedRadioButtonId();
+                if (selectedId == R.id.radioGroceries)
+                    categoryStr = "GROCERIES";
+                else if (selectedId == R.id.radioMeals)
+                    categoryStr = "MEALS";
+                else
+                    categoryStr = "OTHER";
+
+                if (title.isEmpty() || weightStr.isEmpty() || desc.isEmpty()) {
                     Toast.makeText(getContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -207,8 +238,18 @@ public class DonateFragment extends Fragment
                     return;
                 }
 
-                if (etTimeFrom.getText().toString().isEmpty() || etTimeTo.getText().toString().isEmpty()) {
-                    Toast.makeText(getContext(), "Please fill in all time fields", Toast.LENGTH_SHORT).show();
+                if (startTime == 0 || endTime == 0) {
+                    Toast.makeText(getContext(), "Please select start and end times", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (endTime <= startTime) {
+                    Toast.makeText(getContext(), "End time must be after start time", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (endTime <= System.currentTimeMillis()) {
+                    Toast.makeText(getContext(), "End time must be in the future", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -216,14 +257,6 @@ public class DonateFragment extends Fragment
                     Toast.makeText(getContext(), "You must confirm the donation details", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                // Save Logic (Mocked)
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                donator = (user != null) ? user.getEmail().substring(0, user.getEmail().indexOf("@")).toUpperCase()
-                        : "Anonymous";
-
-                pickupTime = new String[] { timeFrom, timeTo };
-                category = toggleGroupDonationType.getCheckedRadioButtonId();
 
                 double weight = 0.0;
                 try {
@@ -233,92 +266,130 @@ public class DonateFragment extends Fragment
                     return;
                 }
 
-                String imageUriString = selectedImageUri.toString();
-                FragmentManager fragmentManager = getParentFragmentManager();
-                fragmentManager.beginTransaction()
-                        .replace(R.id.DonateFragmentContainer,
-                                new DonateNotifyFragment(title, pickupTime, category, weight, location, donator,
-                                        imageUriString))
-                        .addToBackStack("DonateSuccess")
-                        .commit();
+                // Get User Info
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                if (user != null) {
+                    donator = user.getDisplayName();
+                    donatorId = user.getUid();
+                    if (donator == null || donator.isEmpty()) {
+                        donator = user.getEmail().substring(0, user.getEmail().indexOf("@"));
+                    }
+                } else {
+                    donator = "Anonymous";
+                    donatorId = "anon";
+                }
+
+                pickupMethodStr = spinnerPickupMethod.getSelectedItem().toString();
+
+                uploadImageToStorage(selectedImageUri, title, weight, desc, categoryStr, pickupMethodStr);
             });
         }
     }
 
-    // Vibe Coded map location search using Google Map
-    // // --- Map Callback ---
-    // @Override
-    // public void onMapReady(@NonNull GoogleMap googleMap) {
-    // mMap = googleMap;
-    //
-    // // Default: Kuala Lumpur
-    // LatLng defaultLocation = new LatLng(3.1390, 101.6869);
-    // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 10));
-    //
-    // // Map Click Listener: Allow user to pin point manually
-    // mMap.setOnMapClickListener(latLng -> {
-    // mMap.clear(); // Remove old marker
-    // mMap.addMarker(new MarkerOptions().position(latLng).title("Selected
-    // Location"));
-    // selectedLatLng = latLng;
-    //
-    // // Reverse Geocode: Get address from LatLng
-    // getAddressFromLatLng(latLng);
-    // });
-    // }
-    //
-    // // Helper: Search Location by Text
-    // private void searchLocation(String locationName) {
-    // if (mMap == null) {
-    // Toast.makeText(getContext(), "Map is not ready yet",
-    // Toast.LENGTH_SHORT).show();
-    // return;
-    // }
-    //
-    // Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
-    // try {
-    // List<Address> addressList = geocoder.getFromLocationName(locationName, 1);
-    // if (addressList != null && !addressList.isEmpty()) {
-    // Address address = addressList.get(0);
-    // LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
-    //
-    // mMap.clear();
-    // mMap.addMarker(new MarkerOptions().position(latLng).title(locationName));
-    // mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-    //
-    // // Save data
-    // selectedLatLng = latLng;
-    // location = address.getAddressLine(0); // Full address string
-    // // Update EditText to show full resolved address
-    // etLocationSearch.setText(location);
-    // } else {
-    // Toast.makeText(getContext(), "Location not found",
-    // Toast.LENGTH_SHORT).show();
-    // }
-    // } catch (IOException e) {
-    // e.printStackTrace();
-    // Toast.makeText(getContext(), "Error searching location",
-    // Toast.LENGTH_SHORT).show();
-    // }
-    // }
-    //
-    // // Helper: Get Address from Pin Point
-    // private void getAddressFromLatLng(LatLng latLng) {
-    // Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
-    // try {
-    // List<Address> addresses = geocoder.getFromLocation(latLng.latitude,
-    // latLng.longitude, 1);
-    // if (addresses != null && !addresses.isEmpty()) {
-    // location = addresses.get(0).getAddressLine(0);
-    // etLocationSearch.setText(location); // Update UI
-    // } else {
-    // location = "Selected Coordinates: " + latLng.latitude + ", " +
-    // latLng.longitude;
-    // etLocationSearch.setText(location);
-    // }
-    // } catch (IOException e) {
-    // e.printStackTrace();
-    // location = "Unknown Location";
-    // }
-    // }
+    private void showTimePickerDialog(EditText editText, boolean isStart) {
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+
+        TimePickerDialog timePickerDialog = new TimePickerDialog(getContext(), (view, hourOfDay, minuteOfHour) -> {
+            Calendar selectedTime = Calendar.getInstance();
+            selectedTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
+            selectedTime.set(Calendar.MINUTE, minuteOfHour);
+            // Ensure date is today (or handle date picker too, but for now assuming today
+            // only per simplified requirement)
+            // Ideally we should have a DatePicker too, but user req only mentioned
+            // TimePicker inputs.
+            // We'll assume the donation is for TODAY or TOMORROW if time is past?
+            // Simple logic: Set to today.
+
+            SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+            editText.setText(sdf.format(selectedTime.getTime()));
+
+            if (isStart) {
+                startTime = selectedTime.getTimeInMillis();
+            } else {
+                endTime = selectedTime.getTimeInMillis();
+            }
+        }, hour, minute, false);
+        timePickerDialog.show();
+    }
+
+    private void uploadImageToStorage(Uri imageUri, String title, double weight, String description, String category,
+            String pickupMethod) {
+        // Show Loading?
+        Toast.makeText(getContext(), "Uploading donation...", Toast.LENGTH_SHORT).show();
+
+        String filename = UUID.randomUUID().toString() + ".jpg";
+        StorageReference ref = storageReference.child("food_images/" + filename);
+
+        ref.putFile(imageUri)
+                .addOnSuccessListener(taskSnapshot -> {
+                    ref.getDownloadUrl().addOnSuccessListener(uri -> {
+                        saveDonationToFirestore(uri.toString(), title, weight, description, category, pickupMethod);
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Image upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void saveDonationToFirestore(String imageUrl, String title, double weight, String description,
+            String category, String pickupMethod) {
+        // Create FoodItem
+        // String donationId = db.collection("donations").document().getId(); //
+        // Auto-gen later or now?
+        // Let's use auto-gen ID from add()
+
+        Map<String, Object> donation = new HashMap<>();
+        donation.put("title", title);
+        donation.put("weight", weight);
+        donation.put("description", description); // FoodItem doesn't have desc field in Phase 1 plan?
+        // Wait, Phase 1 Plan Refactor FoodItem.java: id, donatorId, donatorName, title,
+        // weight, locationName, latitude, longitude, startTime, endTime, status,
+        // claimedBy, category, pickupMethod, timestamp.
+        // Description was NOT in FoodItem.java in Phase 1 plan?
+        // Let's check FoodItem.java content if possible, or just add it to map.
+        // It's better to add it.
+
+        donation.put("donatorId", donatorId);
+        donation.put("donatorName", donator);
+        donation.put("locationName", location != null ? location : "Unknown Location");
+        donation.put("latitude", selectedLatLng != null ? selectedLatLng.latitude : 0.0);
+        donation.put("longitude", selectedLatLng != null ? selectedLatLng.longitude : 0.0);
+        donation.put("startTime", startTime);
+        donation.put("endTime", endTime);
+        donation.put("status", "AVAILABLE");
+        donation.put("claimedBy", null);
+        donation.put("category", category);
+        donation.put("pickupMethod", pickupMethod);
+        donation.put("timestamp", System.currentTimeMillis());
+        donation.put("imageUri", imageUrl);
+
+        db.collection("donations").add(donation)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(getContext(), "Donation posted successfully!", Toast.LENGTH_LONG).show();
+
+                    // Navigate to Success / Notify Fragment
+                    // Re-using DonateNotifyFragment logic but adapting args?
+                    // Or just clear stack and go Home?
+                    // Use DonateNotifyFragment as requested in Plan.
+                    // It needs: title, pickupTime[], category(int), weight, location, donator,
+                    // imageUri
+
+                    String[] timeArr = new String[] { etTimeFrom.getText().toString(), etTimeTo.getText().toString() };
+                    int catId = (category.equals("GROCERIES")) ? R.id.radioGroceries : R.id.radioMeals; // mapping back
+                                                                                                        // for display
+
+                    FragmentManager fragmentManager = getParentFragmentManager();
+                    fragmentManager.beginTransaction()
+                            .replace(R.id.DonateFragmentContainer,
+                                    new DonateNotifyFragment(title, timeArr, catId, weight, location, donator,
+                                            imageUrl))
+                            .addToBackStack("DonateSuccess")
+                            .commit();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Failed to save donation: " + e.getMessage(), Toast.LENGTH_SHORT)
+                            .show();
+                });
+    }
 }
