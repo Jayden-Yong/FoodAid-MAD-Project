@@ -122,7 +122,7 @@ public class DonateFragment extends Fragment {
         EditText etItemName = view.findViewById(R.id.etItemName);
         // quantity removed
         EditText etWeight = view.findViewById(R.id.etWeight);
-        EditText etExpiryDate = view.findViewById(R.id.etExpiryDate);
+
         EditText etDescription = view.findViewById(R.id.etDescription);
         CardView cvUploadPhoto = view.findViewById(R.id.cvUploadPhoto);
         Spinner spinnerPickupMethod = view.findViewById(R.id.spinnerPickupMethod);

@@ -132,27 +132,7 @@
                             android:textSize="14sp" />
                     </LinearLayout>
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-                        <TextView
-                            android:layout_width="90dp"
-                            android:layout_height="wrap_content"
-                            android:text="@string/Expiry_Date"
-                            android:textStyle="bold" />
-                        <EditText
-                            android:id="@+id/etExpiryDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/bg_edit_text_underline"
-                            android:inputType="date"
-                            android:padding="8dp"
-                            android:textSize="14sp"
-                            tools:hint="DD/MM/YYYY" />
-                    </LinearLayout>
+
 
                     <LinearLayout
                         android:layout_width="match_parent"
