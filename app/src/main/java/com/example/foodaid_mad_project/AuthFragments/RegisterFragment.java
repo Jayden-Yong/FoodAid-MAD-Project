@@ -55,7 +55,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     private CredentialManager credentialManager;
-    private EditText etRegisterEmail, etRegisterPassword, etRegisterConfirmPassword;
+    private EditText etRegisterName, etRegisterEmail, etRegisterPassword, etRegisterConfirmPassword;
     private CheckBox btnCheckPassword, btnCheckConfirmPassword;
     private MaterialButton btnRegister, btnGoogle;
 
@@ -82,6 +82,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
         credentialManager = CredentialManager.create(requireContext());
         db = FirebaseFirestore.getInstance();
 
+        etRegisterName = view.findViewById(R.id.etRegisterName);
         etRegisterEmail = view.findViewById(R.id.etRegisterEmail);
         etRegisterPassword = view.findViewById(R.id.etRegisterPassword);
         etRegisterConfirmPassword = view.findViewById(R.id.etRegisterConfirmPassword);
@@ -153,12 +154,13 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
     }
 
     private void registerNewUser() {
+        String name = etRegisterName.getText().toString().trim();
         String email = etRegisterEmail.getText().toString().trim();
         String password = etRegisterPassword.getText().toString();
         String confirmPassword = etRegisterConfirmPassword.getText().toString();
 
         // input validations
-        if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(getContext(), "Please enter all credentials", Toast.LENGTH_LONG).show();
             return;
         }
@@ -184,7 +186,7 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
                 .addOnSuccessListener(authResult -> {
                     FirebaseUser user = authResult.getUser();
                     if (user != null) {
-                        saveUserToFirestore(user, "email");
+                        saveUserToFirestore(user, "email", name, null);
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -278,7 +280,9 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
                     if (task.isSuccessful()) {
                         FirebaseUser user = auth.getCurrentUser();
                         if (user != null) {
-                            saveUserToFirestore(user, "google");
+                            String displayName = user.getDisplayName();
+                            String photoUrl = (user.getPhotoUrl() != null) ? user.getPhotoUrl().toString() : null;
+                            saveUserToFirestore(user, "google", displayName, photoUrl);
                         }
                     } else {
                         String errorMessage = task.getException() != null
@@ -289,32 +293,52 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
                 });
     }
 
-    private void saveUserToFirestore(FirebaseUser user, String providerType) {
+    private void saveUserToFirestore(FirebaseUser user, String providerType, String localName, String photoUrl) {
         String uid = user.getUid();
         String email = user.getEmail();
-        String name = user.getDisplayName();
-        String photoUrl = (user.getPhotoUrl() != null) ? user.getPhotoUrl().toString() : null;
 
-        if (name == null || name.isEmpty()) {
+        // Priority: localName (Form matches intent) > user.getDisplayName()
+        // (Firebase/Google)
+        String displayName = (localName != null && !localName.isEmpty()) ? localName : user.getDisplayName();
+
+        // Priority: photoUrl (Google) > user.getPhotoUrl()
+        String finalPhotoUrl = (photoUrl != null) ? photoUrl
+                : (user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : null);
+
+        if (displayName == null || displayName.isEmpty()) {
             if (email != null && email.contains("@")) {
-                name = email.substring(0, email.indexOf("@"));
+                displayName = email.substring(0, email.indexOf("@"));
             } else {
-                name = "User";
+                displayName = "User";
             }
         }
 
         Map<String, Object> userData = new HashMap<>();
         userData.put("uid", uid);
         userData.put("email", email);
-        userData.put("displayName", name);
-        userData.put("photoUrl", photoUrl);
-        userData.put("earnedBadges", new java.util.ArrayList<String>());
+        userData.put("displayName", displayName);
+        userData.put("photoUrl", finalPhotoUrl);
+        // userData.put("earnedBadges", ...); // Not needed to explicitly put empty list
+        // on MERGE if we don't want to overwrite, but for new user it's good.
+        // We'll let Firestore handle it or initialize if missing in future logic.
+        // For now, let's keep it simple and safe.
+        // If document exists, we merge. If we want to Initialize badges ONLY if they
+        // don't exist, we can't do it easily with just .set(merge).
+        // But for "Register & Go", minimal friction.
+
+        // Checking if we should overwrite badges?
+        // If it's a NEW registration, overwrite is fine.
+        // If it's a LOGIN that triggers this, we shouldn't overwrite badges.
+
+        // Simplified Logic: Just update profile info.
         userData.put("userType", "student");
 
         if ("email".equals(providerType)) {
             userData.put("createdAt", System.currentTimeMillis());
+            userData.put("earnedBadges", new java.util.ArrayList<String>()); // Only init for new email reg
         } else {
             userData.put("lastLogin", System.currentTimeMillis());
+            // Don't overwrite badges for Google Login if they exist
         }
 
         db.collection("users").document(uid).set(userData, SetOptions.merge())
