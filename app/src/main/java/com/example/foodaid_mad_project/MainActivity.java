@@ -11,6 +11,9 @@ import com.example.foodaid_mad_project.DonateFragments.DonateFragment; // Import
 import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import com.example.foodaid_mad_project.AuthFragments.User;
+import com.google.firebase.messaging.FirebaseMessaging;
+import android.util.Log;
 
 import com.example.foodaid_mad_project.AuthFragments.User;
 
@@ -20,6 +23,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        FirebaseMessaging.getInstance().subscribeToTopic("donations")
+                .addOnCompleteListener(task -> {
+                    String msg = "Subscribed to donations";
+                    if (!task.isSuccessful()) {
+                        msg = "Subscribe failed";
+                    }
+                    Log.d("FCM", msg);
+                });
 
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mainFragment);

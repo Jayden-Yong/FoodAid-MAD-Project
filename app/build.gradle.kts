@@ -70,6 +70,9 @@ dependencies {
     // firestore database
     implementation("com.google.firebase:firebase-firestore")
 
+    // firebase messaging
+    implementation("com.google.firebase:firebase-messaging")
+
     // osmdroid for OpenStreetMap
     implementation("org.osmdroid:osmdroid-android:6.1.16")
 
