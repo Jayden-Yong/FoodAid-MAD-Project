@@ -68,8 +68,19 @@ public class MapPinItemFragment extends Fragment {
         tvDonator.setText("By: " + foodItem.getDonatorName());
 
         // Handle image (URI or resource)
+        // Handle image (URI or resource)
         if (foodItem.getImageUri() != null && !foodItem.getImageUri().isEmpty()) {
-            ivImage.setImageURI(Uri.parse(foodItem.getImageUri()));
+            String imageStr = foodItem.getImageUri();
+            if (imageStr.startsWith("http")) {
+                com.bumptech.glide.Glide.with(getContext()).load(imageStr).into(ivImage);
+            } else {
+                try {
+                    byte[] imageBytes = com.example.foodaid_mad_project.Utils.ImageUtil.base64ToBytes(imageStr);
+                    com.bumptech.glide.Glide.with(getContext()).load(imageBytes).into(ivImage);
+                } catch (Exception e) {
+                    ivImage.setImageResource(R.drawable.ic_launcher_background);
+                }
+            }
         } else {
             ivImage.setImageResource(R.drawable.ic_launcher_background); // fallback
         }

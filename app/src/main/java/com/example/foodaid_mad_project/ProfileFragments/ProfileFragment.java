@@ -123,8 +123,90 @@ public class ProfileFragment extends Fragment {
 
         // Edit Profile (Placeholder or simple toast for now)
         Button btnEditProfile = view.findViewById(R.id.btnEditProfile);
-        btnEditProfile.setOnClickListener(
-                v -> Toast.makeText(getContext(), "Profile editing coming soon!", Toast.LENGTH_SHORT).show());
+        btnEditProfile.setOnClickListener(v -> showEditProfileDialog());
+    }
+
+    private void showEditProfileDialog() {
+        if (auth.getCurrentUser() == null)
+            return;
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
+        builder.setTitle("Edit Profile");
+
+        // Layout Container
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(getContext());
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        int padding = (int) (20 * getResources().getDisplayMetrics().density); // 20dp
+        layout.setPadding(padding, padding, padding, padding);
+
+        // 1. Change Photo Button
+        Button btnChangePhoto = new Button(getContext());
+        btnChangePhoto.setText("Change Profile Photo");
+        // Style it slightly if possible, or keep default
+        btnChangePhoto.setOnClickListener(v -> {
+            pickMediaLauncher.launch(new PickVisualMediaRequest.Builder()
+                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                    .build());
+        });
+        layout.addView(btnChangePhoto);
+
+        // Spacer
+        android.widget.Space space = new android.widget.Space(getContext());
+        space.setLayoutParams(new android.widget.LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 30));
+        layout.addView(space);
+
+        // 2. Name Input
+        final android.widget.EditText input = new android.widget.EditText(getContext());
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+        input.setHint("Enter your name");
+        String currentName = tvUserName.getText().toString();
+        input.setText(currentName);
+        input.setSelection(input.getText().length());
+
+        layout.addView(input);
+
+        builder.setView(layout);
+
+        // Set up the buttons
+        builder.setPositiveButton("Save", (dialog, which) -> {
+            String newName = input.getText().toString().trim();
+            if (!newName.isEmpty()) {
+                updateUserName(newName);
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
+    private void updateUserName(String newName) {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null)
+            return;
+
+        // 1. Update Auth Profile (DisplayName)
+        com.google.firebase.auth.UserProfileChangeRequest profileUpdates = new com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                .setDisplayName(newName)
+                .build();
+
+        user.updateProfile(profileUpdates)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // 2. Update Firestore
+                        db.collection("users").document(user.getUid())
+                                .update("name", newName)
+                                .addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(getContext(), "Name updated successfully", Toast.LENGTH_SHORT)
+                                            .show();
+                                    tvUserName.setText(newName);
+                                })
+                                .addOnFailureListener(e -> Toast.makeText(getContext(),
+                                        "Failed to update Firestore: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    } else {
+                        Toast.makeText(getContext(), "Failed to update Auth: " + task.getException().getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void setupBadges() {
@@ -141,6 +223,51 @@ public class ProfileFragment extends Fragment {
                 false);
         badgesRecyclerView.setLayoutManager(layoutManager);
         badgesRecyclerView.setAdapter(badgeAdapter);
+    }
+
+    private void uploadImageToStorage(Uri imageUri) {
+        if (auth.getCurrentUser() == null)
+            return;
+        Toast.makeText(getContext(), "Processing image...", Toast.LENGTH_SHORT).show();
+
+        try {
+            // Database-Only approach: Convert to Base64
+            String base64Image = com.example.foodaid_mad_project.Utils.ImageUtil.uriToBase64(getContext(), imageUri);
+
+            if (base64Image != null) {
+                // Prepend base64 header for easier identification, though optional for our
+                // internal logic
+                // Ideally keeping it raw string is smaller. But let's check size.
+                // If > 1MB it will crash Firestore. ImageUtil resizes to 500px, so it should be
+                // fine (~50KB).
+                updateProfileUrl(base64Image);
+            } else {
+                Toast.makeText(getContext(), "Failed to process image", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void updateProfileUrl(String base64String) {
+        if (auth.getCurrentUser() == null)
+            return;
+
+        // Note: we are storing the Base64 string in the "photoUrl" field.
+        // It's a misnomer now, but saves refactoring the Model.
+        db.collection("users").document(auth.getCurrentUser().getUid())
+                .update("photoUrl", base64String)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Profile Updated!", Toast.LENGTH_SHORT).show();
+                    // Load immediately
+                    byte[] imageBytes = com.example.foodaid_mad_project.Utils.ImageUtil.base64ToBytes(base64String);
+                    if (imageBytes.length > 0) {
+                        Glide.with(this).load(imageBytes).circleCrop().into(ivProfile);
+                    }
+                })
+                .addOnFailureListener(e -> Toast
+                        .makeText(getContext(), "Update Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     private void loadUserData() {
@@ -162,15 +289,24 @@ public class ProfileFragment extends Fragment {
                 if (name == null)
                     name = "User";
 
-                String photoUrl = snapshot.getString("photoUrl");
-                if (photoUrl == null && user.getPhotoUrl() != null)
-                    photoUrl = user.getPhotoUrl().toString();
+                String photoData = snapshot.getString("photoUrl");
+                // This might be a URL (old data) or Base64 (new data)
 
                 tvUserName.setText(name);
-                tvUserId.setText(user.getEmail()); // Or matric number if stored
+                tvUserId.setText(user.getEmail());
 
-                if (photoUrl != null && !photoUrl.isEmpty()) {
-                    Glide.with(this).load(photoUrl).circleCrop().into(ivProfile);
+                if (photoData != null && !photoData.isEmpty()) {
+                    if (photoData.startsWith("http")) {
+                        // Old URL
+                        Glide.with(this).load(photoData).circleCrop().into(ivProfile);
+                    } else {
+                        // Base64
+                        byte[] imageBytes = com.example.foodaid_mad_project.Utils.ImageUtil.base64ToBytes(photoData);
+                        Glide.with(this).load(imageBytes).circleCrop().into(ivProfile);
+                    }
+                } else if (user.getPhotoUrl() != null) {
+                    // Fallback to Auth Photo if Firestore empty
+                    Glide.with(this).load(user.getPhotoUrl()).circleCrop().into(ivProfile);
                 }
 
                 // Load Badges
@@ -182,31 +318,6 @@ public class ProfileFragment extends Fragment {
                 }
             }
         });
-    }
-
-    private void uploadImageToStorage(Uri imageUri) {
-        if (auth.getCurrentUser() == null)
-            return;
-        Toast.makeText(getContext(), "Uploading...", Toast.LENGTH_SHORT).show();
-
-        String uid = auth.getCurrentUser().getUid();
-        StorageReference ref = storage.getReference().child("profile_images/" + uid + ".jpg");
-
-        ref.putFile(imageUri)
-                .addOnSuccessListener(taskSnapshot -> ref.getDownloadUrl().addOnSuccessListener(uri -> {
-                    updateProfileUrl(uri.toString());
-                }))
-                .addOnFailureListener(e -> Toast
-                        .makeText(getContext(), "Upload Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-    }
-
-    private void updateProfileUrl(String url) {
-        if (auth.getCurrentUser() == null)
-            return;
-        db.collection("users").document(auth.getCurrentUser().getUid())
-                .update("photoUrl", url)
-                .addOnSuccessListener(
-                        aVoid -> Toast.makeText(getContext(), "Profile Updated!", Toast.LENGTH_SHORT).show());
     }
 
     // -- Adapter --

@@ -318,7 +318,7 @@ public class DonateFragment extends Fragment {
 
                 pickupMethodStr = spinnerPickupMethod.getSelectedItem().toString();
 
-                uploadImageToStorage(selectedImageUri, title, weight, desc, categoryStr, pickupMethodStr);
+                processImageAndSave(selectedImageUri, title, weight, desc, categoryStr, pickupMethodStr);
             });
         }
     }
@@ -424,43 +424,35 @@ public class DonateFragment extends Fragment {
         timePickerDialog.show();
     }
 
-    private void uploadImageToStorage(Uri imageUri, String title, double weight, String description, String category,
+    private void processImageAndSave(Uri imageUri, String title, double weight, String description, String category,
             String pickupMethod) {
-        // Show Loading?
-        Toast.makeText(getContext(), "Uploading donation...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Processing image...", Toast.LENGTH_SHORT).show();
 
-        String filename = UUID.randomUUID().toString() + ".jpg";
-        StorageReference ref = storageReference.child("food_images/" + filename);
+        try {
+            // Database-Only approach: Convert to Base64
+            // This is blocking UI thread slightly, ideally assume Async or use
+            // Coroutines/Thread,
+            // but for <500KB resize it's usually fast enough for a prototype.
+            String base64Image = com.example.foodaid_mad_project.Utils.ImageUtil.uriToBase64(getContext(), imageUri);
 
-        ref.putFile(imageUri)
-                .addOnSuccessListener(taskSnapshot -> {
-                    ref.getDownloadUrl().addOnSuccessListener(uri -> {
-                        saveDonationToFirestore(uri.toString(), title, weight, description, category, pickupMethod);
-                    });
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Image upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+            if (base64Image != null) {
+                saveDonationToFirestore(base64Image, title, weight, description, category, pickupMethod);
+            } else {
+                Toast.makeText(getContext(), "Failed to process image", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Error processing image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
-    private void saveDonationToFirestore(String imageUrl, String title, double weight, String description,
+    private void saveDonationToFirestore(String base64Image, String title, double weight, String description,
             String category, String pickupMethod) {
-        // Create FoodItem
-        // String donationId = db.collection("donations").document().getId(); //
-        // Auto-gen later or now?
-        // Let's use auto-gen ID from add()
 
         Map<String, Object> donation = new HashMap<>();
         donation.put("title", title);
         donation.put("weight", weight);
-        donation.put("description", description); // FoodItem doesn't have desc field in Phase 1 plan?
-        // Wait, Phase 1 Plan Refactor FoodItem.java: id, donatorId, donatorName, title,
-        // weight, locationName, latitude, longitude, startTime, endTime, status,
-        // claimedBy, category, pickupMethod, timestamp.
-        // Description was NOT in FoodItem.java in Phase 1 plan?
-        // Let's check FoodItem.java content if possible, or just add it to map.
-        // It's better to add it.
-
+        donation.put("description", description);
         donation.put("donatorId", donatorId);
         donation.put("donatorName", donator);
         donation.put("locationName", location != null ? location : "Unknown Location");
@@ -473,28 +465,21 @@ public class DonateFragment extends Fragment {
         donation.put("category", category);
         donation.put("pickupMethod", pickupMethod);
         donation.put("timestamp", System.currentTimeMillis());
-        donation.put("imageUri", imageUrl);
+        // Store Base64 directly
+        donation.put("imageUri", base64Image);
 
         db.collection("donations").add(donation)
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(getContext(), "Donation posted successfully!", Toast.LENGTH_LONG).show();
 
-                    // Navigate to Success / Notify Fragment
-                    // Re-using DonateNotifyFragment logic but adapting args?
-                    // Or just clear stack and go Home?
-                    // Use DonateNotifyFragment as requested in Plan.
-                    // It needs: title, pickupTime[], category(int), weight, location, donator,
-                    // imageUri
-
                     String[] timeArr = new String[] { etTimeFrom.getText().toString(), etTimeTo.getText().toString() };
-                    int catId = (category.equals("GROCERIES")) ? R.id.radioGroceries : R.id.radioMeals; // mapping back
-                                                                                                        // for display
+                    int catId = (category.equals("GROCERIES")) ? R.id.radioGroceries : R.id.radioMeals;
 
                     FragmentManager fragmentManager = getParentFragmentManager();
                     fragmentManager.beginTransaction()
                             .replace(R.id.DonateFragmentContainer,
                                     new DonateNotifyFragment(title, timeArr, catId, weight, location, donator,
-                                            imageUrl))
+                                            base64Image))
                             .addToBackStack("DonateSuccess")
                             .commit();
                 })

@@ -95,8 +95,18 @@ public class ItemDetailsFragment extends Fragment {
             }
         }
 
-        if (foodItem.getImageUri() != null) {
-            ivProductImage.setImageURI(Uri.parse(foodItem.getImageUri()));
+        if (foodItem.getImageUri() != null && !foodItem.getImageUri().isEmpty()) {
+            String imageStr = foodItem.getImageUri();
+            if (imageStr.startsWith("http")) {
+                com.bumptech.glide.Glide.with(this).load(imageStr).into(ivProductImage);
+            } else {
+                try {
+                    byte[] imageBytes = com.example.foodaid_mad_project.Utils.ImageUtil.base64ToBytes(imageStr);
+                    com.bumptech.glide.Glide.with(this).load(imageBytes).into(ivProductImage);
+                } catch (Exception e) {
+                    ivProductImage.setImageResource(R.drawable.ic_launcher_background);
+                }
+            }
         }
 
         TextView toolBarTitle = view.findViewById(R.id.toolbarTitle);
