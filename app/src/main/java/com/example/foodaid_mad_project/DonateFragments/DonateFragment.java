@@ -32,12 +32,14 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.example.foodaid_mad_project.R;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import androidx.appcompat.content.res.AppCompatResources;
+import org.osmdroid.config.Configuration;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
+import org.osmdroid.api.IMapController;
+import org.osmdroid.events.MapEventsReceiver;
+import org.osmdroid.views.overlay.MapEventsOverlay;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -58,10 +60,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.example.foodaid_mad_project.Model.FoodItem;
 
 // Implement OnMapReadyCallback
-public class DonateFragment extends Fragment
-// Vibe Coded map location search using Google Map
-// implements OnMapReadyCallback
-{
+public class DonateFragment extends Fragment {
 
     private String title;
     private long startTime;
@@ -81,8 +80,9 @@ public class DonateFragment extends Fragment
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
 
     // Map Variables
-    private GoogleMap mMap;
-    private LatLng selectedLatLng; // Stores the selected coordinates
+    private MapView mapView;
+    private GeoPoint selectedGeoPoint; // Stores the selected coordinates
+    private Marker selectedMarker;
     private EditText etLocationSearch;
     private EditText etTimeFrom, etTimeTo;
     private Calendar calendar;
@@ -144,27 +144,37 @@ public class DonateFragment extends Fragment
         ivSelectedPhoto = view.findViewById(R.id.ivSelectedPhoto);
         tvUploadPlaceholder = view.findViewById(R.id.tvUploadPlaceholder);
 
-        // Vibe Coded map location search using Google Map
         // --- Map Initialization ---
-        // Get the map fragment from the container
-        // Fragment mapFragment =
-        // getChildFragmentManager().findFragmentById(R.id.mapFragmentContainer);
-        // if (mapFragment == null) {
-        // mapFragment = SupportMapFragment.newInstance();
-        // getChildFragmentManager().beginTransaction()
-        // .add(R.id.mapFragmentContainer, mapFragment)
-        // .commit();
-        // }
-        // // Load the map asynchronously
-        // if (mapFragment instanceof SupportMapFragment) {
-        // ((SupportMapFragment) mapFragment).getMapAsync(this);
-        // }
+        Configuration.getInstance().setUserAgentValue(requireContext().getPackageName());
+        mapView = view.findViewById(R.id.mapView);
+        mapView.setMultiTouchControls(true);
+
+        IMapController controller = mapView.getController();
+        controller.setZoom(15.0);
+        GeoPoint startPoint = new GeoPoint(3.1390, 101.6869); // Default KL
+        controller.setCenter(startPoint);
+
+        // Map Click Listener
+        MapEventsReceiver mapEventsReceiver = new MapEventsReceiver() {
+            @Override
+            public boolean singleTapConfirmedHelper(GeoPoint p) {
+                handleMapClick(p);
+                return true;
+            }
+
+            @Override
+            public boolean longPressHelper(GeoPoint p) {
+                return false;
+            }
+        };
+        MapEventsOverlay mapEventsOverlay = new MapEventsOverlay(mapEventsReceiver);
+        mapView.getOverlays().add(0, mapEventsOverlay);
 
         // --- Search Button Logic ---
         btnSearchLocation.setOnClickListener(v -> {
             String searchString = etLocationSearch.getText().toString();
             if (!searchString.isEmpty()) {
-                // searchLocation(searchString);
+                searchLocation(searchString);
             } else {
                 Toast.makeText(getContext(), "Please enter a location to search", Toast.LENGTH_SHORT).show();
             }
@@ -286,6 +296,80 @@ public class DonateFragment extends Fragment
         }
     }
 
+    private void handleMapClick(GeoPoint point) {
+        selectedGeoPoint = point;
+
+        // Remove old marker
+        if (selectedMarker != null) {
+            mapView.getOverlays().remove(selectedMarker);
+        }
+
+        selectedMarker = new Marker(mapView);
+        selectedMarker.setPosition(point);
+        selectedMarker.setTitle("Selected Location");
+        selectedMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        selectedMarker.setIcon(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_custom_pin));
+        mapView.getOverlays().add(selectedMarker);
+        mapView.invalidate();
+
+        getAddressFromGeoPoint(point);
+    }
+
+    private void searchLocation(String locationName) {
+        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+        try {
+            List<Address> addressList = geocoder.getFromLocationName(locationName, 1);
+            if (addressList != null && !addressList.isEmpty()) {
+                Address address = addressList.get(0);
+                GeoPoint point = new GeoPoint(address.getLatitude(), address.getLongitude());
+
+                IMapController controller = mapView.getController();
+                controller.setCenter(point);
+                controller.setZoom(18.0);
+
+                handleMapClick(point);
+                location = address.getAddressLine(0);
+                etLocationSearch.setText(location);
+            } else {
+                Toast.makeText(getContext(), "Location not found", Toast.LENGTH_SHORT).show();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Error searching location", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void getAddressFromGeoPoint(GeoPoint point) {
+        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(point.getLatitude(), point.getLongitude(), 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                location = addresses.get(0).getAddressLine(0);
+                etLocationSearch.setText(location);
+            } else {
+                location = "Lat: " + point.getLatitude() + ", Lng: " + point.getLongitude();
+                etLocationSearch.setText(location);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            location = "Unknown Location";
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mapView != null)
+            mapView.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mapView != null)
+            mapView.onPause();
+    }
+
     private void showTimePickerDialog(EditText editText, boolean isStart) {
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute = calendar.get(Calendar.MINUTE);
@@ -353,8 +437,8 @@ public class DonateFragment extends Fragment
         donation.put("donatorId", donatorId);
         donation.put("donatorName", donator);
         donation.put("locationName", location != null ? location : "Unknown Location");
-        donation.put("latitude", selectedLatLng != null ? selectedLatLng.latitude : 0.0);
-        donation.put("longitude", selectedLatLng != null ? selectedLatLng.longitude : 0.0);
+        donation.put("latitude", selectedGeoPoint != null ? selectedGeoPoint.getLatitude() : 0.0);
+        donation.put("longitude", selectedGeoPoint != null ? selectedGeoPoint.getLongitude() : 0.0);
         donation.put("startTime", startTime);
         donation.put("endTime", endTime);
         donation.put("status", "AVAILABLE");

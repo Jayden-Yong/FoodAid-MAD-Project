@@ -261,8 +261,8 @@
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp">
 
-                <FrameLayout
-                    android:id="@+id/mapFragmentContainer"
+                <org.osmdroid.views.MapView
+                    android:id="@+id/mapView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
 
