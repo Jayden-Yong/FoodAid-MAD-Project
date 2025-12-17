@@ -137,6 +137,168 @@ public class ProfileFragment extends Fragment {
         // Edit Profile (Placeholder or simple toast for now)
         Button btnEditProfile = view.findViewById(R.id.btnEditProfile);
         btnEditProfile.setOnClickListener(v -> showEditProfileDialog());
+
+        // --- New Features ---
+        View btnChangePassword = view.findViewById(R.id.btnChangePassword);
+        View btnPrivacySettings = view.findViewById(R.id.btnPrivacySettings);
+        android.widget.Switch switchPush = view.findViewById(R.id.switchPush);
+        android.widget.Switch switchEmail = view.findViewById(R.id.switchEmail);
+        View btnHelpFaq = view.findViewById(R.id.btnHelpFaq);
+        View btnContactReport = view.findViewById(R.id.btnContactReport);
+
+        btnChangePassword.setOnClickListener(v -> showChangePasswordDialog());
+        btnPrivacySettings.setOnClickListener(v -> showPrivacySettingsDialog());
+        btnHelpFaq.setOnClickListener(v -> showHelpFaqDialog());
+        btnContactReport.setOnClickListener(v -> showContactReportDialog());
+
+        // Load Toggle States
+        loadNotificationSettings(switchPush, switchEmail);
+
+        // Toggle Listeners
+        switchPush.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> updateNotificationSetting("pushNotificationEnabled", isChecked));
+        switchEmail.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> updateNotificationSetting("emailNotificationEnabled", isChecked));
+    }
+
+    private void showChangePasswordDialog() {
+        if (auth.getCurrentUser() == null || auth.getCurrentUser().getEmail() == null)
+            return;
+
+        new android.app.AlertDialog.Builder(getContext())
+                .setTitle("Change Password")
+                .setMessage("We will send a password reset link to your email: " + auth.getCurrentUser().getEmail()
+                        + ". Continue?")
+                .setPositiveButton("Send Email", (dialog, which) -> {
+                    auth.sendPasswordResetEmail(auth.getCurrentUser().getEmail())
+                            .addOnSuccessListener(aVoid -> Toast
+                                    .makeText(getContext(), "Reset email sent!", Toast.LENGTH_SHORT).show())
+                            .addOnFailureListener(e -> Toast
+                                    .makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showPrivacySettingsDialog() {
+        // Toggle Private Profile
+        if (auth.getCurrentUser() == null)
+            return;
+
+        // Fetch current state first
+        db.collection("users").document(auth.getCurrentUser().getUid()).get()
+                .addOnSuccessListener(snapshot -> {
+                    boolean isPrivate = snapshot.contains("isPrivate")
+                            && Boolean.TRUE.equals(snapshot.getBoolean("isPrivate"));
+
+                    String[] options = { "Private Profile" };
+                    boolean[] checkedItems = { isPrivate };
+
+                    new android.app.AlertDialog.Builder(getContext())
+                            .setTitle("Privacy Settings")
+                            .setMultiChoiceItems(options, checkedItems, (dialog, which, isChecked) -> {
+                                // Update Firestore immediately
+                                db.collection("users").document(auth.getCurrentUser().getUid())
+                                        .update("isPrivate", isChecked)
+                                        .addOnSuccessListener(aVoid -> Toast
+                                                .makeText(getContext(), "Privacy setting updated", Toast.LENGTH_SHORT)
+                                                .show());
+                            })
+                            .setPositiveButton("Done", null)
+                            .show();
+                });
+    }
+
+    private void showHelpFaqDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
+        builder.setTitle("Help & FAQ");
+
+        android.widget.ScrollView scrollView = new android.widget.ScrollView(getContext());
+        TextView tvContent = new TextView(getContext());
+        tvContent.setPadding(40, 40, 40, 40); // px
+        tvContent.setTextSize(14f);
+        tvContent.setText(
+                "Q: How do I donate food?\n" +
+                        "A: Go to the 'Donate' tab, fill in the details, upload a photo, and submit.\n\n" +
+                        "Q: How do I claim food?\n" +
+                        "A: Browse the map or list, select an item, and click 'Claim'.\n\n" +
+                        "Q: What is a Foodbank?\n" +
+                        "A: Verified organizations that distribute food to those in need.\n\n" +
+                        "Q: Is my data safe?\n" +
+                        "A: Yes, we value your privacy. Check Privacy Settings to manage visibility.\n\n" +
+                        "Q: How do I contact support?\n" +
+                        "A: Use the 'Contact & Report Issue' button in settings.");
+        scrollView.addView(tvContent);
+        builder.setView(scrollView);
+        builder.setPositiveButton("Close", null);
+        builder.show();
+    }
+
+    private void showContactReportDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
+        builder.setTitle("Contact & Report");
+
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(getContext());
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.setPadding(50, 20, 50, 20);
+
+        final android.widget.EditText etSubject = new android.widget.EditText(getContext());
+        etSubject.setHint("Subject");
+        layout.addView(etSubject);
+
+        final android.widget.EditText etMessage = new android.widget.EditText(getContext());
+        etMessage.setHint("Describe your issue or feedback...");
+        etMessage.setMinLines(3);
+        layout.addView(etMessage);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Submit", (dialog, which) -> {
+            String subject = etSubject.getText().toString().trim();
+            String message = etMessage.getText().toString().trim();
+
+            if (!subject.isEmpty() && !message.isEmpty() && auth.getCurrentUser() != null) {
+                java.util.Map<String, Object> report = new java.util.HashMap<>();
+                report.put("userId", auth.getCurrentUser().getUid());
+                report.put("userEmail", auth.getCurrentUser().getEmail());
+                report.put("subject", subject);
+                report.put("message", message);
+                report.put("timestamp", System.currentTimeMillis());
+
+                db.collection("reports").add(report)
+                        .addOnSuccessListener(
+                                ref -> Toast.makeText(getContext(), "Report submitted!", Toast.LENGTH_SHORT).show())
+                        .addOnFailureListener(
+                                e -> Toast.makeText(getContext(), "Failed to submit", Toast.LENGTH_SHORT).show());
+            } else {
+                Toast.makeText(getContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+
+    private void loadNotificationSettings(android.widget.Switch sPush, android.widget.Switch sEmail) {
+        if (auth.getCurrentUser() == null)
+            return;
+        db.collection("users").document(auth.getCurrentUser().getUid()).get().addOnSuccessListener(snapshot -> {
+            if (snapshot.exists()) {
+                if (snapshot.contains("pushNotificationEnabled")) {
+                    sPush.setChecked(Boolean.TRUE.equals(snapshot.getBoolean("pushNotificationEnabled")));
+                }
+                if (snapshot.contains("emailNotificationEnabled")) {
+                    sEmail.setChecked(Boolean.TRUE.equals(snapshot.getBoolean("emailNotificationEnabled")));
+                }
+            }
+        });
+    }
+
+    private void updateNotificationSetting(String field, boolean isEnabled) {
+        if (auth.getCurrentUser() == null)
+            return;
+        db.collection("users").document(auth.getCurrentUser().getUid())
+                .update(field, isEnabled)
+                .addOnFailureListener(e -> Log.e("Profile", "Failed to update setting: " + field));
     }
 
     private void showEditProfileDialog() {
