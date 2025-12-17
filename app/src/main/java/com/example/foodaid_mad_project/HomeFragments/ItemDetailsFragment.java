@@ -289,10 +289,9 @@ public class ItemDetailsFragment extends Fragment {
 
                 // Redundant data for Impact Page efficiency
                 claimData.put("foodTitle", foodItem.getTitle());
-                // Only save image URI if it is a remote URL (http/https).
-                // Creating a claim document with a massive Base64 string can exceed Firestore
-                // limits (1MB) or cause crashes.
-                if (foodItem.getImageUri() != null && foodItem.getImageUri().startsWith("http")) {
+                // Only save image URI if it is a remote URL (http/https) OR Base64 (which is
+                // reasonable size now 400x400)
+                if (foodItem.getImageUri() != null) {
                     claimData.put("foodImage", foodItem.getImageUri());
                 }
                 claimData.put("location", foodItem.getLocationName());

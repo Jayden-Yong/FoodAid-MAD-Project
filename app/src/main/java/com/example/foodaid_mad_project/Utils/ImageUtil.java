@@ -14,8 +14,8 @@ import java.io.IOException;
 
 public class ImageUtil {
 
-    private static final int MAX_DIMENSION = 300; // Reduced from 500 to save memory/bandwidth
-    private static final int COMPRESSION_QUALITY = 40; // Reduced from 50
+    private static final int MAX_DIMENSION = 400; // Updated to 400x400 as per request
+    private static final int COMPRESSION_QUALITY = 60; // Balanced quality
 
     /**
      * Converts a Uri to a compressed Base64 String.

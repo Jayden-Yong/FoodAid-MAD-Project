@@ -59,7 +59,7 @@ public class MapFragment extends Fragment {
 
         // Initial map view
         IMapController controller = mapView.getController();
-        controller.setZoom(14.5); // Slightly zoomed out to see area
+        controller.setZoom(16.0); // User requested bigger size (closer)
         controller.setCenter(DEFAULT_LOCATION);
 
         // Cache UM Area
@@ -104,7 +104,7 @@ public class MapFragment extends Fragment {
             GeoPoint userPoint = locationOverlay.getMyLocation();
 
             IMapController controller = mapView.getController();
-            controller.setZoom(20.0);
+            controller.setZoom(16.5); // User requested not too zoomed in (was 20.0)
 
             if (userPoint != null) {
                 controller.setCenter(userPoint);

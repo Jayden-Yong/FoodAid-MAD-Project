@@ -32,6 +32,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.example.foodaid_mad_project.R;
+import com.example.foodaid_mad_project.Utils.ImageUtil;
+
 import androidx.appcompat.content.res.AppCompatResources;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.util.GeoPoint;
@@ -42,6 +44,7 @@ import org.osmdroid.events.MapEventsReceiver;
 import org.osmdroid.views.overlay.MapEventsOverlay;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.android.gms.location.Priority;
 
 import java.io.IOException;
 import java.util.List;
@@ -54,8 +57,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import android.app.TimePickerDialog;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
+// Storage Removed
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.example.foodaid_mad_project.Model.FoodItem;
 
@@ -72,7 +74,7 @@ public class DonateFragment extends Fragment {
     private String donatorId;
 
     private FirebaseFirestore db;
-    private StorageReference storageReference;
+    // StorageReference removed
 
     private ImageView ivSelectedPhoto;
     private TextView tvUploadPlaceholder;
@@ -91,7 +93,7 @@ public class DonateFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         db = FirebaseFirestore.getInstance();
-        storageReference = FirebaseStorage.getInstance().getReference();
+        // Storage removed
         calendar = Calendar.getInstance();
 
         pickMedia = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
@@ -116,14 +118,6 @@ public class DonateFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // --- Initialize Views ---
-        // Wait, setupMap() is not a standard method I see in the previous file content,
-        // I will inline the map setup here to be safe, or call setupMap if I define it.
-        // Looking at previous file (Step 861), checking if setupMap() exists.. NOT in
-        // the visible lines.
-        // It was called in the duplicate block (Line 246).
-        // I will Inline the logic to be safe.
 
         // Global Variables
         etLocationSearch = view.findViewById(R.id.etLocationSearch);
@@ -156,7 +150,7 @@ public class DonateFragment extends Fragment {
         if (mapView != null) {
             mapView.setMultiTouchControls(true);
             IMapController controller = mapView.getController();
-            controller.setZoom(15.0);
+            controller.setZoom(16.0); // Initial Zoom (User requested bigger)
             GeoPoint startPoint = new GeoPoint(3.1390, 101.6869); // Default KL
             controller.setCenter(startPoint);
 
@@ -216,36 +210,48 @@ public class DonateFragment extends Fragment {
         // Auto-fetch location
         if (androidx.core.content.ContextCompat.checkSelfPermission(requireContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            fusedLocationClient.getLastLocation().addOnSuccessListener(locationObj -> {
-                if (locationObj != null && mapView != null) {
-                    GeoPoint point = new GeoPoint(locationObj.getLatitude(), locationObj.getLongitude());
-                    mapView.getController().setCenter(point);
-                    mapView.getController().setZoom(18.0);
-                    addMarker(point);
-                    selectedGeoPoint = point;
-                    getAddressFromGeoPoint(point);
-                }
-            });
+
+            // Use getCurrentLocation for freshness
+            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                    .addOnSuccessListener(locationObj -> {
+                        if (locationObj != null && mapView != null) {
+                            GeoPoint point = new GeoPoint(locationObj.getLatitude(), locationObj.getLongitude());
+                            mapView.getController().setCenter(point);
+                            mapView.getController().setZoom(16.5);
+                            addMarker(point);
+                            selectedGeoPoint = point;
+                            getAddressFromGeoPoint(point);
+                        }
+                    });
         }
 
         if (btnMyLocation != null) {
             btnMyLocation.setOnClickListener(v -> {
                 if (androidx.core.content.ContextCompat.checkSelfPermission(requireContext(),
                         android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                    fusedLocationClient.getLastLocation().addOnSuccessListener(locationObj -> {
-                        if (locationObj != null && mapView != null) {
-                            GeoPoint point = new GeoPoint(locationObj.getLatitude(), locationObj.getLongitude());
-                            mapView.getController().animateTo(point);
-                            mapView.getController().setZoom(18.0);
-                            addMarker(point); // Defined below
-                            selectedGeoPoint = point;
-                            getAddressFromGeoPoint(point); // Defined below
-                        } else {
-                            Toast.makeText(getContext(), "Location not found", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+
+                    // High Accuracy Request
+                    Toast.makeText(getContext(), "Getting location...", Toast.LENGTH_SHORT).show();
+                    fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                            .addOnSuccessListener(locationObj -> {
+                                if (locationObj != null && mapView != null) {
+                                    GeoPoint point = new GeoPoint(locationObj.getLatitude(),
+                                            locationObj.getLongitude());
+                                    mapView.getController().animateTo(point);
+                                    mapView.getController().setZoom(16.5);
+                                    addMarker(point);
+                                    selectedGeoPoint = point;
+                                    getAddressFromGeoPoint(point);
+                                } else {
+                                    Toast.makeText(getContext(), "Location not found, try outside.", Toast.LENGTH_LONG)
+                                            .show();
+                                }
+                            })
+                            .addOnFailureListener(e -> Toast
+                                    .makeText(getContext(), "Loc Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                 } else {
-                    Toast.makeText(getContext(), "Permission required", Toast.LENGTH_SHORT).show();
+                    // Request Permission
+                    requestPermissions(new String[] { android.Manifest.permission.ACCESS_FINE_LOCATION }, 100);
                 }
             });
         }
@@ -474,16 +480,12 @@ public class DonateFragment extends Fragment {
             selectedCal.set(Calendar.MILLISECOND, 0);
 
             if (isStart) {
-                // LOGIC: If Start Time < Now, assume user means "Tomorrow" (since we can't book
-                // in past)
                 if (selectedCal.getTimeInMillis() < System.currentTimeMillis()) {
                     selectedCal.add(Calendar.DAY_OF_YEAR, 1);
                 }
                 startTime = selectedCal.getTimeInMillis();
             } else {
-                // LOGIC: End Time Handling
                 if (startTime != 0) {
-                    // If Start Time is set, Base the End Time date on the Start Time date
                     Calendar startCal = Calendar.getInstance();
                     startCal.setTimeInMillis(startTime);
 
@@ -491,13 +493,10 @@ public class DonateFragment extends Fragment {
                     selectedCal.set(Calendar.YEAR, startCal.get(Calendar.YEAR));
                     selectedCal.set(Calendar.DAY_OF_YEAR, startCal.get(Calendar.DAY_OF_YEAR));
 
-                    // Now check if calculated End Time is BEFORE Start Time
-                    // (e.g. Start 10PM, End 2AM -> 2AM is earlier on same day)
                     if (selectedCal.getTimeInMillis() <= startTime) {
                         selectedCal.add(Calendar.DAY_OF_YEAR, 1); // Move to next day
                     }
                 } else {
-                    // Fallback if Start Not Set: Same as Start Logic (Tomorrow if passed)
                     if (selectedCal.getTimeInMillis() < System.currentTimeMillis()) {
                         selectedCal.add(Calendar.DAY_OF_YEAR, 1);
                     }
@@ -515,33 +514,27 @@ public class DonateFragment extends Fragment {
     private void processImageAndSave(Uri imageUri, String title, double weight, int quantity, String description,
             String category,
             String pickupMethod) {
-        Toast.makeText(getContext(), "Uploading image...", Toast.LENGTH_SHORT).show();
-        uploadImageToStorage(imageUri, title, weight, quantity, description, category, pickupMethod);
-    }
 
-    private void uploadImageToStorage(Uri imageUri, String title, double weight, int quantity, String description,
-            String category, String pickupMethod) {
-        if (imageUri == null) {
-            // Should not happen as we check before calling, but handle gracefully
-            saveDonationToFirestore(null, title, weight, quantity, description, category, pickupMethod);
-            return;
+        Toast.makeText(getContext(), "Processing image...", Toast.LENGTH_SHORT).show();
+
+        try {
+            // Compress and convert to Base64
+            String base64Image = ImageUtil.uriToBase64(requireContext(), imageUri);
+            if (base64Image == null) {
+                Toast.makeText(getContext(), "Failed to process image", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // Save to Firestore directly
+            saveDonationToFirestore(base64Image, title, weight, quantity, description, category, pickupMethod);
+
+        } catch (Exception e) {
+            Log.e("Donate", "Image Error", e);
+            Toast.makeText(getContext(), "Image Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-
-        String fileName = "donations/" + UUID.randomUUID().toString() + ".jpg";
-        StorageReference ref = storageReference.child(fileName);
-
-        ref.putFile(imageUri)
-                .addOnSuccessListener(taskSnapshot -> ref.getDownloadUrl().addOnSuccessListener(uri -> {
-                    String downloadUrl = uri.toString();
-                    saveDonationToFirestore(downloadUrl, title, weight, quantity, description, category, pickupMethod);
-                }))
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Image upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    // Optional: Try saving without image or stop? For now we stop.
-                });
     }
 
-    private void saveDonationToFirestore(String imageUrl, String title, double weight, int quantity,
+    // UPDATED: Now accepts base64Image string instead of URL
+    private void saveDonationToFirestore(String base64Image, String title, double weight, int quantity,
             String description,
             String category, String pickupMethod) {
 
@@ -562,12 +555,26 @@ public class DonateFragment extends Fragment {
         donation.put("category", category);
         donation.put("pickupMethod", pickupMethod);
         donation.put("timestamp", System.currentTimeMillis());
-        // Store Storage URL instead of Base64
-        donation.put("imageUri", imageUrl);
+        // Save Base64 String
+        donation.put("imageUri", base64Image);
 
         db.collection("donations").add(donation)
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(getContext(), "Donation posted successfully!", Toast.LENGTH_LONG).show();
+
+                    // --- Create Notification ---
+                    Map<String, Object> notification = new HashMap<>();
+                    notification.put("title", "Donation Successful");
+                    notification.put("message",
+                            "Thank you for donating " + title + "! Your contribution helps the community.");
+                    notification.put("timestamp", System.currentTimeMillis());
+                    notification.put("isRead", false);
+                    notification.put("type", "Donation");
+                    notification.put("userId", donatorId); // Notification for the donator
+
+                    db.collection("notifications").add(notification)
+                            .addOnFailureListener(e -> Log.e("Donate", "Failed to create notification", e));
+                    // ---------------------------
 
                     String[] timeArr = new String[] { etTimeFrom.getText().toString(), etTimeTo.getText().toString() };
                     int catId = (category.equals("GROCERIES")) ? R.id.radioGroceries : R.id.radioMeals;
@@ -576,7 +583,7 @@ public class DonateFragment extends Fragment {
                     fragmentManager.beginTransaction()
                             .replace(R.id.coveringFragment,
                                     new DonateNotifyFragment(title, timeArr, catId, weight, location, donator,
-                                            imageUrl, description))
+                                            base64Image, description)) // Pass base64
                             .addToBackStack("DonateSuccess")
                             .commit();
                 })

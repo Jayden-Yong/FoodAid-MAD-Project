@@ -221,8 +221,15 @@ public class HomeFragment extends Fragment
         }
 
         FoodItem foundItem = null;
+        String lowerQuery = query.toLowerCase().trim();
         for (FoodItem item : items) {
-            if (item.getLocationName() != null && item.getLocationName().equalsIgnoreCase(query)) {
+            // Check Location Name
+            if (item.getLocationName() != null && item.getLocationName().toLowerCase().contains(lowerQuery)) {
+                foundItem = item;
+                break;
+            }
+            // Check Title
+            if (item.getTitle() != null && item.getTitle().toLowerCase().contains(lowerQuery)) {
                 foundItem = item;
                 break;
             }
