@@ -1,48 +1,90 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    tools:context=".HomeFragments.NotificationFragment">
+    android:layout_marginTop="50dp"
+    android:clickable="true"
+    android:focusable="true">
 
-    <!-- Header -->
-    <LinearLayout
-        android:id="@+id/headerContainer"
+    <include
+        android:id="@+id/Toolbar"
+        layout="@layout/fragment_top_bar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <HorizontalScrollView
+        android:id="@+id/hsv_filters"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="20dp"
-        android:gravity="center_vertical"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_marginTop="24dp"
+        android:paddingHorizontal="24dp"
+        android:scrollbars="none"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/Toolbar">
 
-        <ImageButton
-            android:id="@+id/btnBack"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_arrow_back"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Back" />
-
-        <TextView
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_filters"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Notifications"
-            android:textSize="20sp"
-            android:fontFamily="@font/poppins_bold"
-            android:textColor="#000000"
-            android:layout_marginStart="16dp" />
-    </LinearLayout>
+            app:checkedChip="@+id/chip_all"
+            app:singleSelection="true"
+            app:selectionRequired="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_all"
+                style="@style/FoodAidChipStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/Notify_All"/>
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_request"
+                style="@style/FoodAidChipStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/Notify_Request" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_donation"
+                style="@style/FoodAidChipStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/Notify_Donation" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_community"
+                style="@style/FoodAidChipStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/Notify_Community" />
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvNotifications"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:clipToPadding="false"
-        android:paddingTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/headerContainer"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/hsv_filters"
+        app:layout_constraintBottom_toTopOf="@id/tv_view_history"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/tv_view_history"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/View_History"
+        android:textColor="@color/primary_color"
+        android:textSize="14sp"
+        android:textAlignment="center"
+        android:paddingTop="16dp"
+        android:paddingBottom="32dp"
+        android:background="@color/white"
+        android:elevation="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
 
     <TextView
         android:id="@+id/tvEmptyState"

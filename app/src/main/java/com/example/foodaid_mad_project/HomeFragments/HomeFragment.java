@@ -1,5 +1,6 @@
 package com.example.foodaid_mad_project.HomeFragments;
 
+import android.media.Image;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,7 +46,6 @@ public class HomeFragment extends Fragment
     // private GoogleMap mMap;
     // private FirebaseFirestore db; // Commented out for now
     // private FragmentContainerView mapPinContainer;
-    private ImageButton btnToQR;
 
     // List to hold Mock Data
     private List<FoodItem> mockFoodItems;
@@ -146,14 +146,25 @@ public class HomeFragment extends Fragment
         // ((SupportMapFragment) mapFragment).getMapAsync(this);
         // }
 
+        // To QR Page
+        ImageButton btnToQR = view.findViewById(R.id.btnToQR);
+        btnToQR.setOnClickListener(v -> {
+            // Use requireActivity().getSupportFragmentManager() because coveringFragment
+            // belongs to MainActivity, not the NavHostFragment.
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.coveringFragment, new QRFragment())
+                    .addToBackStack("QRFragment")
+                    .commit();
+        });
+
         // Initialize Notification Button
         ImageButton btnToNotification = view.findViewById(R.id.btnToNotification);
         View notificationBadge = view.findViewById(R.id.notificationBadge);
 
         btnToNotification.setOnClickListener(v -> {
-            getParentFragmentManager().beginTransaction()
+            requireActivity().getSupportFragmentManager().beginTransaction()
                     .replace(R.id.coveringFragment, new NotificationFragment())
-                    .addToBackStack("Notification")
+                    .addToBackStack("NotificationFragment")
                     .commit();
         });
 

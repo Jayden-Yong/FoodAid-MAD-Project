@@ -248,26 +248,21 @@
 
     <!-- Notification -->
     <string name="Activity_Feed">Activity Feed</string>
-    <string-array name="Activity_Type_Filter">
-        <item>All</item>
-        <item>Request</item>
-        <item>Donation</item>
-        <item>Community</item>
-    </string-array>
+    <string name="Notify_All">All</string>
+    <string name="Notify_Request">Request</string>
+    <string name="Notify_Donation">Donation</string>
+    <string name="Notify_Community">Community</string>
     <string-array name="Activity_Time">
         <item>Today</item>
         <item>Yesterday</item>
         <item>This week</item>
     </string-array>
     <string name="View_History"><u>View History</u></string>
-
-    <string-array name="Request_Donation">
-        <item>%1$s</item><!-- Activity Type -->
-        <item>Your %1$s %2$s was %3$s.</item><!-- Activity, FoodAid Code/Donation Name, Approve/Declined -->
-        <item>%1$s %2$s</item><!-- Time(#:##), AM/PM -->
-        <item>%1$s</item><!-- Day -->
-        <item>%1$s</item><!-- Date -->
-    </string-array>
+    <string name="Notify_Activity_Type">%1$s</string><!-- Activity Type: Request, Donation -->
+    <string name="Notify_Activity_Title">Your %1$s %2$s was %3$s.</string><!-- Activity, FoodAid Code/Donation Name, Approve/Declined -->
+    <string name="Notify_Time">%1$s %2$s</string><!-- Time(#:##), AM/PM -->
+    <string name="Notify_Day">%1$s</string><!-- Day -->
+    <string name="Notify_Date">%1$s</string><!-- Date -->
     <string-array name="Activity_Type">
         <item>Request Approved</item>
         <item>Request Declined</item>
