@@ -121,6 +121,16 @@ public class ProfileFragment extends Fragment {
             startActivity(intent);
         });
 
+        // View All Badges (Claims)
+        TextView tvViewAllBadges = view.findViewById(R.id.tvViewAllBadges);
+        tvViewAllBadges.setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.coveringFragment,
+                            new com.example.foodaid_mad_project.ImpactFragments.ImpactFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
         // Edit Profile (Placeholder or simple toast for now)
         Button btnEditProfile = view.findViewById(R.id.btnEditProfile);
         btnEditProfile.setOnClickListener(v -> showEditProfileDialog());

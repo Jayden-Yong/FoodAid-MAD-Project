@@ -258,24 +258,19 @@ public class ItemDetailsFragment extends Fragment {
                 claimData.put("quantityClaimed", claimQty);
                 claimData.put("timestamp", currentTime);
 
-                transaction.set(newClaimRef, claimData);
-                // --------------------------
-
-                // --- NEW TRACKING LOGIC ---
-                // Add to sub-collection: donations/{id}/claims/{auto-id}
-                DocumentReference newClaimRef = docRef.collection("claims").document();
-                java.util.Map<String, Object> claimData = new java.util.HashMap<>();
-                claimData.put("claimerId", uid);
-                claimData.put("claimerName", finalUserName);
-                claimData.put("quantityClaimed", claimQty);
-                claimData.put("timestamp", currentTime);
-
                 // Redundant data for Impact Page efficiency
                 claimData.put("foodTitle", foodItem.getTitle());
-                claimData.put("foodImage", foodItem.getImageUrl()); // Assuming mix of URL/ResID handled by logic or
-                                                                    // field
+                claimData.put("foodImage", foodItem.getImageUri());
                 claimData.put("location", foodItem.getLocationName());
-                claimData.put("unit", foodItem.getQuantityUnit()); // Ensure this getter exists
+
+                // Calculate Weight (Best Effort)
+                double totalWeight = foodItem.getWeight();
+                int totalQty = foodItem.getQuantity();
+                double claimedWeight = 0.0;
+                if (totalQty > 0) {
+                    claimedWeight = (totalWeight / totalQty) * claimQty;
+                }
+                claimData.put("weight", claimedWeight);
 
                 transaction.set(newClaimRef, claimData);
                 // --------------------------

@@ -40,12 +40,21 @@ public class ClaimNotifyFragment extends Fragment {
         if (tvGuide != null)
             tvGuide.setText("Please collect your item within the time window. Check details in 'My Claims'.");
 
-        // "View Item" can be hidden or used for "My Claims" in future
+        // "View Item" used for "My Claims"
         if (btnViewItem != null) {
-            btnViewItem.setVisibility(View.GONE);
+            btnViewItem.setVisibility(View.VISIBLE);
+            btnViewItem.setText("My Claims");
+            btnViewItem.setOnClickListener(v -> {
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.coveringFragment,
+                                new com.example.foodaid_mad_project.ImpactFragments.ImpactFragment())
+                        .addToBackStack(null)
+                        .commit();
+            });
         }
 
         if (btnBackToHome != null) {
+            btnBackToHome.setText("Back to Home");
             btnBackToHome.setOnClickListener(v -> {
                 // Clear back stack to Home
                 getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);

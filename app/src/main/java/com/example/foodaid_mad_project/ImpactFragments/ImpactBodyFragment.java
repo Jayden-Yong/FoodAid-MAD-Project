@@ -124,33 +124,91 @@ public class ImpactBodyFragment extends Fragment {
             return;
         String uid = auth.getCurrentUser().getUid();
 
-        // 1. Fetch Claimed Items
-        db.collection("donations")
+        // 1. Fetch New Claims (Collection Group)
+        com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> taskClaims = db
+                .collectionGroup("claims")
+                .whereEqualTo("claimerId", uid)
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get();
+
+        // 2. Fetch Legacy Claims (Donations)
+        com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> taskLegacy = db
+                .collection("donations")
                 .whereEqualTo("claimedBy", uid)
                 .whereEqualTo("status", "CLAIMED")
-                .get()
-                .addOnSuccessListener(snapshots -> {
+                .get();
+
+        // 3. Fetch Donated Items
+        com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> taskMyDonations = db
+                .collection("donations")
+                .whereEqualTo("donatorId", uid)
+                .get();
+
+        com.google.android.gms.tasks.Tasks.whenAllSuccess(taskClaims, taskLegacy, taskMyDonations)
+                .addOnSuccessListener(results -> {
+                    // Process Results
+                    com.google.firebase.firestore.QuerySnapshot claimsSnap = (com.google.firebase.firestore.QuerySnapshot) results
+                            .get(0);
+                    com.google.firebase.firestore.QuerySnapshot legacySnap = (com.google.firebase.firestore.QuerySnapshot) results
+                            .get(1);
+                    com.google.firebase.firestore.QuerySnapshot myDonationsSnap = (com.google.firebase.firestore.QuerySnapshot) results
+                            .get(2);
+
                     claimedItems.clear();
-                    for (QueryDocumentSnapshot doc : snapshots) {
-                        claimedItems.add(doc.toObject(FoodItem.class));
+                    List<String> processedDonationIds = new ArrayList<>();
+
+                    // A. Process New Claims
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : claimsSnap) {
+                        FoodItem item = new FoodItem();
+                        // Map fields from claim sub-collection to FoodItem for display
+                        item.setTitle(doc.getString("foodTitle"));
+                        // Retrieve Image: could be URL or Resource ID.
+                        // Our model mostly uses String imageUri.
+                        Object img = doc.get("foodImage");
+                        if (img instanceof String)
+                            item.setImageUri((String) img);
+
+                        item.setLocationName(doc.getString("location"));
+
+                        Double w = doc.getDouble("weight");
+                        item.setWeight(w != null ? w : 0.0);
+
+                        Long ts = doc.getLong("timestamp");
+                        item.setTimestamp(ts != null ? ts : 0);
+
+                        // If title is null (legacy data in subcoll?), fallback
+                        if (item.getTitle() == null)
+                            item.setTitle("Claimed Item");
+
+                        claimedItems.add(item);
+
+                        // Track parent ID to avoid duplicates if also in legacy list
+                        if (doc.getReference().getParent().getParent() != null) {
+                            processedDonationIds.add(doc.getReference().getParent().getParent().getId());
+                        }
                     }
+
+                    // B. Process Legacy Claims (only if not covered by new claims)
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : legacySnap) {
+                        if (!processedDonationIds.contains(doc.getId())) {
+                            claimedItems.add(doc.toObject(FoodItem.class));
+                        }
+                    }
+
+                    // Sort Combined List
+                    java.util.Collections.sort(claimedItems,
+                            (o1, o2) -> Long.compare(o2.getTimestamp(), o1.getTimestamp()));
+
+                    // C. Process Donated Items
+                    donatedItems.clear();
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot doc : myDonationsSnap) {
+                        donatedItems.add(doc.toObject(FoodItem.class));
+                    }
+
                     checkBadges();
                     refreshStats();
                 })
-                .addOnFailureListener(e -> Log.e("Impact", "Error fetching processed items", e));
-
-        // 2. Fetch Donated Items
-        db.collection("donations")
-                .whereEqualTo("donatorId", uid)
-                .get()
-                .addOnSuccessListener(snapshots -> {
-                    donatedItems.clear();
-                    for (QueryDocumentSnapshot doc : snapshots) {
-                        donatedItems.add(doc.toObject(FoodItem.class));
-                    }
-                    refreshStats();
-                })
-                .addOnFailureListener(e -> Log.e("Impact", "Error fetching donated items", e));
+                .addOnFailureListener(e -> Log.e("Impact", "Error fetching data", e));
     }
 
     private void checkBadges() {
@@ -194,6 +252,9 @@ public class ImpactBodyFragment extends Fragment {
         ConstraintSet constraintSet = new ConstraintSet();
         constraintSet.clone(impactConstraint);
 
+        // Filter items for the list
+        List<FoodItem> filteredItems = new ArrayList<>();
+
         switch (currentMode) {
             case MODE_WEEK:
                 startCal.set(Calendar.DAY_OF_WEEK, startCal.getFirstDayOfWeek());
@@ -207,7 +268,6 @@ public class ImpactBodyFragment extends Fragment {
                 chartMonth.setVisibility(View.GONE);
                 chartYear.setVisibility(View.GONE);
                 setupBarChart();
-                rvContributions.setAdapter(new WeekAdapter(claimedItems)); // Showing claimed items for now
                 break;
 
             case MODE_MONTH:
@@ -223,7 +283,6 @@ public class ImpactBodyFragment extends Fragment {
                 chartMonth.setVisibility(View.VISIBLE);
                 chartYear.setVisibility(View.GONE);
                 setupLineChart();
-                rvContributions.setAdapter(new MonthAdapter(new ArrayList<>())); // Placeholder
                 break;
 
             case MODE_YEAR:
@@ -239,7 +298,6 @@ public class ImpactBodyFragment extends Fragment {
                 chartMonth.setVisibility(View.GONE);
                 chartYear.setVisibility(View.VISIBLE);
                 setupPieChart();
-                rvContributions.setAdapter(new YearAdapter(new ArrayList<>())); // Placeholder
                 break;
         }
 
@@ -257,6 +315,14 @@ public class ImpactBodyFragment extends Fragment {
 
         tvStatClaimedDesc.setText(getString(R.string.Items_Claimed, currentMode.toLowerCase()));
         tvStateDonatedDesc.setText(getString(R.string.Items_Donated, currentMode.toLowerCase()));
+
+        // Filter List for Adpater
+        for (FoodItem item : claimedItems) {
+            if (item.getTimestamp() >= startTime && item.getTimestamp() <= endTime) {
+                filteredItems.add(item);
+            }
+        }
+        rvContributions.setAdapter(new WeekAdapter(filteredItems)); // Reuse WeekAdapter (layout) for all
     }
 
     // --- Chart Setup (Visuals only for now, can perform further data binding if
