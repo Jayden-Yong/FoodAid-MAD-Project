@@ -98,7 +98,7 @@ public class QRFragment extends Fragment {
         tvUserId.setText(userId);
 
         // Generate "My QR" immediately
-        generateMyQRCode(user.getUid());
+        generateMyQRCode("Test");
         tvUserCode.setText(String.format("%s-AUTH-TOKEN", username));
 
         // Set Tab Listeners

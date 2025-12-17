@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="12dp"
+    android:paddingHorizontal="16dp"
+    android:background="@color/white">
+
+    <ImageView
+        android:id="@+id/iv_notify_icon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_impact_week_image_rounded_corner_8dp"
+        android:padding="10dp"
+        android:src="@drawable/ic_notification"
+        app:tint="@color/primary_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_notify_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/Notify_Activity_Title"
+        android:textStyle="bold"
+        android:textColor="@color/font_primary"
+        android:textSize="14sp"
+        app:layout_constraintStart_toEndOf="@id/iv_notify_icon"
+        app:layout_constraintTop_toTopOf="@id/iv_notify_icon"
+        app:layout_constraintEnd_toStartOf="@id/tv_notify_time"/>
+
+    <TextView
+        android:id="@+id/tv_notify_desc"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/String"
+        android:textColor="@color/font_hint"
+        android:textSize="12sp"
+        android:maxLines="2"
+        android:ellipsize="end"
+        app:layout_constraintStart_toStartOf="@id/tv_notify_title"
+        app:layout_constraintEnd_toEndOf="@id/tv_notify_title"
+        app:layout_constraintTop_toBottomOf="@id/tv_notify_title" />
+
+    <TextView
+        android:id="@+id/tv_notify_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/Notify_Time"
+        android:textSize="10sp"
+        android:textColor="@color/font_hint"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tv_notify_title" />
+
+    <View
+        android:id="@+id/view_unread_dot"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:background="@drawable/bg_donate_type_btn"
+        android:backgroundTint="@color/red"
+        android:visibility="gone"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_notify_time"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

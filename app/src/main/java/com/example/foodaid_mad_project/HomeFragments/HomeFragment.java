@@ -1,5 +1,6 @@
 package com.example.foodaid_mad_project.HomeFragments;
 
+import android.media.Image;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,7 +46,6 @@ public class HomeFragment extends Fragment
 //    private GoogleMap mMap;
     // private FirebaseFirestore db; // Commented out for now
 //    private FragmentContainerView mapPinContainer;
-    private ImageButton btnToQR;
 
     // List to hold Mock Data
     private List<FoodItem> mockFoodItems;
@@ -132,13 +132,21 @@ public class HomeFragment extends Fragment
 //        }
 
         // To QR Page
-        btnToQR = view.findViewById(R.id.btnToQR);
+        ImageButton btnToQR = view.findViewById(R.id.btnToQR);
         btnToQR.setOnClickListener(v -> {
             // Use requireActivity().getSupportFragmentManager() because coveringFragment
             // belongs to MainActivity, not the NavHostFragment.
             requireActivity().getSupportFragmentManager().beginTransaction()
                     .replace(R.id.coveringFragment, new QRFragment())
                     .addToBackStack("QRFragment")
+                    .commit();
+        });
+
+        ImageButton btnToNotification = view.findViewById(R.id.btnToNotification);
+        btnToNotification.setOnClickListener(v -> {
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.coveringFragment, new NotificationFragment()) // Uses the covering fragment container
+                    .addToBackStack("NotificationFragment")
                     .commit();
         });
     }
