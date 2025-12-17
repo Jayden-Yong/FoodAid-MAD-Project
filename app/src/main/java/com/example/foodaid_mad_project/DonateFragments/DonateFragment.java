@@ -446,27 +446,68 @@ public class DonateFragment extends Fragment {
     }
 
     private void showTimePickerDialog(EditText editText, boolean isStart) {
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        int minute = calendar.get(Calendar.MINUTE);
+        Calendar initCal = Calendar.getInstance();
+
+        // 1. Try to parse existing text to initialize picker
+        String currentText = editText.getText().toString();
+        if (!currentText.isEmpty()) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+                java.util.Date date = sdf.parse(currentText);
+                if (date != null) {
+                    initCal.setTime(date);
+                }
+            } catch (Exception e) {
+                // Parse error, keep default "now"
+            }
+        }
+
+        int hour = initCal.get(Calendar.HOUR_OF_DAY);
+        int minute = initCal.get(Calendar.MINUTE);
 
         TimePickerDialog timePickerDialog = new TimePickerDialog(getContext(), (view, hourOfDay, minuteOfHour) -> {
-            Calendar selectedTime = Calendar.getInstance();
-            selectedTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
-            selectedTime.set(Calendar.MINUTE, minuteOfHour);
+            Calendar selectedCal = Calendar.getInstance();
+            // Default to TODAY with selected time
+            selectedCal.set(Calendar.HOUR_OF_DAY, hourOfDay);
+            selectedCal.set(Calendar.MINUTE, minuteOfHour);
+            selectedCal.set(Calendar.SECOND, 0);
+            selectedCal.set(Calendar.MILLISECOND, 0);
 
-            // If time is in the past, assume it's for tomorrow
-            if (selectedTime.before(Calendar.getInstance())) {
-                selectedTime.add(Calendar.DAY_OF_YEAR, 1);
+            if (isStart) {
+                // LOGIC: If Start Time < Now, assume user means "Tomorrow" (since we can't book
+                // in past)
+                if (selectedCal.getTimeInMillis() < System.currentTimeMillis()) {
+                    selectedCal.add(Calendar.DAY_OF_YEAR, 1);
+                }
+                startTime = selectedCal.getTimeInMillis();
+            } else {
+                // LOGIC: End Time Handling
+                if (startTime != 0) {
+                    // If Start Time is set, Base the End Time date on the Start Time date
+                    Calendar startCal = Calendar.getInstance();
+                    startCal.setTimeInMillis(startTime);
+
+                    // Set Date to match Start Time's date
+                    selectedCal.set(Calendar.YEAR, startCal.get(Calendar.YEAR));
+                    selectedCal.set(Calendar.DAY_OF_YEAR, startCal.get(Calendar.DAY_OF_YEAR));
+
+                    // Now check if calculated End Time is BEFORE Start Time
+                    // (e.g. Start 10PM, End 2AM -> 2AM is earlier on same day)
+                    if (selectedCal.getTimeInMillis() <= startTime) {
+                        selectedCal.add(Calendar.DAY_OF_YEAR, 1); // Move to next day
+                    }
+                } else {
+                    // Fallback if Start Not Set: Same as Start Logic (Tomorrow if passed)
+                    if (selectedCal.getTimeInMillis() < System.currentTimeMillis()) {
+                        selectedCal.add(Calendar.DAY_OF_YEAR, 1);
+                    }
+                }
+                endTime = selectedCal.getTimeInMillis();
             }
 
             SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
-            editText.setText(sdf.format(selectedTime.getTime()));
+            editText.setText(sdf.format(selectedCal.getTime()));
 
-            if (isStart) {
-                startTime = selectedTime.getTimeInMillis();
-            } else {
-                endTime = selectedTime.getTimeInMillis();
-            }
         }, hour, minute, false);
         timePickerDialog.show();
     }

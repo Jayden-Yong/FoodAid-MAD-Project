@@ -146,16 +146,48 @@ public class HomeFragment extends Fragment
         // ((SupportMapFragment) mapFragment).getMapAsync(this);
         // }
 
-        // QR Page Access Removed
-        /*
-         * btnToQR = view.findViewById(R.id.btnToQR);
-         * btnToQR.setOnClickListener(v -> {
-         * requireActivity().getSupportFragmentManager().beginTransaction()
-         * .replace(R.id.coveringFragment, new QRFragment())
-         * .addToBackStack("QRFragment")
-         * .commit();
-         * });
-         */
+        // Initialize Notification Button
+        ImageButton btnToNotification = view.findViewById(R.id.btnToNotification);
+        View notificationBadge = view.findViewById(R.id.notificationBadge);
+
+        btnToNotification.setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.coveringFragment, new NotificationFragment())
+                    .addToBackStack("Notification")
+                    .commit();
+        });
+
+        // Listen for Unread Notifications
+        setupNotificationListener(notificationBadge);
+    }
+
+    private com.google.firebase.firestore.ListenerRegistration notificationListener;
+
+    private void setupNotificationListener(View badge) {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null)
+            return;
+
+        notificationListener = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("notifications")
+                .whereEqualTo("userId", FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .whereEqualTo("isRead", false)
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null)
+                        return;
+                    if (snapshots != null && !snapshots.isEmpty()) {
+                        badge.setVisibility(View.VISIBLE);
+                    } else {
+                        badge.setVisibility(View.GONE);
+                    }
+                });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (notificationListener != null) {
+            notificationListener.remove();
+        }
     }
 
     public void showMapPinDetails(FoodItem item) {
