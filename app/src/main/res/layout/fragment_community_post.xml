@@ -9,7 +9,7 @@
     app:cardCornerRadius="16dp"
     app:cardElevation="0dp">
 
-<androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp">
@@ -23,7 +23,9 @@
             app:cardBackgroundColor="@color/primary_color_opacity_28"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
+
             <ImageView
+                android:id="@+id/civUserAvatar"
                 android:layout_width="25dp"
                 android:layout_height="25dp"
                 android:src="@drawable/ic_user_male"
@@ -59,73 +61,22 @@
             android:id="@+id/tvPostContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/Community_Post_Description"
-            android:textSize="14sp"
             android:fontFamily="@font/poppins_medium"
             android:lineSpacingExtra="4dp"
             app:layout_constraintTop_toBottomOf="@+id/ivUserAvatar" />
 
-        <LinearLayout
-            android:id="@+id/llLikes"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:clickable="true"
-            android:focusable="true"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvPostContent">
+        <ImageView
+            android:id="@+id/ivPostContentImage"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="12dp"
+            android:scaleType="centerCrop"
+            android:background="@color/grey_bg"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/tvPostContent"
+            tools:visibility="visible"/>
 
-            <CheckBox
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:button="@drawable/btn_favourite"
-                android:background="@color/transparent"
-                app:buttonTint="@color/primary_color"
-                tools:ignore="ContentDescription" />
 
-            <TextView
-                android:id="@+id/tvLikeCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="@string/Post_Likes"
-                android:fontFamily="@font/poppins_light"
-                android:textSize="12sp"/>
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/tvCommentCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:focusable="true"
-            android:clickable="true"
-            android:text="@string/Post_Comments"
-            android:textSize="12sp"
-            android:fontFamily="@font/poppins_light"
-            android:drawablePadding="8dp"
-            app:drawableStartCompat="@drawable/ic_comment"
-            app:drawableTint="@color/primary_color"
-            app:layout_constraintBottom_toBottomOf="@+id/llLikes"
-            app:layout_constraintStart_toEndOf="@+id/llLikes"
-            app:layout_constraintTop_toTopOf="@+id/llLikes" />
-
-        <TextView
-            android:id="@+id/tvViewDetails"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/View_Details"
-            android:textColor="@color/primary_color"
-            android:textSize="12sp"
-            android:fontFamily="@font/poppins_light"
-            android:clickable="true"
-            android:focusable="true"
-            app:layout_constraintTop_toTopOf="@+id/llLikes"
-            app:layout_constraintBottom_toBottomOf="@id/llLikes"
-            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

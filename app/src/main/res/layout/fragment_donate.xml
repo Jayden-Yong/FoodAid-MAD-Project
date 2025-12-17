@@ -41,36 +41,25 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:orientation="horizontal"
-                android:weightSum="3"
-                app:selectionRequired="true"
-                app:singleSelection="true">
+                android:weightSum="2">
 
                 <RadioButton
-                    android:id="@+id/radioPantry"
+                    android:id="@+id/radioGroceries"
                     style="@style/FoodAidDonateTypeBtnStyle"
                     android:layout_width="0dp"
                     android:layout_height="35dp"
                     android:layout_weight="1"
-                    android:text="@string/Filter_Pantry"
+                    android:text="Groceries"
                     android:textAllCaps="false"/>
 
                 <RadioButton
-                    android:id="@+id/radioLeftover"
+                    android:id="@+id/radioMeals"
                     style="@style/FoodAidDonateTypeBtnStyle"
                     android:layout_width="0dp"
                     android:layout_height="35dp"
                     android:layout_weight="1"
-                    android:layout_marginHorizontal="8dp"
-                    android:text="@string/Filter_Leftover"
-                    android:textAllCaps="false"/>
-
-                <RadioButton
-                    android:id="@+id/radioFreeTable"
-                    style="@style/FoodAidDonateTypeBtnStyle"
-                    android:layout_width="0dp"
-                    android:layout_height="35dp"
-                    android:layout_weight="1"
-                    android:text="@string/Filter_Free_Table"
+                    android:layout_marginStart="8dp"
+                    android:text="Meals"
                     android:textAllCaps="false"/>
             </RadioGroup>
 
@@ -126,13 +115,14 @@
                         <TextView
                             android:layout_width="90dp"
                             android:layout_height="wrap_content"
-                            android:text="@string/Quantity"
+                            android:text="Quantity"
                             android:textStyle="bold" />
                         <EditText
                             android:id="@+id/etQuantity"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_edit_text_underline"
+                            android:hint="Number of items"
                             android:inputType="number"
                             android:padding="8dp"
                             android:textSize="14sp" />
@@ -154,31 +144,10 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_edit_text_underline"
+                            android:hint="Total Weight (kg)"
                             android:inputType="numberDecimal"
                             android:padding="8dp"
                             android:textSize="14sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-                        <TextView
-                            android:layout_width="90dp"
-                            android:layout_height="wrap_content"
-                            android:text="@string/Expiry_Date"
-                            android:textStyle="bold" />
-                        <EditText
-                            android:id="@+id/etExpiryDate"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/bg_edit_text_underline"
-                            android:inputType="date"
-                            android:padding="8dp"
-                            android:textSize="14sp"
-                            tools:hint="DD/MM/YYYY" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -279,6 +248,16 @@
                     android:src="@drawable/ic_search"
                     app:tint="@color/primary_color"
                     android:contentDescription="Search Location" />
+                
+                <ImageButton
+                    android:id="@+id/btnMyLocation"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_donate_type_btn"
+                    android:src="@android:drawable/ic_menu_mylocation"
+                    app:tint="@color/primary_color"
+                    android:contentDescription="My Location" />
             </LinearLayout>
 
             <androidx.cardview.widget.CardView
@@ -288,8 +267,8 @@
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp">
 
-                <FrameLayout
-                    android:id="@+id/mapFragmentContainer"
+                <org.osmdroid.views.MapView
+                    android:id="@+id/mapView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
 
@@ -334,6 +313,7 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
                 <TextView
+                    android:id="@+id/tvTimeLabelFrom"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/From"
@@ -346,10 +326,13 @@
                     android:layout_marginHorizontal="12dp"
                     android:background="@drawable/bg_edit_text_underline"
                     android:gravity="center"
-                    android:hint="@string/Time_Hint"
-                    android:inputType="time"
+                    android:hint="Start Time"
+                    android:clickable="true"
+                    android:focusable="false"
+                    android:inputType="none"
                     android:padding="8dp" />
                 <TextView
+                    android:id="@+id/tvTimeLabelTo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/to"
@@ -362,8 +345,10 @@
                     android:layout_marginStart="12dp"
                     android:background="@drawable/bg_edit_text_underline"
                     android:gravity="center"
-                    android:hint="@string/Time_Hint"
-                    android:inputType="time"
+                    android:hint="End Time"
+                    android:clickable="true"
+                    android:focusable="false"
+                    android:inputType="none"
                     android:padding="8dp" />
             </LinearLayout>
 

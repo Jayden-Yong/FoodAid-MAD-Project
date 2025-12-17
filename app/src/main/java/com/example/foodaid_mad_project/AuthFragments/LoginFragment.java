@@ -41,10 +41,14 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.foodaid_mad_project.AuthFragments.User;
 import com.example.foodaid_mad_project.UserManager;
-
+import com.google.firebase.firestore.SetOptions;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 public class LoginFragment extends Fragment {
@@ -271,7 +275,10 @@ public class LoginFragment extends Fragment {
         auth.signInWithCredential(credential)
                 .addOnCompleteListener(requireActivity(), task -> {
                     if (task.isSuccessful()) {
-                        fetchUserAndNavigate(auth.getCurrentUser().getUid());
+                        FirebaseUser user = auth.getCurrentUser();
+                        if (user != null) {
+                            saveUserToFirestore(user);
+                        }
                     } else {
                         String errorMessage = task.getException() != null
                                 ? task.getException().getMessage()
@@ -281,16 +288,76 @@ public class LoginFragment extends Fragment {
                 });
     }
 
+    private void saveUserToFirestore(FirebaseUser user) {
+        String uid = user.getUid();
+        String email = user.getEmail();
+        String name = user.getDisplayName();
+        String photoUrl = (user.getPhotoUrl() != null) ? user.getPhotoUrl().toString() : null;
+
+        if (name == null || name.isEmpty()) {
+            if (email != null && email.contains("@")) {
+                name = email.substring(0, email.indexOf("@"));
+            } else {
+                name = "User";
+            }
+        }
+
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("uid", uid);
+        userData.put("email", email);
+        userData.put("displayName", name);
+        userData.put("photoUrl", photoUrl);
+        // Don't overwrite badges on Login if they exist, but ensure field exists if
+        // new?
+        // SetOptions.merge() won't delete existing badges.
+        // We won't put empty list here to avoid resetting existing users.
+        // Initialize for new users
+        if (!userData.containsKey("earnedBadges")) {
+            userData.put("earnedBadges", java.util.Collections.emptyList());
+        }
+        userData.put("createdAt", System.currentTimeMillis()); // Ensure createdAt is set
+        userData.put("userType", "student");
+        userData.put("lastLogin", System.currentTimeMillis());
+
+        db.collection("users").document(uid).set(userData, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> {
+                    // Update Local Manager
+                    db.collection("users").document(uid).get()
+                            .addOnSuccessListener(documentSnapshot -> {
+                                User currentUser = documentSnapshot.toObject(User.class);
+                                UserManager.getInstance().setUser(currentUser);
+
+                                Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_LONG).show();
+                                startActivity(new Intent(getContext(), MainActivity.class));
+                                requireActivity().finish();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Failed to save user data: " + e.getMessage(), Toast.LENGTH_LONG)
+                            .show();
+                });
+    }
+
     private void fetchUserAndNavigate(String uid) {
         db.collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    com.example.foodaid_mad_project.AuthFragments.User currentUser = documentSnapshot
-                            .toObject(com.example.foodaid_mad_project.AuthFragments.User.class);
-                    UserManager.getInstance().setUser(currentUser);
+                    try {
+                        com.example.foodaid_mad_project.AuthFragments.User currentUser = documentSnapshot
+                                .toObject(com.example.foodaid_mad_project.AuthFragments.User.class);
+                        UserManager.getInstance().setUser(currentUser);
 
-                    Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_LONG).show();
-                    startActivity(new Intent(getContext(), MainActivity.class));
-                    requireActivity().finish();
+                        Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_LONG).show();
+                        startActivity(new Intent(getContext(), MainActivity.class));
+                        requireActivity().finish();
+                    } catch (Exception e) {
+                        Toast.makeText(getContext(), "Error loading user data: " + e.getMessage(), Toast.LENGTH_LONG)
+                                .show();
+                        // Proceed partially or stay?
+                        // Stay to let them try again or maybe clear data?
+                        // Let's force navigation to Main anyway to avoid being locked out
+                        startActivity(new Intent(getContext(), MainActivity.class));
+                        requireActivity().finish();
+                    }
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Failed to retrieve user data: " + e.getMessage(), Toast.LENGTH_LONG)

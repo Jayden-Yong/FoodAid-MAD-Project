@@ -17,31 +17,41 @@ import com.google.android.material.button.MaterialButton;
 public class ClaimNotifyFragment extends Fragment {
     private MaterialButton btnViewQr, btnBackToHome;
 
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_claim_successful_notify, container, false);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
+        // Reuse generic notify layout
+        return inflater.inflate(R.layout.fragment_donate_notify, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        btnViewQr = view.findViewById(R.id.btnViewQr);
-        btnBackToHome = view.findViewById(R.id.btnBackToHome);
+        // Bind Views from fragment_donate_notify.xml
+        android.widget.TextView tvTitle = view.findViewById(R.id.tvClaimTitle);
+        android.widget.TextView tvGuide = view.findViewById(R.id.tvClaimGuide);
+        MaterialButton btnViewItem = view.findViewById(R.id.btnViewItem);
+        MaterialButton btnBackToHome = view.findViewById(R.id.btnBackToHome);
 
-        btnViewQr.setOnClickListener(v -> {
-            getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-            getParentFragmentManager().popBackStack("ItemDetail", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment, new QRFragment())
-                    .addToBackStack("QR")
-                    .commit();
-        });
+        // Customize Text for Claim
+        if (tvTitle != null)
+            tvTitle.setText("Claim Successful!");
+        if (tvGuide != null)
+            tvGuide.setText(
+                    "Please collect your item within the time window. You can view your claims in the Impact page.");
 
-        btnBackToHome.setOnClickListener(v -> {
-            getParentFragmentManager().popBackStack("ItemDetail", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-            getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-        });
+        // "View Item" used for "My Claims" - User requested to REMOVE this button
+        if (btnViewItem != null) {
+            btnViewItem.setVisibility(View.GONE); // Hiding the button
+        }
+
+        if (btnBackToHome != null) {
+            btnBackToHome.setText("Back to Home");
+            btnBackToHome.setOnClickListener(v -> {
+                // Clear back stack to Home
+                getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            });
+        }
     }
 }

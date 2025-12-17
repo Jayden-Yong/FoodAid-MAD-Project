@@ -5,10 +5,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.foodaid_mad_project.Model.NotificationItem;
 import com.example.foodaid_mad_project.R;
+
 import java.util.List;
 
 public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -17,9 +20,18 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private static final int TYPE_ITEM = 1;
 
     private List<NotificationItem> notificationList;
+    private OnItemClickListener listener;
+
+    public interface OnItemClickListener {
+        void onItemClick(NotificationItem item);
+    }
 
     public NotificationAdapter(List<NotificationItem> notificationList) {
         this.notificationList = notificationList;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
     }
 
     public void updateList(List<NotificationItem> newList) {
@@ -77,7 +89,8 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         itemHolder.ivIcon.setImageResource(R.drawable.ic_community_selected);
                         break;
                     case "Impact":
-                        itemHolder.ivIcon.setImageResource(R.drawable.ic_notification); // Use default if leaf not available
+                        itemHolder.ivIcon.setImageResource(R.drawable.ic_notification); // Use default if leaf not
+                                                                                        // available
                         break;
                     default:
                         itemHolder.ivIcon.setImageResource(R.drawable.ic_notification);
@@ -89,6 +102,12 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             } else {
                 itemHolder.unreadDot.setVisibility(View.GONE);
             }
+
+            itemHolder.itemView.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onItemClick(item);
+                }
+            });
         }
     }
 
@@ -100,6 +119,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     // View Holders
     static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView tvHeader;
+
         public HeaderViewHolder(@NonNull View itemView) {
             super(itemView);
             tvHeader = itemView.findViewById(R.id.tv_header_title);

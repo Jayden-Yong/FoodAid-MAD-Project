@@ -1,21 +1,25 @@
-# Welcome to Cloud Functions for Firebase for Python!
-# To get started, simply uncomment the below code or create your own.
-# Deploy with `firebase deploy`
+from firebase_functions import firestore_fn
+from firebase_admin import initialize_app, messaging
 
-from firebase_functions import https_fn
-from firebase_functions.options import set_global_options
-from firebase_admin import initialize_app
+initialize_app()
 
-# For cost control, you can set the maximum number of containers that can be
-# running at the same time. This helps mitigate the impact of unexpected
-# traffic spikes by instead downgrading performance. This limit is a per-function
-# limit. You can override the limit for each function using the max_instances
-# parameter in the decorator, e.g. @https_fn.on_request(max_instances=5).
-set_global_options(max_instances=10)
+@firestore_fn.on_document_created(document="donations/{donationId}")
+def send_new_donation_notification(event: firestore_fn.Event[firestore_fn.DocumentSnapshot]) -> None:
+    # Get the data from the document
+    data = event.data.to_dict()
+    if not data:
+        return
 
-# initialize_app()
-#
-#
-# @https_fn.on_request()
-# def on_request_example(req: https_fn.Request) -> https_fn.Response:
-#     return https_fn.Response("Hello world!")
+    title = data.get("title", "New Donation")
+    
+    # Send FCM message to topic "donations"
+    message = messaging.Message(
+        notification=messaging.Notification(
+            title="New Food Available!",
+            body=f"New Food: {title}"
+        ),
+        topic="donations"
+    )
+    
+    response = messaging.send(message)
+    print("Successfully sent message:", response)

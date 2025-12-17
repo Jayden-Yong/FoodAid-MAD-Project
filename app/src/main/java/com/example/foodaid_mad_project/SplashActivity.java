@@ -40,8 +40,16 @@ public class SplashActivity extends AppCompatActivity {
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             fetchUserTask = db.collection("users").document(currentUser.getUid()).get()
                     .addOnSuccessListener(documentSnapshot -> {
-                        User user = documentSnapshot.toObject(User.class);
-                        UserManager.getInstance().setUser(user);
+                        if (documentSnapshot.exists()) {
+                            try {
+                                User user = documentSnapshot.toObject(User.class);
+                                UserManager.getInstance().setUser(user);
+                            } catch (Exception e) {
+                                Log.e("SplashActivity", "Error parsing user data", e);
+                                // Continue without user data (or maybe basic data)
+                                // Prevent crash loop
+                            }
+                        }
                         isDataReady = true;
                         checkAndNavigate();
                     })
@@ -88,7 +96,8 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void checkAndNavigate() {
-        // Only navigate if both the exit animation is done AND the data fetching is complete
+        // Only navigate if both the exit animation is done AND the data fetching is
+        // complete
         if (!isAnimationDone)
             return;
 

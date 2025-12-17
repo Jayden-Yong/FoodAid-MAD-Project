@@ -61,6 +61,7 @@ dependencies {
     // TODO: Add the dependencies for Firebase products you want to use
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
 
     // google sign in dependencies
     implementation("androidx.credentials:credentials:1.3.0")
@@ -70,9 +71,15 @@ dependencies {
     // firestore database
     implementation("com.google.firebase:firebase-firestore")
 
+    // firebase messaging
+    implementation("com.google.firebase:firebase-messaging")
+
     // osmdroid for OpenStreetMap
     implementation("org.osmdroid:osmdroid-android:6.1.16")
 
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
+    implementation("com.google.firebase:firebase-storage")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
 }

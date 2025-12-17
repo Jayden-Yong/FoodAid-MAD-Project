@@ -19,26 +19,31 @@ public class DonateNotifyFragment extends Fragment {
     private String title;
     private String[] pickupTime;
     private int category;
-    private int quantity;
+    private double weight; // Changed from int quantity
     private String location;
     private String donator;
     private String imageUri;
+    private String description;
 
-    public DonateNotifyFragment() {}
+    public DonateNotifyFragment() {
+    }
 
-    public DonateNotifyFragment(String title, String[] pickupTime, int category, int quantity, String location, String donator, String imageUri){
+    public DonateNotifyFragment(String title, String[] pickupTime, int category, double weight, String location,
+            String donator, String imageUri, String description) {
         this.title = title;
         this.pickupTime = pickupTime;
         this.category = category;
-        this.quantity = quantity;
+        this.weight = weight;
         this.location = location;
         this.donator = donator;
-        this.imageUri = imageUri; // Save it
+        this.imageUri = imageUri;
+        this.description = description;
     }
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_donate_notify, container, false);
     }
 
@@ -53,8 +58,18 @@ public class DonateNotifyFragment extends Fragment {
             getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
             getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
+            // Construct valid FoodItem from fragments existing data
+            String catString = (category == 1) ? "MEALS" : "GROCERIES";
+            // Timestamps are missing in this fragments arguments, using 0 for now as
+            // placeholder
+            // Ideally DonateNotifyFragment should receive the full FoodItem object
+            com.example.foodaid_mad_project.Model.FoodItem item = new com.example.foodaid_mad_project.Model.FoodItem(
+                    null, null, donator, title, catString, "MEET_UP", location,
+                    0, 0, imageUri, weight, 1, 0, 0, "AVAILABLE", null, System.currentTimeMillis(), description);
+
             requireActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment, new ItemDetailsFragment(title, pickupTime, category, quantity, location, donator, imageUri))
+                    .replace(R.id.coveringFragment,
+                            new ItemDetailsFragment(item))
                     .addToBackStack("ItemDetail")
                     .commit();
         });

@@ -30,7 +30,6 @@ import java.util.List;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
-
 public class MapFragment extends Fragment {
 
     private static final int LOCATION_REQUEST_CODE = 1001;
@@ -44,30 +43,39 @@ public class MapFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+            Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_map, container, false);
 
+        // Important! Set your user agent to prevent getting banned from the OSM servers
         Configuration.getInstance().setUserAgentValue(requireContext().getPackageName());
+        // Set configuration to use persistent storage
+        Configuration.getInstance().setOsmdroidBasePath(new java.io.File(requireContext().getFilesDir(), "osmdroid"));
+        Configuration.getInstance()
+                .setOsmdroidTileCache(new java.io.File(requireContext().getFilesDir(), "osmdroid/tiles"));
 
         mapView = view.findViewById(R.id.mapView);
         mapView.setMultiTouchControls(true);
 
         // Initial map view
         IMapController controller = mapView.getController();
-        controller.setZoom(20.0);
+        controller.setZoom(16.0); // User requested bigger size (closer)
         controller.setCenter(DEFAULT_LOCATION);
-/*
-        // Setup mock data
-        generateMockData();
 
-        // Add pins
-        for (FoodItem item : foodItems) {
-            addFoodMarker(item);
-        }
-*/
-        // Load food items from Firestore
-        loadFoodItemsFromFirestore();
+        // Cache UM Area
+        cacheUMArea();
+
+        /*
+         * // Setup mock data
+         * generateMockData();
+         * 
+         * // Add pins
+         * for (FoodItem item : foodItems) {
+         * addFoodMarker(item);
+         * }
+         */
+        // Listen to available donations from Firestore
+        listenToAvailableDonations();
 
         checkAndSetupLocation();
 
@@ -78,9 +86,8 @@ public class MapFragment extends Fragment {
         if (ActivityCompat.checkSelfPermission(requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    LOCATION_REQUEST_CODE
-            );
+                    new String[] { Manifest.permission.ACCESS_FINE_LOCATION },
+                    LOCATION_REQUEST_CODE);
         } else {
             setupUserLocation();
         }
@@ -88,8 +95,7 @@ public class MapFragment extends Fragment {
 
     private void setupUserLocation() {
         locationOverlay = new MyLocationNewOverlay(
-                new GpsMyLocationProvider(requireContext()), mapView
-        );
+                new GpsMyLocationProvider(requireContext()), mapView);
         locationOverlay.enableMyLocation();
         locationOverlay.enableFollowLocation();
         mapView.getOverlays().add(locationOverlay);
@@ -98,7 +104,7 @@ public class MapFragment extends Fragment {
             GeoPoint userPoint = locationOverlay.getMyLocation();
 
             IMapController controller = mapView.getController();
-            controller.setZoom(20.0);
+            controller.setZoom(16.5); // User requested not too zoomed in (was 20.0)
 
             if (userPoint != null) {
                 controller.setCenter(userPoint);
@@ -108,6 +114,8 @@ public class MapFragment extends Fragment {
     }
 
     private void addMarker(GeoPoint point, String title) {
+        if (mapView == null)
+            return;
         Marker marker = new Marker(mapView);
         marker.setPosition(point);
         marker.setTitle(title);
@@ -116,12 +124,13 @@ public class MapFragment extends Fragment {
     }
 
     private void addFoodMarker(FoodItem item) {
+        if (mapView == null)
+            return;
         Marker marker = new Marker(mapView);
-        marker.setPosition(new GeoPoint(item.getLat(), item.getLng()));
+        marker.setPosition(new GeoPoint(item.getLatitude(), item.getLongitude()));
         marker.setIcon(AppCompatResources.getDrawable(
                 requireContext(),
-                R.drawable.ic_custom_pin
-        ));
+                R.drawable.ic_custom_pin));
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
 
         // Remove default InfoWindow
@@ -137,43 +146,99 @@ public class MapFragment extends Fragment {
         mapView.getOverlays().add(marker);
     }
 
+    /*
+     * private void generateMockData() {
+     * foodItems = new ArrayList<>();
+     * foodItems.add(new FoodItem("1", "Tiger Biscuits", "Universiti Malaya",
+     * "50 packs", "Student Council", R.drawable.ic_launcher_background, 3.1209,
+     * 101.6538, 100));
+     * foodItems.add(new FoodItem("2", "Leftover Catering", "Mid Valley", "20 kg",
+     * "Grand Hotel", R.drawable.ic_launcher_background, 3.1176, 101.6776, 545));
+     * foodItems.add(new FoodItem("3", "Canned Soup", "Jaya One", "100 cans",
+     * "Community NGO", R.drawable.ic_launcher_background, 3.1180, 101.6360, 15));
+     * }
+     */
 
+    private com.google.firebase.firestore.ListenerRegistration firestoreListener;
 
-
-  /*  private void generateMockData() {
+    private void listenToAvailableDonations() {
         foodItems = new ArrayList<>();
-        foodItems.add(new FoodItem("1", "Tiger Biscuits", "Universiti Malaya", "50 packs", "Student Council", R.drawable.ic_launcher_background, 3.1209, 101.6538, 100));
-        foodItems.add(new FoodItem("2", "Leftover Catering", "Mid Valley", "20 kg", "Grand Hotel", R.drawable.ic_launcher_background, 3.1176, 101.6776, 545));
-        foodItems.add(new FoodItem("3", "Canned Soup", "Jaya One", "100 cans", "Community NGO", R.drawable.ic_launcher_background, 3.1180, 101.6360, 15));
-    }*/
-
-    private void loadFoodItemsFromFirestore() {
-
-        foodItems = new ArrayList<>();
-
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        long currentTime = System.currentTimeMillis();
 
-        db.collection("foodbanks")
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
+        if (firestoreListener != null) {
+            firestoreListener.remove();
+        }
 
-                    for (QueryDocumentSnapshot doc : querySnapshot) {
-
-                        FoodItem item = doc.toObject(FoodItem.class);
-
-                        if (item != null) {
-                            foodItems.add(item);
-                            addFoodMarker(item);
-                        }
+        firestoreListener = db.collection("donations")
+                .whereEqualTo("status", "AVAILABLE")
+                .whereGreaterThan("endTime", currentTime)
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        e.printStackTrace();
+                        return;
                     }
-                })
-                .addOnFailureListener(e -> e.printStackTrace());
+
+                    if (snapshots != null) {
+                        foodItems.clear();
+
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            FoodItem item = doc.toObject(FoodItem.class);
+                            item.setDonationId(doc.getId()); // Ensure ID is set
+                            foodItems.add(item);
+                        }
+
+                        // Apply current filter
+                        filterItems(currentCategory);
+                    }
+                });
+    }
+
+    private String currentCategory = "All";
+
+    public void filterItems(String category) {
+        this.currentCategory = category;
+        if (mapView == null)
+            return;
+
+        // Clear existing food markers
+        for (Overlay o : new ArrayList<>(mapView.getOverlays())) {
+            if (o instanceof Marker) {
+                Marker m = (Marker) o;
+                if (!"You are here".equals(m.getTitle())) {
+                    mapView.getOverlays().remove(o);
+                }
+            }
+        }
+
+        for (FoodItem item : foodItems) {
+            boolean matches = false;
+            if (category.equals("All")) {
+                matches = true;
+            } else if (item.getCategory() != null) {
+                if (category.equalsIgnoreCase("Groceries") &&
+                        (item.getCategory().equalsIgnoreCase("GROCERIES")
+                                || item.getCategory().equalsIgnoreCase("Pantry"))) {
+                    matches = true;
+                } else if (category.equalsIgnoreCase("Meals") &&
+                        (item.getCategory().equalsIgnoreCase("MEALS")
+                                || item.getCategory().equalsIgnoreCase("Leftover"))) {
+                    matches = true;
+                }
+            }
+
+            if (matches) {
+                addFoodMarker(item);
+            }
+        }
+        mapView.invalidate();
     }
 
     public void focusOnFoodItem(FoodItem item) {
-        if (item == null || mapView == null) return;
+        if (item == null || mapView == null)
+            return;
 
-        GeoPoint point = new GeoPoint(item.getLat(), item.getLng());
+        GeoPoint point = new GeoPoint(item.getLatitude(), item.getLongitude());
 
         // Temporarily stop following user location
         if (locationOverlay != null) {
@@ -181,6 +246,8 @@ public class MapFragment extends Fragment {
         }
 
         mapView.post(() -> {
+            if (mapView == null)
+                return;
             IMapController controller = mapView.getController();
             controller.setZoom(20.0);
             controller.animateTo(point);
@@ -203,15 +270,13 @@ public class MapFragment extends Fragment {
         }
     }
 
-
     public List<FoodItem> getFoodItems() {
         return foodItems != null ? foodItems : new ArrayList<>();
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
+            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -221,18 +286,88 @@ public class MapFragment extends Fragment {
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (firestoreListener != null) {
+            firestoreListener.remove();
+            firestoreListener = null;
+        }
+        // Properly allow MapView to detach
+        if (mapView != null) {
+            mapView.onDetach(); // Osmdroid cleanup
+            mapView = null;
+        }
+        locationOverlay = null;
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
-        mapView.onResume();
-        if (locationOverlay != null) locationOverlay.enableMyLocation();
+        if (mapView != null) {
+            mapView.onResume();
+        }
+        if (locationOverlay == null || locationOverlay.getMyLocationProvider() == null) {
+            // Re-setup if needed, but be careful of duplication
+            if (mapView != null)
+                setupUserLocation();
+        }
+
+        if (locationOverlay != null) {
+            locationOverlay.enableMyLocation();
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        mapView.onPause();
-        if (locationOverlay != null) locationOverlay.disableMyLocation();
+        if (mapView != null) {
+            mapView.onPause();
+        }
+        if (locationOverlay != null)
+            locationOverlay.disableMyLocation();
+    }
+
+    private void cacheUMArea() {
+        // Run in background to avoid blocking UI
+        new Thread(() -> {
+            try {
+                org.osmdroid.tileprovider.cachemanager.CacheManager cacheManager = new org.osmdroid.tileprovider.cachemanager.CacheManager(
+                        mapView);
+                // Define Bounding Box for UM and surroundings (Approx coordinates)
+                // North: 3.13, South: 3.11, East: 101.67, West: 101.64
+                org.osmdroid.util.BoundingBox bbox = new org.osmdroid.util.BoundingBox(3.135, 101.670, 3.110, 101.640);
+
+                // Cache Zoom Levels 12 to 17 (Standard viewing range)
+                cacheManager.downloadAreaAsync(requireContext(), bbox, 12, 17,
+                        new org.osmdroid.tileprovider.cachemanager.CacheManager.CacheManagerCallback() {
+                            @Override
+                            public void onTaskComplete() {
+                                // Optional: filtering or callback log
+                            }
+
+                            @Override
+                            public void updateProgress(int progress, int currentZoomLevel, int zoomMin, int zoomMax) {
+                                // Optional: update progress
+                            }
+
+                            @Override
+                            public void downloadStarted() {
+                                // Optional: log start
+                            }
+
+                            @Override
+                            public void setPossibleTilesInArea(int total) {
+                                // Optional: log total
+                            }
+
+                            @Override
+                            public void onTaskFailed(int errors) {
+                                // Optional: log error
+                            }
+                        });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 }
-
-

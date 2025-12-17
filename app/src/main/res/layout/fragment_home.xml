@@ -34,23 +34,35 @@
             android:gravity="end"
             android:elevation="0dp">
 
-            <ImageButton
-                android:id="@+id/btnToNotification"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="center"
-                android:contentDescription="@string/Notification_Bell"
-                android:src="@drawable/ic_notification"
-                android:backgroundTint="@color/white" />
 
-            <ImageButton
-                android:id="@+id/btnToQR"
+
+            <FrameLayout
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:layout_gravity="center"
-                android:contentDescription="@string/QR_Code"
-                android:src="@drawable/ic_qr"
-                android:backgroundTint="@color/white" />
+                android:layout_gravity="center_vertical">
+
+                <ImageButton
+                    android:id="@+id/btnToNotification"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/Notification_Bell"
+                    android:src="@drawable/ic_notification"
+                    android:backgroundTint="@color/white"
+                    android:scaleType="centerInside"/>
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/notificationBadge"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
+                    app:cardCornerRadius="6dp"
+                    app:cardBackgroundColor="@color/red"
+                    app:cardElevation="2dp"
+                    android:visibility="gone">
+                </androidx.cardview.widget.CardView>
+            </FrameLayout>
         </LinearLayout>
     </LinearLayout>
 
@@ -124,25 +136,18 @@
                 android:text="@string/Filter_All" />
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/chipPantry"
+                android:id="@+id/chipGroceries"
                 style="@style/FoodAidChipStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/Filter_Pantry" />
+                android:text="Groceries" />
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/chipLeftover"
+                android:id="@+id/chipMeals"
                 style="@style/FoodAidChipStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/Filter_Leftover" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipFreeTable"
-                style="@style/FoodAidChipStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/Filter_Free_Table" />
+                android:text="Meals" />
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
 
@@ -152,10 +157,12 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
+        android:layout_marginBottom="24dp"
+        android:layout_marginHorizontal="24dp"
         app:layout_constraintTop_toBottomOf="@+id/hsvFilterChips"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Fragment Container for Map Pin -->
     <androidx.fragment.app.FragmentContainerView

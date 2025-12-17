@@ -109,41 +109,30 @@
                 android:layout_marginHorizontal="24dp"
                 android:paddingVertical="8dp"
                 android:orientation="horizontal"
-                android:checkedButton="@id/radioPantry"
-                android:weightSum="3"
+                android:checkedButton="@id/radioGroceries"
+                android:weightSum="2"
                 app:layout_constraintTop_toBottomOf="@id/tvCategoryLabel"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
                 <RadioButton
-                    android:id="@+id/radioPantry"
+                    android:id="@+id/radioGroceries"
                     style="@style/FoodAidDonateTypeBtnStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/Filter_Pantry"
+                    android:text="Groceries"
                     android:fontFamily="@font/poppins_bold"
                     android:layout_weight="1"
                     android:clickable="false"
                     android:focusable="false"/>
 
                 <RadioButton
-                    android:id="@+id/radioLeftover"
+                    android:id="@+id/radioMeals"
                     style="@style/FoodAidDonateTypeBtnStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="10dp"
-                    android:text="@string/Filter_Leftover"
-                    android:fontFamily="@font/poppins_bold"
-                    android:layout_weight="1"
-                    android:clickable="false"
-                    android:focusable="false"/>
-
-                <RadioButton
-                    android:id="@+id/radioFreeTable"
-                    style="@style/FoodAidDonateTypeBtnStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/Filter_Free_Table"
+                    android:text="Meals"
                     android:fontFamily="@font/poppins_bold"
                     android:layout_weight="1"
                     android:clickable="false"
@@ -156,11 +145,23 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="24dp"
                 android:layout_marginTop="24dp"
-                android:text="@string/Food_Quantity"
+                android:text="Quantity: 1"
                 android:textColor="@color/font_primary"
                 android:textSize="16sp"
                 android:fontFamily="@font/poppins_semi_bold"
                 app:layout_constraintTop_toBottomOf="@+id/radioGroupCategory" />
+
+            <TextView
+                android:id="@+id/tvPickupMethod"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="24dp"
+                android:layout_marginTop="12dp"
+                android:text="Pickup Method: Meet Up"
+                android:textColor="@color/font_primary"
+                android:textSize="16sp"
+                android:fontFamily="@font/poppins_semi_bold"
+                app:layout_constraintTop_toBottomOf="@+id/tvQuantity" />
 
             <TextView
                 android:id="@+id/tvLocationLabel"
@@ -172,7 +173,7 @@
                 android:textColor="@color/font_primary"
                 android:textSize="16sp"
                 android:fontFamily="@font/poppins_semi_bold"
-                app:layout_constraintTop_toBottomOf="@+id/tvQuantity" />
+                app:layout_constraintTop_toBottomOf="@+id/tvPickupMethod" />
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cvMap"
