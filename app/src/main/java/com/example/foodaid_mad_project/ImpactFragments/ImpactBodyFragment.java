@@ -95,6 +95,9 @@ public class ImpactBodyFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_impact_body, container, false);
     }
 
+    // Header View Reference
+    private View headerView;
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -104,30 +107,33 @@ public class ImpactBodyFragment extends Fragment {
 
         displayedDate = Calendar.getInstance();
 
-        // Date Range
-        btnPrevDate = view.findViewById(R.id.btnPrevDate);
-        btnNextDate = view.findViewById(R.id.btnNextDate);
-        tvDateRange = view.findViewById(R.id.tvDateRange);
-        // Chart
-        chartWeek = view.findViewById(R.id.chartWeek);
-        chartMonth = view.findViewById(R.id.chartMonth);
-        chartYear = view.findViewById(R.id.chartYear);
-        // Stats
-        statsContainer = view.findViewById(R.id.statsContainer);
-        tvStatClaimedValue = view.findViewById(R.id.tvStatClaimedValue);
-        tvStatClaimedDesc = view.findViewById(R.id.tvStatClaimedDesc);
-        tvStatDonatedValue = view.findViewById(R.id.tvStatDonatedValue);
-        tvStateDonatedDesc = view.findViewById(R.id.tvStateDonatedDesc);
-        tvStatSavedValue = view.findViewById(R.id.tvStatSavedValue);
-        // Contribution Title
-        tvContributionsHeader = view.findViewById(R.id.tvContributionsHeader);
-        tvMonthYear = view.findViewById(R.id.tvMonthYear);
-        // Contribution Recycler
-        headerMonthYear = view.findViewById(R.id.header_Month_Year);
+        // 1. Setup RecyclerView (The only thing in the main layout)
         rvContributions = view.findViewById(R.id.rvContributions);
-        impactConstraint = view.findViewById(R.id.impactConstraint);
-
         rvContributions.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        // 2. Inflate Header View manually
+        headerView = LayoutInflater.from(getContext()).inflate(R.layout.item_impact_header, rvContributions, false);
+
+        // 3. Find Views INSIDE the Header
+        btnPrevDate = headerView.findViewById(R.id.btnPrevDate);
+        btnNextDate = headerView.findViewById(R.id.btnNextDate);
+        tvDateRange = headerView.findViewById(R.id.tvDateRange);
+
+        chartWeek = headerView.findViewById(R.id.chartWeek);
+        chartMonth = headerView.findViewById(R.id.chartMonth);
+        chartYear = headerView.findViewById(R.id.chartYear);
+
+        statsContainer = headerView.findViewById(R.id.statsContainer);
+        tvStatClaimedValue = headerView.findViewById(R.id.tvStatClaimedValue);
+        tvStatClaimedDesc = headerView.findViewById(R.id.tvStatClaimedDesc);
+        tvStatDonatedValue = headerView.findViewById(R.id.tvStatDonatedValue);
+        tvStateDonatedDesc = headerView.findViewById(R.id.tvStateDonatedDesc);
+        tvStatSavedValue = headerView.findViewById(R.id.tvStatSavedValue);
+
+        tvContributionsHeader = headerView.findViewById(R.id.tvContributionsHeader);
+        tvMonthYear = headerView.findViewById(R.id.tvMonthYear);
+        headerMonthYear = headerView.findViewById(R.id.header_Month_Year);
+        impactConstraint = headerView.findViewById(R.id.impactConstraint);
 
         setupListeners();
         setupDateNavigation();
@@ -414,7 +420,8 @@ public class ImpactBodyFragment extends Fragment {
                 filteredItems.add(item);
             }
         }
-        rvContributions.setAdapter(new WeekAdapter(filteredItems)); // Reuse WeekAdapter (layout) for all
+        // PASSED HEADER VIEW
+        rvContributions.setAdapter(new WeekAdapter(filteredItems, headerView));
     }
 
     // --- Chart Setup (Visuals only for now, can perform further data binding if
@@ -574,31 +581,54 @@ public class ImpactBodyFragment extends Fragment {
     }
 
     // --- ADAPTERS ---
-    // Simplified adapters to just show lists of FoodItems for the demo
 
-    private class WeekAdapter extends RecyclerView.Adapter<WeekAdapter.ViewHolder> {
+    private class WeekAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+        private static final int TYPE_HEADER = 0;
+        private static final int TYPE_ITEM = 1;
+
         List<FoodItem> data;
+        View headerView;
 
-        public WeekAdapter(List<FoodItem> data) {
+        public WeekAdapter(List<FoodItem> data, View headerView) {
             this.data = data;
+            this.headerView = headerView;
         }
 
         @NonNull
         @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            if (viewType == TYPE_HEADER) {
+                // Return the existing header view
+                // We must ensure it doesn't have a parent, or remove it if it does
+                if (headerView.getParent() != null) {
+                    ((ViewGroup) headerView.getParent()).removeView(headerView);
+                }
+                // Creating a simplified holder
+                return new RecyclerView.ViewHolder(headerView) {
+                };
+            }
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.fragment_week_contribution, parent,
                     false);
-            return new ViewHolder(v);
+            return new ItemViewHolder(v);
         }
 
         @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            FoodItem item = data.get(position);
-            holder.tvItemName.setText(item.getTitle());
-            holder.tvItemDate
+        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+            if (getItemViewType(position) == TYPE_HEADER) {
+                return; // Header is already bound to logic in Fragment
+            }
+
+            // Adjust position for item
+            int itemPos = position - 1;
+            FoodItem item = data.get(itemPos);
+            ItemViewHolder itemHolder = (ItemViewHolder) holder;
+
+            itemHolder.tvItemName.setText(item.getTitle());
+            itemHolder.tvItemDate
                     .setText(new SimpleDateFormat("dd/MM", Locale.getDefault()).format(new Date(item.getTimestamp())));
-            holder.tvStatus.setText("Saved");
-            holder.tvWeight.setText(item.getWeight() + " kg");
+            itemHolder.tvStatus.setText("Saved");
+            itemHolder.tvWeight.setText(item.getWeight() + " kg");
+
             // Handle image logic
             if (item.getImageUri() != null && !item.getImageUri().isEmpty()) {
                 String imageStr = item.getImageUri();
@@ -606,37 +636,40 @@ public class ImpactBodyFragment extends Fragment {
                     com.bumptech.glide.Glide.with(holder.itemView.getContext())
                             .load(imageStr)
                             .placeholder(R.drawable.ic_launcher_background)
-                            .error(R.drawable.ic_launcher_background)
-                            .into(holder.ivItemImage);
+                            .into(itemHolder.ivItemImage);
                 } else {
+                    // Optimization: Try to load bytes only if needed, OR relies on Glide caching
                     try {
-                        // Decode Base64 to bytes
                         byte[] imageBytes = com.example.foodaid_mad_project.Utils.ImageUtil.base64ToBytes(imageStr);
                         com.bumptech.glide.Glide.with(holder.itemView.getContext())
                                 .asBitmap()
                                 .load(imageBytes)
                                 .placeholder(R.drawable.ic_launcher_background)
-                                .error(R.drawable.ic_launcher_background)
-                                .into(holder.ivItemImage);
+                                .into(itemHolder.ivItemImage);
                     } catch (Exception e) {
-                        holder.ivItemImage.setImageResource(R.drawable.ic_launcher_background);
+                        itemHolder.ivItemImage.setImageResource(R.drawable.ic_launcher_background);
                     }
                 }
             } else {
-                holder.ivItemImage.setImageResource(R.drawable.ic_launcher_background);
+                itemHolder.ivItemImage.setImageResource(R.drawable.ic_launcher_background);
             }
         }
 
         @Override
         public int getItemCount() {
-            return data.size();
+            return data.size() + 1; // +1 for Header
         }
 
-        class ViewHolder extends RecyclerView.ViewHolder {
+        @Override
+        public int getItemViewType(int position) {
+            return position == 0 ? TYPE_HEADER : TYPE_ITEM;
+        }
+
+        class ItemViewHolder extends RecyclerView.ViewHolder {
             TextView tvItemName, tvItemDate, tvStatus, tvWeight;
             ImageView ivItemImage;
 
-            public ViewHolder(View itemView) {
+            public ItemViewHolder(View itemView) {
                 super(itemView);
                 ivItemImage = itemView.findViewById(R.id.ivItemImage);
                 tvItemName = itemView.findViewById(R.id.tvItemName);

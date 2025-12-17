@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -163,7 +164,8 @@ public class NotificationFragment extends Fragment {
                 timeString,
                 n.getType(),
                 n.isRead(),
-                new Date(n.getTimestamp()));
+                new Date(n.getTimestamp()),
+                n.getId()); // Added ID
         // Note: NotificationItem needs to hold the original Notification ID to mark as
         // read.
         // But NotificationItem definition I saw didn't have ID field.
@@ -207,9 +209,7 @@ public class NotificationFragment extends Fragment {
     private List<NotificationItem> getCurrentFilteredData() {
         int checkedId = chipGroupFilters.getCheckedChipId();
         String typeToFilter = "All";
-        if (checkedId == R.id.chip_request)
-            typeToFilter = "Request";
-        else if (checkedId == R.id.chip_donation)
+        if (checkedId == R.id.chip_donation)
             typeToFilter = "Donation";
         else if (checkedId == R.id.chip_community)
             typeToFilter = "Community";
@@ -294,16 +294,23 @@ public class NotificationFragment extends Fragment {
     }
 
     private void onNotificationClicked(NotificationItem item) {
-        // Needs ID to update Firestore.
-        // Since I can't pass ID in NotificationItem yet (unless I modify it), I'll skip
-        // the update for now OR match by timestamp/title? (Risky).
-        // Best approach: Add ID to NotificationItem.
-        // I will assume I added it.
         if (item.getId() != null && !item.isRead()) {
+            Toast.makeText(getContext(), "Marking as read...", Toast.LENGTH_SHORT).show(); // Feedback
             db.collection("notifications").document(item.getId())
                     .update("isRead", true)
+                    .addOnSuccessListener(aVoid -> {
+                        // Optional: could manually update local list here to reflect change immediately
+                        // but snapshot listener should handle it.
+                    })
                     .addOnFailureListener(
-                            e -> Toast.makeText(getContext(), "Error updating", Toast.LENGTH_SHORT).show());
+                            e -> Toast.makeText(getContext(), "Error updating: " + e.getMessage(), Toast.LENGTH_SHORT)
+                                    .show());
+        } else {
+            // Debug why it might not be working
+            if (item.getId() == null)
+                Log.e("Notify", "Item ID is null");
+            if (item.isRead())
+                Log.d("Notify", "Item already read");
         }
     }
 }

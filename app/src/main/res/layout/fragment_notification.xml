@@ -39,12 +39,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/Notify_All"/>
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_request"
-                style="@style/FoodAidChipStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/Notify_Request" />
+
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_donation"
                 style="@style/FoodAidChipStyle"

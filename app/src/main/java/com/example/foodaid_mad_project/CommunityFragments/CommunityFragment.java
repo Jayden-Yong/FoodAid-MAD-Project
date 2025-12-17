@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.foodaid_mad_project.Model.CommunityPost;
+import com.example.foodaid_mad_project.Model.Notification;
 import com.example.foodaid_mad_project.R;
 import com.example.foodaid_mad_project.Utils.ImageUtil;
 import com.google.firebase.auth.FirebaseAuth;
@@ -42,6 +43,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import java.util.concurrent.TimeUnit;
 
 public class CommunityFragment extends Fragment {
@@ -151,6 +154,18 @@ public class CommunityFragment extends Fragment {
         }
     }
 
+    private boolean isNetworkAvailable() {
+        if (getContext() == null)
+            return false;
+        ConnectivityManager cm = (ConnectivityManager) getContext()
+                .getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
+        if (cm != null) {
+            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            return activeNetwork != null && activeNetwork.isConnected();
+        }
+        return false;
+    }
+
     private void createNewPost() {
         // Check Auth
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
@@ -184,6 +199,12 @@ public class CommunityFragment extends Fragment {
             String content = etContent.getText().toString().trim();
             if (content.isEmpty() && selectedImageUri == null) {
                 Toast.makeText(getContext(), "Please enter content or allow photo", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!isNetworkAvailable()) {
+                Toast.makeText(getContext(), "No internet connection. Please try again later.", Toast.LENGTH_SHORT)
+                        .show();
                 return;
             }
 
@@ -234,12 +255,34 @@ public class CommunityFragment extends Fragment {
                     if (dialog != null && dialog.isShowing()) {
                         dialog.dismiss();
                     }
+                    createNotification(newPost);
                     // Realtime listener will auto-update UI
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Failed to post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     btnSubmit.setEnabled(true);
                     btnSubmit.setText(getString(R.string.Post));
+                });
+    }
+
+    private void createNotification(CommunityPost post) {
+        DocumentReference notifRef = db.collection("notifications").document();
+        Map<String, Object> data = new HashMap<>();
+        data.put("id", notifRef.getId());
+        data.put("title", "New Community Post");
+        data.put("message", post.getUserName() + " shared a " + post.getPostType());
+        data.put("type", "Community");
+        data.put("relatedId", post.getPostId());
+        data.put("timestamp", System.currentTimeMillis());
+        data.put("isRead", false);
+        data.put("userId", "ALL"); // Ensure userId is ALL for global reach
+
+        notifRef.set(data)
+                .addOnSuccessListener(aVoid -> {
+                    // Success
+                })
+                .addOnFailureListener(e -> {
+                    // Log fail
                 });
     }
 

@@ -1,5 +1,7 @@
 package com.example.foodaid_mad_project.Model;
 
+import com.google.firebase.firestore.PropertyName;
+
 public class Notification {
     private String id;
     private String title;
@@ -7,7 +9,9 @@ public class Notification {
     private String type; // e.g., "SYSTEM", "CLAIM", "DONATION"
     private String relatedId; // e.g., donationId or userId
     private long timestamp;
+    @PropertyName("isRead")
     private boolean isRead;
+    private String userId; // New field
 
     public Notification() {
         // Required for Firestore
@@ -72,11 +76,21 @@ public class Notification {
         this.timestamp = timestamp;
     }
 
+    @PropertyName("isRead")
     public boolean isRead() {
         return isRead;
     }
 
+    @PropertyName("isRead")
     public void setRead(boolean read) {
         isRead = read;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }
