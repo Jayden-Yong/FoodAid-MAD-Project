@@ -45,11 +45,17 @@ public class ClaimNotifyFragment extends Fragment {
             btnViewItem.setVisibility(View.VISIBLE);
             btnViewItem.setText("My Claims");
             btnViewItem.setOnClickListener(v -> {
-                getParentFragmentManager().beginTransaction()
-                        .replace(R.id.coveringFragment,
-                                new com.example.foodaid_mad_project.ImpactFragments.ImpactFragment())
-                        .addToBackStack(null)
-                        .commit();
+                // 1. Close this fragment (overlay)
+                getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+                // 2. Select Impact Tab using MainActivity's BottomNav
+                if (getActivity() instanceof com.example.foodaid_mad_project.MainActivity) {
+                    com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = getActivity()
+                            .findViewById(R.id.bottomNavigationView);
+                    if (bottomNav != null) {
+                        bottomNav.setSelectedItemId(R.id.impactFragment);
+                    }
+                }
             });
         }
 

@@ -256,9 +256,16 @@ public class MapFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        mapView.onResume();
-        if (locationOverlay != null)
+        if (mapView != null) {
+            mapView.onResume();
+        }
+        if (locationOverlay == null || locationOverlay.getMyLocationProvider() == null) {
+            setupUserLocation();
+        }
+
+        if (locationOverlay != null) {
             locationOverlay.enableMyLocation();
+        }
     }
 
     @Override

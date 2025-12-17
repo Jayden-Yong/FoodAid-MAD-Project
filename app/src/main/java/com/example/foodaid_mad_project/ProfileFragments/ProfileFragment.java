@@ -124,11 +124,14 @@ public class ProfileFragment extends Fragment {
         // View All Badges (Claims)
         TextView tvViewAllBadges = view.findViewById(R.id.tvViewAllBadges);
         tvViewAllBadges.setOnClickListener(v -> {
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment,
-                            new com.example.foodaid_mad_project.ImpactFragments.ImpactFragment())
-                    .addToBackStack(null)
-                    .commit();
+            // Use NavController to switch tabs since Profile is inside NavHost
+            if (getActivity() instanceof com.example.foodaid_mad_project.MainActivity) {
+                com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = getActivity()
+                        .findViewById(R.id.bottomNavigationView);
+                if (bottomNav != null) {
+                    bottomNav.setSelectedItemId(R.id.impactFragment);
+                }
+            }
         });
 
         // Edit Profile (Placeholder or simple toast for now)
