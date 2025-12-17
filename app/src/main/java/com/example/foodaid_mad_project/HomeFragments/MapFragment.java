@@ -59,7 +59,7 @@ public class MapFragment extends Fragment {
 
         // Initial map view
         IMapController controller = mapView.getController();
-        controller.setZoom(16.0); // Slightly zoomed out to see area
+        controller.setZoom(14.5); // Slightly zoomed out to see area
         controller.setCenter(DEFAULT_LOCATION);
 
         // Cache UM Area

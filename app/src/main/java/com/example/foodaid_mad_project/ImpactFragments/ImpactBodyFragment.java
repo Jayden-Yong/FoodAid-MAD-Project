@@ -73,6 +73,16 @@ public class ImpactBodyFragment extends Fragment {
     // Real Data Lists
     private List<FoodItem> claimedItems = new ArrayList<>();
     private List<FoodItem> donatedItems = new ArrayList<>();
+
+    // Raw Snapshots for merging
+    private List<com.google.firebase.firestore.DocumentSnapshot> rawClaims = new ArrayList<>();
+    private List<com.google.firebase.firestore.DocumentSnapshot> rawLegacy = new ArrayList<>();
+    private List<com.google.firebase.firestore.DocumentSnapshot> rawMyDonations = new ArrayList<>();
+
+    private com.google.firebase.firestore.ListenerRegistration lrClaims;
+    private com.google.firebase.firestore.ListenerRegistration lrLegacy;
+    private com.google.firebase.firestore.ListenerRegistration lrMyDonations;
+
     private ImpactCalculator calculator = new ImpactCalculator();
     private FirebaseAuth auth;
     private FirebaseFirestore db;
@@ -116,99 +126,119 @@ public class ImpactBodyFragment extends Fragment {
 
         rvContributions.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        fetchData();
+        setupListeners();
     }
 
-    private void fetchData() {
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (lrClaims != null)
+            lrClaims.remove();
+        if (lrLegacy != null)
+            lrLegacy.remove();
+        if (lrMyDonations != null)
+            lrMyDonations.remove();
+    }
+
+    private void setupListeners() {
         if (auth.getCurrentUser() == null)
             return;
         String uid = auth.getCurrentUser().getUid();
 
-        // 1. Fetch New Claims (Collection Group)
-        com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> taskClaims = db
-                .collectionGroup("claims")
+        // 1. New Claims
+        if (lrClaims != null)
+            lrClaims.remove();
+        lrClaims = db.collectionGroup("claims")
                 .whereEqualTo("claimerId", uid)
-                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .get();
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        Log.e("Impact", "Claims Error", e);
+                        return;
+                    }
+                    if (snapshots != null) {
+                        rawClaims = snapshots.getDocuments();
+                        processData();
+                    }
+                });
 
-        // 2. Fetch Legacy Claims (Donations)
-        com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> taskLegacy = db
-                .collection("donations")
+        // 2. Legacy Claims (Donations)
+        if (lrLegacy != null)
+            lrLegacy.remove();
+        lrLegacy = db.collection("donations")
                 .whereEqualTo("claimedBy", uid)
                 .whereEqualTo("status", "CLAIMED")
-                .get();
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        Log.e("Impact", "Legacy Error", e);
+                        return;
+                    }
+                    if (snapshots != null) {
+                        rawLegacy = snapshots.getDocuments();
+                        processData();
+                    }
+                });
 
-        // 3. Fetch Donated Items
-        com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> taskMyDonations = db
-                .collection("donations")
+        // 3. My Donations
+        if (lrMyDonations != null)
+            lrMyDonations.remove();
+        lrMyDonations = db.collection("donations")
                 .whereEqualTo("donatorId", uid)
-                .get();
-
-        com.google.android.gms.tasks.Tasks.whenAllSuccess(taskClaims, taskLegacy, taskMyDonations)
-                .addOnSuccessListener(results -> {
-                    // Process Results
-                    com.google.firebase.firestore.QuerySnapshot claimsSnap = (com.google.firebase.firestore.QuerySnapshot) results
-                            .get(0);
-                    com.google.firebase.firestore.QuerySnapshot legacySnap = (com.google.firebase.firestore.QuerySnapshot) results
-                            .get(1);
-                    com.google.firebase.firestore.QuerySnapshot myDonationsSnap = (com.google.firebase.firestore.QuerySnapshot) results
-                            .get(2);
-
-                    claimedItems.clear();
-                    List<String> processedDonationIds = new ArrayList<>();
-
-                    // A. Process New Claims
-                    for (com.google.firebase.firestore.DocumentSnapshot doc : claimsSnap) {
-                        FoodItem item = new FoodItem();
-                        // Map fields from claim sub-collection to FoodItem for display
-                        item.setTitle(doc.getString("foodTitle"));
-                        // Retrieve Image: could be URL or Resource ID.
-                        // Our model mostly uses String imageUri.
-                        Object img = doc.get("foodImage");
-                        if (img instanceof String)
-                            item.setImageUri((String) img);
-
-                        item.setLocationName(doc.getString("location"));
-
-                        Double w = doc.getDouble("weight");
-                        item.setWeight(w != null ? w : 0.0);
-
-                        Long ts = doc.getLong("timestamp");
-                        item.setTimestamp(ts != null ? ts : 0);
-
-                        // If title is null (legacy data in subcoll?), fallback
-                        if (item.getTitle() == null)
-                            item.setTitle("Claimed Item");
-
-                        claimedItems.add(item);
-
-                        // Track parent ID to avoid duplicates if also in legacy list
-                        if (doc.getReference().getParent().getParent() != null) {
-                            processedDonationIds.add(doc.getReference().getParent().getParent().getId());
-                        }
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        Log.e("Impact", "Donations Error", e);
+                        return;
                     }
-
-                    // B. Process Legacy Claims (only if not covered by new claims)
-                    for (com.google.firebase.firestore.DocumentSnapshot doc : legacySnap) {
-                        if (!processedDonationIds.contains(doc.getId())) {
-                            claimedItems.add(doc.toObject(FoodItem.class));
-                        }
+                    if (snapshots != null) {
+                        rawMyDonations = snapshots.getDocuments();
+                        processData();
                     }
+                });
+    }
 
-                    // Sort Combined List
-                    java.util.Collections.sort(claimedItems,
-                            (o1, o2) -> Long.compare(o2.getTimestamp(), o1.getTimestamp()));
+    private void processData() {
+        claimedItems.clear();
+        donatedItems.clear();
+        List<String> processedDonationIds = new ArrayList<>();
 
-                    // C. Process Donated Items
-                    donatedItems.clear();
-                    for (com.google.firebase.firestore.QueryDocumentSnapshot doc : myDonationsSnap) {
-                        donatedItems.add(doc.toObject(FoodItem.class));
-                    }
+        // A. Process New Claims
+        for (com.google.firebase.firestore.DocumentSnapshot doc : rawClaims) {
+            FoodItem item = new FoodItem();
+            item.setTitle(doc.getString("foodTitle"));
+            Object img = doc.get("foodImage");
+            if (img instanceof String)
+                item.setImageUri((String) img);
+            item.setLocationName(doc.getString("location"));
+            Double w = doc.getDouble("weight");
+            item.setWeight(w != null ? w : 0.0);
+            Long ts = doc.getLong("timestamp");
+            item.setTimestamp(ts != null ? ts : 0);
 
-                    checkBadges();
-                    refreshStats();
-                })
-                .addOnFailureListener(e -> Log.e("Impact", "Error fetching data", e));
+            if (item.getTitle() == null)
+                item.setTitle("Claimed Item");
+            claimedItems.add(item);
+
+            if (doc.getReference().getParent().getParent() != null) {
+                processedDonationIds.add(doc.getReference().getParent().getParent().getId());
+            }
+        }
+
+        // B. Process Legacy Claims
+        for (com.google.firebase.firestore.DocumentSnapshot doc : rawLegacy) {
+            if (!processedDonationIds.contains(doc.getId())) {
+                claimedItems.add(doc.toObject(FoodItem.class));
+            }
+        }
+
+        // Sort Combined List
+        java.util.Collections.sort(claimedItems, (o1, o2) -> Long.compare(o2.getTimestamp(), o1.getTimestamp()));
+
+        // C. Process Donated Items
+        for (com.google.firebase.firestore.DocumentSnapshot doc : rawMyDonations) {
+            donatedItems.add(doc.toObject(FoodItem.class));
+        }
+
+        checkBadges();
+        refreshStats();
     }
 
     private void checkBadges() {
