@@ -154,6 +154,8 @@ public class ItemDetailsFragment extends Fragment {
         if (btnClaim != null) {
             btnClaim.setOnClickListener(v -> claimDonation());
         }
+
+        setupRealtimeUpdates();
     }
 
     private void claimDonation() {
@@ -226,6 +228,59 @@ public class ItemDetailsFragment extends Fragment {
 
         // Show
         dialog.show();
+    }
+
+    private com.google.firebase.firestore.ListenerRegistration itemListener;
+
+    private void setupRealtimeUpdates() {
+        if (foodItem == null || foodItem.getDonationId() == null)
+            return;
+
+        itemListener = FirebaseFirestore.getInstance().collection("donations")
+                .document(foodItem.getDonationId())
+                .addSnapshotListener((snapshot, e) -> {
+                    if (e != null)
+                        return;
+
+                    if (snapshot != null && snapshot.exists()) {
+                        // Update local object
+                        FoodItem updatedItem = snapshot.toObject(FoodItem.class);
+                        if (updatedItem != null) {
+                            updatedItem.setDonationId(snapshot.getId());
+                            this.foodItem = updatedItem; // Update reference
+
+                            // Update UI
+                            if (tvQuantity != null)
+                                tvQuantity.setText("Quantity: " + foodItem.getQuantity() + " (" + foodItem.getWeight()
+                                        + " kg Total)");
+
+                            // If quantity is 0, we could update UI to show claimed,
+                            // but for now just keeping quantity fresh is enough.
+                            if (foodItem.getQuantity() <= 0) {
+                                // Maybe disable button?
+                                Button btnClaim = getView().findViewById(R.id.btnClaim);
+                                if (btnClaim != null)
+                                    btnClaim.setEnabled(false);
+                                if (tvQuantity != null)
+                                    tvQuantity.setText("Status: CLAIMED");
+                            }
+                        }
+                    } else {
+                        // Document deleted
+                        if (getContext() != null) {
+                            Toast.makeText(getContext(), "Item no longer exists", Toast.LENGTH_SHORT).show();
+                            getParentFragmentManager().popBackStack();
+                        }
+                    }
+                });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (itemListener != null) {
+            itemListener.remove();
+        }
     }
 
     private void performClaimTransaction(int claimQty) {
@@ -309,13 +364,17 @@ public class ItemDetailsFragment extends Fragment {
             }
         }).addOnSuccessListener(result -> {
             // Navigate to Success
-            FragmentManager fragmentManager = getParentFragmentManager();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.coveringFragment, new ClaimNotifyFragment())
-                    .addToBackStack("ClaimSuccess")
-                    .commit();
+            if (isAdded()) {
+                FragmentManager fragmentManager = getParentFragmentManager();
+                fragmentManager.beginTransaction()
+                        .replace(R.id.coveringFragment, new ClaimNotifyFragment())
+                        .addToBackStack("ClaimSuccess")
+                        .commit();
+            }
         }).addOnFailureListener(e -> {
-            Toast.makeText(getContext(), "Claim failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            if (isAdded() && getContext() != null) {
+                Toast.makeText(getContext(), "Claim failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
         });
     }
 }

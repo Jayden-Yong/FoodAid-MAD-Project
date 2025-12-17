@@ -169,7 +169,7 @@ public class HomeFragment extends Fragment
 
         notificationListener = com.google.firebase.firestore.FirebaseFirestore.getInstance()
                 .collection("notifications")
-                .whereEqualTo("userId", FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .whereIn("userId", java.util.Arrays.asList(FirebaseAuth.getInstance().getCurrentUser().getUid(), "ALL"))
                 .whereEqualTo("isRead", false)
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null)

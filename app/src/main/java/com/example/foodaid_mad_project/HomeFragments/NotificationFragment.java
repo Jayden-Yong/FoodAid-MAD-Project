@@ -128,7 +128,7 @@ public class NotificationFragment extends Fragment {
             return;
 
         db.collection("notifications")
-                .whereEqualTo("userId", auth.getCurrentUser().getUid())
+                .whereIn("userId", java.util.Arrays.asList(auth.getCurrentUser().getUid(), "ALL"))
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null) {

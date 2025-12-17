@@ -118,6 +118,52 @@ public class MapPinItemFragment extends Fragment {
                         .commit();
             }
         });
+
+        // Setup Realtime Listener
+        setupRealtimeUpdates(tvQuantity, btnClaim);
+    }
+
+    private com.google.firebase.firestore.ListenerRegistration pinListener;
+
+    private void setupRealtimeUpdates(TextView tvQuantity, Button btnClaim) {
+        if (foodItem == null || foodItem.getDonationId() == null)
+            return;
+
+        pinListener = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("donations")
+                .document(foodItem.getDonationId())
+                .addSnapshotListener((snapshot, e) -> {
+                    if (e != null)
+                        return;
+                    if (snapshot != null && snapshot.exists()) {
+                        FoodItem updatedItem = snapshot.toObject(FoodItem.class);
+                        if (updatedItem != null) {
+                            updatedItem.setDonationId(snapshot.getId());
+                            this.foodItem = updatedItem;
+
+                            // Update UI
+                            String qtyText = "Qty: " + foodItem.getQuantity() + " • " + foodItem.getWeight() + " kg";
+                            tvQuantity.setText(qtyText);
+
+                            if (foodItem.getQuantity() <= 0) {
+                                btnClaim.setEnabled(false);
+                                tvQuantity.setText("Status: CLAIMED");
+                            }
+                        }
+                    } else {
+                        // Removed
+                        if (getView() != null)
+                            getView().setVisibility(View.GONE);
+                    }
+                });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (pinListener != null) {
+            pinListener.remove();
+        }
     }
 
     // Vibe Coded map pin to use with Google Map

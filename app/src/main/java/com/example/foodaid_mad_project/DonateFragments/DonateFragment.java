@@ -182,20 +182,15 @@ public class DonateFragment extends Fragment {
         spinnerPickupMethod.setAdapter(adapter);
 
         spinnerPickupMethod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selected = parent.getItemAtPosition(position).toString();
-                if (selected.equalsIgnoreCase("Free Table") || selected.contains("Free Table")) {
-                    tvTimeLabelFrom.setText("Drop Off:");
-                    etTimeFrom.setHint("Time");
-                    tvTimeLabelTo.setText("Expiry:");
-                    etTimeTo.setHint("Time");
-                } else {
-                    tvTimeLabelFrom.setText("Start:");
-                    etTimeFrom.setHint("12:00 PM");
-                    tvTimeLabelTo.setText("End:");
-                    etTimeTo.setHint("02:00 PM");
-                }
+                // User requested to keep labels standard regardless of method
+                // (Groceries/FreeTable)
+                tvTimeLabelFrom.setText("Start:");
+                etTimeFrom.setHint("12:00 PM");
+                tvTimeLabelTo.setText("End:");
+                etTimeTo.setHint("02:00 PM");
             }
 
             @Override
@@ -562,30 +557,75 @@ public class DonateFragment extends Fragment {
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(getContext(), "Donation posted successfully!", Toast.LENGTH_LONG).show();
 
-                    // --- Create Notification ---
-                    Map<String, Object> notification = new HashMap<>();
-                    notification.put("title", "Donation Successful");
-                    notification.put("message",
-                            "Thank you for donating " + title + "! Your contribution helps the community.");
-                    notification.put("timestamp", System.currentTimeMillis());
-                    notification.put("isRead", false);
-                    notification.put("type", "Donation");
-                    notification.put("userId", donatorId); // Notification for the donator
+                    // Check User Preferences for Notifications
+                    db.collection("users").document(donatorId).get().addOnSuccessListener(userSnap -> {
+                        boolean pushEnabled = true; // Default to true
+                        boolean emailEnabled = false;
 
-                    db.collection("notifications").add(notification)
-                            .addOnFailureListener(e -> Log.e("Donate", "Failed to create notification", e));
-                    // ---------------------------
+                        if (userSnap.exists()) {
+                            if (userSnap.contains("pushNotificationEnabled")) {
+                                pushEnabled = Boolean.TRUE.equals(userSnap.getBoolean("pushNotificationEnabled"));
+                            }
+                            if (userSnap.contains("emailNotificationEnabled")) {
+                                emailEnabled = Boolean.TRUE.equals(userSnap.getBoolean("emailNotificationEnabled"));
+                            }
+                        }
 
-                    String[] timeArr = new String[] { etTimeFrom.getText().toString(), etTimeTo.getText().toString() };
-                    int catId = (category.equals("GROCERIES")) ? R.id.radioGroceries : R.id.radioMeals;
+                        // --- Create Notification (If Enabled) ---
+                        if (pushEnabled) {
+                            // 1. Personal Notification (for Donator)
+                            Map<String, Object> personalNotif = new HashMap<>();
+                            personalNotif.put("title", "Donation Successful");
+                            personalNotif.put("message",
+                                    "Thank you for donating " + title + "! Your contribution helps the community.");
+                            personalNotif.put("timestamp", System.currentTimeMillis());
+                            personalNotif.put("isRead", false);
+                            personalNotif.put("type", "Donation");
+                            personalNotif.put("userId", donatorId);
 
-                    FragmentManager fragmentManager = getParentFragmentManager();
-                    fragmentManager.beginTransaction()
-                            .replace(R.id.coveringFragment,
-                                    new DonateNotifyFragment(title, timeArr, catId, weight, location, donator,
-                                            base64Image, description)) // Pass base64
-                            .addToBackStack("DonateSuccess")
-                            .commit();
+                            db.collection("notifications").add(personalNotif)
+                                    .addOnFailureListener(e -> Log.e("Donate", "Failed notification", e));
+
+                            // 2. Global Notification (for Others)
+                            Map<String, Object> globalNotif = new HashMap<>();
+                            globalNotif.put("title", "New Donation Available");
+                            globalNotif.put("message", donator + " is donating " + title + " at "
+                                    + (location != null ? location : "Unknown"));
+                            globalNotif.put("timestamp", System.currentTimeMillis());
+                            globalNotif.put("isRead", false);
+                            globalNotif.put("type", "Donation");
+                            globalNotif.put("userId", "ALL"); // Broadcast Topic
+
+                            db.collection("notifications").add(globalNotif)
+                                    .addOnFailureListener(e -> Log.e("Donate", "Failed global notification", e));
+                        }
+                        // ---------------------------
+
+                        // --- Email Notification (Simulated) ---
+                        if (emailEnabled) {
+                            String email = userSnap.getString("email");
+                            if (email == null)
+                                email = "your email";
+                            Toast.makeText(getContext(), "Confirmation email sent to " + email, Toast.LENGTH_SHORT)
+                                    .show();
+                        }
+                        // --------------------------------------
+
+                        // Navigate
+                        String[] timeArr = new String[] { etTimeFrom.getText().toString(),
+                                etTimeTo.getText().toString() };
+                        int catId = (category.equals("GROCERIES")) ? R.id.radioGroceries : R.id.radioMeals;
+
+                        if (isAdded()) {
+                            FragmentManager fragmentManager = getParentFragmentManager();
+                            fragmentManager.beginTransaction()
+                                    .replace(R.id.coveringFragment,
+                                            new DonateNotifyFragment(title, timeArr, catId, weight, location, donator,
+                                                    base64Image, description)) // Pass base64
+                                    .addToBackStack("DonateSuccess")
+                                    .commit();
+                        }
+                    });
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Failed to save donation: " + e.getMessage(), Toast.LENGTH_SHORT)
