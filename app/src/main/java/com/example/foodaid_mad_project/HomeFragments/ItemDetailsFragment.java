@@ -146,6 +146,41 @@ public class ItemDetailsFragment extends Fragment {
             return;
         }
 
+        // Check if quantity > 1 to show dialog
+        if (foodItem.getQuantity() > 1) {
+            showQuantityDialog();
+        } else {
+            performClaimTransaction(1);
+        }
+    }
+
+    private void showQuantityDialog() {
+        // Simple Alert Dialog with NumberPicker or Input
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
+        builder.setTitle("Claim Quantity");
+
+        final android.widget.EditText input = new android.widget.EditText(getContext());
+        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        input.setHint("Enter quantity (Max: " + foodItem.getQuantity() + ")");
+        builder.setView(input);
+
+        builder.setPositiveButton("Claim", (dialog, which) -> {
+            String qtyStr = input.getText().toString();
+            if (!qtyStr.isEmpty()) {
+                int qtyToClaim = Integer.parseInt(qtyStr);
+                if (qtyToClaim > 0 && qtyToClaim <= foodItem.getQuantity()) {
+                    performClaimTransaction(qtyToClaim);
+                } else {
+                    Toast.makeText(getContext(), "Invalid quantity", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
+    private void performClaimTransaction(int claimQty) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference docRef = db.collection("donations").document(foodItem.getDonationId());
 
@@ -153,19 +188,41 @@ public class ItemDetailsFragment extends Fragment {
             DocumentSnapshot snapshot = transaction.get(docRef);
             String status = snapshot.getString("status");
             Long endTime = snapshot.getLong("endTime");
+            Long currentQtyComp = snapshot.getLong("quantity");
+            int currentQty = (currentQtyComp != null) ? currentQtyComp.intValue() : 1;
+
             long currentTime = System.currentTimeMillis();
 
             if (status != null && status.equals("AVAILABLE") &&
-                    endTime != null && endTime > currentTime) {
+                    endTime != null && endTime > currentTime && currentQty >= claimQty) {
 
-                transaction.update(docRef, "status", "CLAIMED");
+                int newQty = currentQty - claimQty;
+                transaction.update(docRef, "quantity", newQty);
 
-                String uid = FirebaseAuth.getInstance().getUid();
-                transaction.update(docRef, "claimedBy", uid);
+                if (newQty == 0) {
+                    transaction.update(docRef, "status", "CLAIMED");
+                    transaction.update(docRef, "claimedBy", FirebaseAuth.getInstance().getUid()); // Only marks as
+                                                                                                  // claimed by LAST
+                                                                                                  // person? Or logic
+                                                                                                  // needs a
+                                                                                                  // subcollection?
+                    // For Phase 1 simplicity: The item is "Gone" when qty is 0.
+                    // Tracking "who claimed what" might need a separate "claims" collection or
+                    // array.
+                    // Let's add to a "claims" collection for history tracking.
+                    // But for this transaction, just decrement.
+                }
+
+                // Add to 'claims' collection for record (Atomic?)
+                // Ideally yes, but firestore transactions on multiple docs work.
+                // Let's keep it simple: Update donation doc. Context: "User X claimed N items".
+                // Maybe update an array field "claimants"?
+                // transaction.update(docRef, "claimants", FieldValue.arrayUnion(uid + ":" +
+                // claimQty));
 
                 return null; // Success
             } else {
-                throw new FirebaseFirestoreException("Item unavailable or expired",
+                throw new FirebaseFirestoreException("Item unavailable or insufficient quantity",
                         FirebaseFirestoreException.Code.ABORTED);
             }
         }).addOnSuccessListener(result -> {

@@ -63,7 +63,7 @@ public class DonateNotifyFragment extends Fragment {
             // Ideally DonateNotifyFragment should receive the full FoodItem object
             com.example.foodaid_mad_project.Model.FoodItem item = new com.example.foodaid_mad_project.Model.FoodItem(
                     null, null, donator, title, catString, "MEET_UP", location,
-                    0, 0, imageUri, weight, 0, 0, "AVAILABLE", null, System.currentTimeMillis());
+                    0, 0, imageUri, weight, 1, 0, 0, "AVAILABLE", null, System.currentTimeMillis());
 
             requireActivity().getSupportFragmentManager().beginTransaction()
                     .replace(R.id.coveringFragment,

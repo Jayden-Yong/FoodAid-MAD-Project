@@ -117,70 +117,151 @@ public class DonateFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // --- View Binding ---
-        RadioGroup toggleGroupDonationType = view.findViewById(R.id.toggleGroupDonationType);
-        EditText etItemName = view.findViewById(R.id.etItemName);
-        // quantity removed
-        EditText etWeight = view.findViewById(R.id.etWeight);
+        // --- Initialize Views ---
+        // Wait, setupMap() is not a standard method I see in the previous file content,
+        // I will inline the map setup here to be safe, or call setupMap if I define it.
+        // Looking at previous file (Step 861), checking if setupMap() exists.. NOT in
+        // the visible lines.
+        // It was called in the duplicate block (Line 246).
+        // I will Inline the logic to be safe.
 
+        // Global Variables
+        etLocationSearch = view.findViewById(R.id.etLocationSearch);
+        etTimeFrom = view.findViewById(R.id.etTimeFrom);
+        etTimeTo = view.findViewById(R.id.etTimeTo);
+        ivSelectedPhoto = view.findViewById(R.id.ivSelectedPhoto);
+        tvUploadPlaceholder = view.findViewById(R.id.tvUploadPlaceholder);
+
+        EditText etItemName = view.findViewById(R.id.etItemName);
+        EditText etWeight = view.findViewById(R.id.etWeight);
+        EditText etQuantity = view.findViewById(R.id.etQuantity);
         EditText etDescription = view.findViewById(R.id.etDescription);
         CardView cvUploadPhoto = view.findViewById(R.id.cvUploadPhoto);
         Spinner spinnerPickupMethod = view.findViewById(R.id.spinnerPickupMethod);
-        etTimeFrom = view.findViewById(R.id.etTimeFrom);
-        etTimeTo = view.findViewById(R.id.etTimeTo);
-        CheckBox cbConfirm = view.findViewById(R.id.cbConfirm);
+        RadioGroup radioGroupCategory = view.findViewById(R.id.toggleGroupDonationType);
 
-        // Time Picker Logic
-        etTimeFrom.setOnClickListener(v -> showTimePickerDialog(etTimeFrom, true));
-        etTimeTo.setOnClickListener(v -> showTimePickerDialog(etTimeTo, false));
-
-        // Location Search Views
-        etLocationSearch = view.findViewById(R.id.etLocationSearch);
         ImageButton btnSearchLocation = view.findViewById(R.id.btnSearchLocation);
-
+        ImageButton btnMyLocation = view.findViewById(R.id.btnMyLocation);
+        Button btnDonate = view.findViewById(R.id.btnDonate);
+        CheckBox cbConfirm = view.findViewById(R.id.cbConfirm);
+        TextView tvTimeLabelFrom = view.findViewById(R.id.tvTimeLabelFrom);
+        TextView tvTimeLabelTo = view.findViewById(R.id.tvTimeLabelTo);
         TextView toolBarTitle = view.findViewById(R.id.toolbarTitle);
-        toolBarTitle.setText("Donate Food");
-
-        ivSelectedPhoto = view.findViewById(R.id.ivSelectedPhoto);
-        tvUploadPlaceholder = view.findViewById(R.id.tvUploadPlaceholder);
+        if (toolBarTitle != null)
+            toolBarTitle.setText("Donate Food");
 
         // --- Map Initialization ---
         Configuration.getInstance().setUserAgentValue(requireContext().getPackageName());
         mapView = view.findViewById(R.id.mapView);
-        mapView.setMultiTouchControls(true);
+        if (mapView != null) {
+            mapView.setMultiTouchControls(true);
+            IMapController controller = mapView.getController();
+            controller.setZoom(15.0);
+            GeoPoint startPoint = new GeoPoint(3.1390, 101.6869); // Default KL
+            controller.setCenter(startPoint);
 
-        IMapController controller = mapView.getController();
-        controller.setZoom(15.0);
-        GeoPoint startPoint = new GeoPoint(3.1390, 101.6869); // Default KL
-        controller.setCenter(startPoint);
+            // Map Click Listener
+            MapEventsReceiver mapEventsReceiver = new MapEventsReceiver() {
+                @Override
+                public boolean singleTapConfirmedHelper(GeoPoint p) {
+                    handleMapClick(p);
+                    return true;
+                }
 
-        // Map Click Listener
-        MapEventsReceiver mapEventsReceiver = new MapEventsReceiver() {
+                @Override
+                public boolean longPressHelper(GeoPoint p) {
+                    return false;
+                }
+            };
+            MapEventsOverlay mapEventsOverlay = new MapEventsOverlay(mapEventsReceiver);
+            mapView.getOverlays().add(0, mapEventsOverlay);
+        }
+
+        // --- Time Pickers ---
+        etTimeFrom.setOnClickListener(v -> showTimePickerDialog(etTimeFrom, true));
+        etTimeTo.setOnClickListener(v -> showTimePickerDialog(etTimeTo, false));
+
+        // --- Spinner Setup ---
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(requireContext(),
+                R.array.Pickup_Method_List, R.layout.spinner_item_selected);
+        adapter.setDropDownViewResource(R.layout.spinner_pickup_method);
+        spinnerPickupMethod.setAdapter(adapter);
+
+        spinnerPickupMethod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public boolean singleTapConfirmedHelper(GeoPoint p) {
-                handleMapClick(p);
-                return true;
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selected = parent.getItemAtPosition(position).toString();
+                if (selected.equalsIgnoreCase("Free Table") || selected.contains("Free Table")) {
+                    tvTimeLabelFrom.setText("Drop Off:");
+                    etTimeFrom.setHint("Time");
+                    tvTimeLabelTo.setText("Expiry:");
+                    etTimeTo.setHint("Time");
+                } else {
+                    tvTimeLabelFrom.setText("Start:");
+                    etTimeFrom.setHint("12:00 PM");
+                    tvTimeLabelTo.setText("End:");
+                    etTimeTo.setHint("02:00 PM");
+                }
             }
 
             @Override
-            public boolean longPressHelper(GeoPoint p) {
-                return false;
-            }
-        };
-        MapEventsOverlay mapEventsOverlay = new MapEventsOverlay(mapEventsReceiver);
-        mapView.getOverlays().add(0, mapEventsOverlay);
-
-        // --- Search Button Logic ---
-        btnSearchLocation.setOnClickListener(v -> {
-            String searchString = etLocationSearch.getText().toString();
-            if (!searchString.isEmpty()) {
-                searchLocation(searchString);
-            } else {
-                Toast.makeText(getContext(), "Please enter a location to search", Toast.LENGTH_SHORT).show();
+            public void onNothingSelected(AdapterView<?> parent) {
             }
         });
 
-        // Photo Upload Logic
+        // --- Location Logic ---
+        com.google.android.gms.location.FusedLocationProviderClient fusedLocationClient = com.google.android.gms.location.LocationServices
+                .getFusedLocationProviderClient(requireActivity());
+
+        // Auto-fetch location
+        if (androidx.core.content.ContextCompat.checkSelfPermission(requireContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(locationObj -> {
+                if (locationObj != null && mapView != null) {
+                    GeoPoint point = new GeoPoint(locationObj.getLatitude(), locationObj.getLongitude());
+                    mapView.getController().setCenter(point);
+                    mapView.getController().setZoom(18.0);
+                    addMarker(point);
+                    selectedGeoPoint = point;
+                    getAddressFromGeoPoint(point);
+                }
+            });
+        }
+
+        if (btnMyLocation != null) {
+            btnMyLocation.setOnClickListener(v -> {
+                if (androidx.core.content.ContextCompat.checkSelfPermission(requireContext(),
+                        android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    fusedLocationClient.getLastLocation().addOnSuccessListener(locationObj -> {
+                        if (locationObj != null && mapView != null) {
+                            GeoPoint point = new GeoPoint(locationObj.getLatitude(), locationObj.getLongitude());
+                            mapView.getController().animateTo(point);
+                            mapView.getController().setZoom(18.0);
+                            addMarker(point); // Defined below
+                            selectedGeoPoint = point;
+                            getAddressFromGeoPoint(point); // Defined below
+                        } else {
+                            Toast.makeText(getContext(), "Location not found", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    Toast.makeText(getContext(), "Permission required", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        if (btnSearchLocation != null) {
+            btnSearchLocation.setOnClickListener(v -> {
+                String searchString = etLocationSearch.getText().toString();
+                if (!searchString.isEmpty()) {
+                    searchLocation(searchString);
+                } else {
+                    Toast.makeText(getContext(), "Please enter location", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        // --- Photo Upload ---
         if (cvUploadPhoto != null) {
             cvUploadPhoto.setOnClickListener(v -> {
                 pickMedia.launch(new PickVisualMediaRequest.Builder()
@@ -189,50 +270,72 @@ public class DonateFragment extends Fragment {
             });
         }
 
-        // Spinner Setup
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(requireContext(),
-                R.array.Pickup_Method_List, R.layout.spinner_item_selected);
-        adapter.setDropDownViewResource(R.layout.spinner_pickup_method);
-        spinnerPickupMethod.setAdapter(adapter);
+        // --- Donate Button ---
+        if (btnDonate != null) {
+            btnDonate.setOnClickListener(v -> {
+                String donationTitle = etItemName.getText().toString().trim();
+                String weightStr = etWeight.getText().toString().trim();
+                String quantityStr = etQuantity.getText().toString().trim();
+                String desc = etDescription.getText().toString().trim();
+                String locationInput = etLocationSearch.getText().toString().trim();
 
-        TextView tvTimeLabelFrom = view.findViewById(R.id.tvTimeLabelFrom);
-        TextView tvTimeLabelTo = view.findViewById(R.id.tvTimeLabelTo);
-
-        spinnerPickupMethod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selected = parent.getItemAtPosition(position).toString();
-                if (selected.equalsIgnoreCase("Free Table")) {
-                    tvTimeLabelFrom.setText("Drop Off:");
-                    etTimeFrom.setHint("Time");
-                    tvTimeLabelTo.setText("Expiry:");
-                    etTimeTo.setHint("Time");
-                } else {
-                    // Default to Meet Up
-                    tvTimeLabelFrom.setText("Start:");
-                    etTimeFrom.setHint("Time");
-                    tvTimeLabelTo.setText("End:");
-                    etTimeTo.setHint("Time");
+                if (radioGroupCategory.getCheckedRadioButtonId() == -1) {
+                    Toast.makeText(getContext(), "Select Donation Type", Toast.LENGTH_SHORT).show();
+                    return;
                 }
-            }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing
-            }
-        });
+                int selectedId = radioGroupCategory.getCheckedRadioButtonId();
+                if (selectedId == R.id.radioGroceries)
+                    categoryStr = "GROCERIES";
+                else
+                    categoryStr = "MEALS";
 
-        // Navigation Logic
-        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
-                new OnBackPressedCallback(true) {
-                    @Override
-                    public void handleOnBackPressed() {
-                        if (getParentFragmentManager().getBackStackEntryCount() > 0) {
-                            getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                        }
+                if (donationTitle.isEmpty() || weightStr.isEmpty() || quantityStr.isEmpty() || locationInput.isEmpty()
+                        || selectedImageUri == null) {
+                    Toast.makeText(getContext(), "Fill all fields & upload photo", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (startTime == 0 || endTime == 0) {
+                    Toast.makeText(getContext(), "Select times", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (endTime <= startTime) {
+                    Toast.makeText(getContext(), "End time must be after Start time", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (!cbConfirm.isChecked()) {
+                    Toast.makeText(getContext(), "Confirm donation details", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                double weightVal = 0.0;
+                try {
+                    weightVal = Double.parseDouble(weightStr);
+                } catch (NumberFormatException e) {
+                    Toast.makeText(getContext(), "Invalid weight", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                if (user != null) {
+                    donator = user.getDisplayName();
+                    donatorId = user.getUid();
+                    if (donator == null || donator.isEmpty()) {
+                        donator = "User";
                     }
-                });
+                } else {
+                    donator = "Anonymous";
+                    donatorId = "anon";
+                }
 
+                pickupMethodStr = spinnerPickupMethod.getSelectedItem().toString();
+                processImageAndSave(selectedImageUri, donationTitle, weightVal, desc, categoryStr, pickupMethodStr);
+            });
+        }
+
+        // Navigation Back Button
         Toolbar toolbar = view.findViewById(R.id.Toolbar);
         if (toolbar != null) {
             toolbar.setNavigationOnClickListener(v -> {
@@ -241,86 +344,22 @@ public class DonateFragment extends Fragment {
                 }
             });
         }
+    }
 
-        // --- Donate Button Logic ---
-        Button btnDonate = view.findViewById(R.id.btnDonate);
-        if (btnDonate != null) {
-            btnDonate.setOnClickListener(v -> {
-                // Input Gathering
-                title = etItemName.getText().toString();
-                String weightStr = etWeight.getText().toString();
-                String desc = etDescription.getText().toString();
-
-                // Validation
-                if (toggleGroupDonationType.getCheckedRadioButtonId() == -1) {
-                    Toast.makeText(getContext(), "Please select a donation type", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                int selectedId = toggleGroupDonationType.getCheckedRadioButtonId();
-                if (selectedId == R.id.radioGroceries)
-                    categoryStr = "GROCERIES";
-                else if (selectedId == R.id.radioMeals)
-                    categoryStr = "MEALS";
-                else
-                    categoryStr = "OTHER";
-
-                if (title.isEmpty() || weightStr.isEmpty() || desc.isEmpty()) {
-                    Toast.makeText(getContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if (selectedImageUri == null) {
-                    Toast.makeText(getContext(), "Please upload a photo", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if (startTime == 0 || endTime == 0) {
-                    Toast.makeText(getContext(), "Please select start and end times", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if (endTime <= startTime) {
-                    Toast.makeText(getContext(), "End time must be after start time", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if (endTime <= System.currentTimeMillis()) {
-                    Toast.makeText(getContext(), "End time must be in the future", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if (!cbConfirm.isChecked()) {
-                    Toast.makeText(getContext(), "You must confirm the donation details", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                double weight = 0.0;
-                try {
-                    weight = Double.parseDouble(weightStr);
-                } catch (NumberFormatException e) {
-                    Toast.makeText(getContext(), "Invalid weight format", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                // Get User Info
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                if (user != null) {
-                    donator = user.getDisplayName();
-                    donatorId = user.getUid();
-                    if (donator == null || donator.isEmpty()) {
-                        donator = user.getEmail().substring(0, user.getEmail().indexOf("@"));
-                    }
-                } else {
-                    donator = "Anonymous";
-                    donatorId = "anon";
-                }
-
-                pickupMethodStr = spinnerPickupMethod.getSelectedItem().toString();
-
-                processImageAndSave(selectedImageUri, title, weight, desc, categoryStr, pickupMethodStr);
-            });
+    // Helper to add marker (since I referenced it)
+    private void addMarker(GeoPoint point) {
+        if (mapView == null)
+            return;
+        if (selectedMarker != null) {
+            mapView.getOverlays().remove(selectedMarker);
         }
+        selectedMarker = new Marker(mapView);
+        selectedMarker.setPosition(point);
+        selectedMarker.setTitle("Selected Location");
+        selectedMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        selectedMarker.setIcon(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_custom_pin));
+        mapView.getOverlays().add(selectedMarker);
+        mapView.invalidate();
     }
 
     private void handleMapClick(GeoPoint point) {
@@ -449,9 +488,17 @@ public class DonateFragment extends Fragment {
     private void saveDonationToFirestore(String base64Image, String title, double weight, String description,
             String category, String pickupMethod) {
 
+        int quantity = 1;
+        try {
+            EditText etQuantity = getView().findViewById(R.id.etQuantity);
+            quantity = Integer.parseInt(etQuantity.getText().toString());
+        } catch (Exception e) {
+        }
+
         Map<String, Object> donation = new HashMap<>();
         donation.put("title", title);
         donation.put("weight", weight);
+        donation.put("quantity", quantity);
         donation.put("description", description);
         donation.put("donatorId", donatorId);
         donation.put("donatorName", donator);

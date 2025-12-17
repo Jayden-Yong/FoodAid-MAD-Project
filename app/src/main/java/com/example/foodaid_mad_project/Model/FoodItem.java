@@ -17,6 +17,7 @@ public class FoodItem implements Parcelable {
 
     // Impact & Time Logic
     private double weight; // TOTAL Weight in KG
+    private int quantity; // Number of items available
     private long startTime; // Pick-up start (Unix Millis)
     private long endTime; // Expiry time (Unix Millis)
 
@@ -33,7 +34,7 @@ public class FoodItem implements Parcelable {
     public FoodItem(String donationId, String donatorId, String donatorName, String title,
             String category, String pickupMethod, String locationName,
             double latitude, double longitude, String imageUri,
-            double weight, long startTime, long endTime,
+            double weight, int quantity, long startTime, long endTime,
             String status, String claimedBy, long timestamp) {
         this.donationId = donationId;
         this.donatorId = donatorId;
@@ -46,6 +47,7 @@ public class FoodItem implements Parcelable {
         this.longitude = longitude;
         this.imageUri = imageUri;
         this.weight = weight;
+        this.quantity = quantity;
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = status;
@@ -65,6 +67,7 @@ public class FoodItem implements Parcelable {
         longitude = in.readDouble();
         imageUri = in.readString();
         weight = in.readDouble();
+        quantity = in.readInt();
         startTime = in.readLong();
         endTime = in.readLong();
         status = in.readString();
@@ -102,6 +105,7 @@ public class FoodItem implements Parcelable {
         dest.writeDouble(longitude);
         dest.writeString(imageUri);
         dest.writeDouble(weight);
+        dest.writeInt(quantity);
         dest.writeLong(startTime);
         dest.writeLong(endTime);
         dest.writeString(status);
@@ -110,6 +114,14 @@ public class FoodItem implements Parcelable {
     }
 
     // Getters and Setters
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
 
     public String getDonationId() {
         return donationId;

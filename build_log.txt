@@ -19,32 +19,29 @@
 > Task :app:processDebugManifestForPackage UP-TO-DATE
 > Task :app:processDebugResources UP-TO-DATE
 
-> Task :app:compileDebugJavaWithJavac FAILED
-D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\ProfileFragments\ProfileFragment.java:31: error: cannot find symbol
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-                                             ^
-  symbol:   class GoogleSignIn
-  location: package com.google.android.gms.auth.api.signin
-D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\ProfileFragments\ProfileFragment.java:32: error: cannot find symbol
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-                                             ^
-  symbol:   class GoogleSignInClient
-  location: package com.google.android.gms.auth.api.signin
-D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\ProfileFragments\ProfileFragment.java:57: error: cannot find symbol
-    private GoogleSignInClient mGoogleSignInClient;
-            ^
-  symbol:   class GoogleSignInClient
-  location: class ProfileFragment
-D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\ProfileFragments\ProfileFragment.java:82: error: cannot find symbol
-        mGoogleSignInClient = GoogleSignIn.getClient(requireActivity(), gso);
-                              ^
-  symbol:   variable GoogleSignIn
-  location: class ProfileFragment
+> Task :app:compileDebugJavaWithJavac
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\DonateFragments\DonateFragment.java:213: error: package com.google.android.gms.location does not exist
+        com.google.android.gms.location.FusedLocationProviderClient fusedLocationClient = com.google.android.gms.location.LocationServices
+                                       ^
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\DonateFragments\DonateFragment.java:213: error: package com.google.android.gms.location does not exist
+        com.google.android.gms.location.FusedLocationProviderClient fusedLocationClient = com.google.android.gms.location.LocationServices
+                                                                                                                         ^
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\DonateFragments\DonateNotifyFragment.java:64: error: no suitable constructor found for FoodItem(<null>,<null>,String,String,String,String,String,int,int,String,double,int,int,String,<null>,long)
+            com.example.foodaid_mad_project.Model.FoodItem item = new com.example.foodaid_mad_project.Model.FoodItem(
+                                                                  ^
+    constructor FoodItem.FoodItem() is not applicable
+      (actual and formal argument lists differ in length)
+    constructor FoodItem.FoodItem(String,String,String,String,String,String,String,double,double,String,double,int,long,long,String,String,long) is not applicable
+      (actual and formal argument lists differ in length)
+    constructor FoodItem.FoodItem(Parcel) is not applicable
+      (actual and formal argument lists differ in length)
 Note: Some input files use or override a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
 Note: D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\ProfileFragments\ProfileFragment.java uses unchecked or unsafe operations.
 Note: Recompile with -Xlint:unchecked for details.
-4 errors
+3 errors
+
+> Task :app:compileDebugJavaWithJavac FAILED
 
 [Incubating] Problems report is available at: file:///D:/Documents/GitHub/FoodAid-MAD-Project/build/reports/problems/problems-report.html
 
@@ -53,35 +50,30 @@ FAILURE: Build failed with an exception.
 * What went wrong:
 Execution failed for task ':app:compileDebugJavaWithJavac'.
 > Compilation failed; see the compiler output below.
-  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\ProfileFragments\ProfileFragment.java:31: error: cannot find symbol
-  import com.google.android.gms.auth.api.signin.GoogleSignIn;
-                                               ^
-    symbol:   class GoogleSignIn
-    location: package com.google.android.gms.auth.api.signin
-  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\ProfileFragments\ProfileFragment.java:32: error: cannot find symbol
-  import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-                                               ^
-    symbol:   class GoogleSignInClient
-    location: package com.google.android.gms.auth.api.signin
-  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\ProfileFragments\ProfileFragment.java:57: error: cannot find symbol
-      private GoogleSignInClient mGoogleSignInClient;
-              ^
-    symbol:   class GoogleSignInClient
-    location: class ProfileFragment
-  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\ProfileFragments\ProfileFragment.java:82: error: cannot find symbol
-          mGoogleSignInClient = GoogleSignIn.getClient(requireActivity(), gso);
-                                ^
-    symbol:   variable GoogleSignIn
-    location: class ProfileFragment
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\DonateFragments\DonateFragment.java:213: error: package com.google.android.gms.location does not exist
+          com.google.android.gms.location.FusedLocationProviderClient fusedLocationClient = com.google.android.gms.location.LocationServices
+                                         ^
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\DonateFragments\DonateFragment.java:213: error: package com.google.android.gms.location does not exist
+          com.google.android.gms.location.FusedLocationProviderClient fusedLocationClient = com.google.android.gms.location.LocationServices
+                                                                                                                           ^
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\DonateFragments\DonateNotifyFragment.java:64: error: no suitable constructor found for FoodItem(<null>,<null>,String,String,String,String,String,int,int,String,double,int,int,String,<null>,long)
+              com.example.foodaid_mad_project.Model.FoodItem item = new com.example.foodaid_mad_project.Model.FoodItem(
+                                                                    ^
+      constructor FoodItem.FoodItem() is not applicable
+        (actual and formal argument lists differ in length)
+      constructor FoodItem.FoodItem(String,String,String,String,String,String,String,double,double,String,double,int,long,long,String,String,long) is not applicable
+        (actual and formal argument lists differ in length)
+      constructor FoodItem.FoodItem(Parcel) is not applicable
+        (actual and formal argument lists differ in length)
   Note: Some input files use or override a deprecated API.
   Note: Recompile with -Xlint:deprecation for details.
   Note: D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\ProfileFragments\ProfileFragment.java uses unchecked or unsafe operations.
   Note: Recompile with -Xlint:unchecked for details.
-  4 errors
+  3 errors
 
 * Try:
 > Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights.
 
-BUILD FAILED in 1s
+BUILD FAILED in 6s
 18 actionable tasks: 1 executed, 17 up-to-date
