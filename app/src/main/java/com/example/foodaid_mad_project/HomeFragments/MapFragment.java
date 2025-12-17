@@ -150,12 +150,18 @@ public class MapFragment extends Fragment {
      * }
      */
 
+    private com.google.firebase.firestore.ListenerRegistration firestoreListener;
+
     private void listenToAvailableDonations() {
         foodItems = new ArrayList<>();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         long currentTime = System.currentTimeMillis();
 
-        db.collection("donations")
+        if (firestoreListener != null) {
+            firestoreListener.remove();
+        }
+
+        firestoreListener = db.collection("donations")
                 .whereEqualTo("status", "AVAILABLE")
                 .whereGreaterThan("endTime", currentTime)
                 .addSnapshotListener((snapshots, e) -> {
@@ -231,6 +237,8 @@ public class MapFragment extends Fragment {
         }
 
         mapView.post(() -> {
+            if (mapView == null)
+                return;
             IMapController controller = mapView.getController();
             controller.setZoom(20.0);
             controller.animateTo(point);
@@ -269,13 +277,30 @@ public class MapFragment extends Fragment {
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (firestoreListener != null) {
+            firestoreListener.remove();
+            firestoreListener = null;
+        }
+        // Properly allow MapView to detach
+        if (mapView != null) {
+            mapView.onDetach(); // Osmdroid cleanup
+            mapView = null;
+        }
+        locationOverlay = null;
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         if (mapView != null) {
             mapView.onResume();
         }
         if (locationOverlay == null || locationOverlay.getMyLocationProvider() == null) {
-            setupUserLocation();
+            // Re-setup if needed, but be careful of duplication
+            if (mapView != null)
+                setupUserLocation();
         }
 
         if (locationOverlay != null) {
@@ -286,7 +311,9 @@ public class MapFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        mapView.onPause();
+        if (mapView != null) {
+            mapView.onPause();
+        }
         if (locationOverlay != null)
             locationOverlay.disableMyLocation();
     }

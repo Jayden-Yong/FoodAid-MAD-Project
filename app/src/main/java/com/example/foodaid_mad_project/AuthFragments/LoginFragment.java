@@ -311,6 +311,11 @@ public class LoginFragment extends Fragment {
         // new?
         // SetOptions.merge() won't delete existing badges.
         // We won't put empty list here to avoid resetting existing users.
+        // Initialize for new users
+        if (!userData.containsKey("earnedBadges")) {
+            userData.put("earnedBadges", java.util.Collections.emptyList());
+        }
+        userData.put("createdAt", System.currentTimeMillis()); // Ensure createdAt is set
         userData.put("userType", "student");
         userData.put("lastLogin", System.currentTimeMillis());
 

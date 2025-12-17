@@ -7,7 +7,7 @@ public class User {
     private String email;
     private String displayName; // Populated from Registration or Google
     private String photoUrl; // Firebase Storage URL
-    private List<String> earnedBadges; // List of Badge IDs (e.g., "badge_10kg")
+    private java.util.List<String> earnedBadges = new java.util.ArrayList<>(); // List of Badge IDs (e.g., "badge_10kg")
     private String userType; // "student"
     private long createdAt; // Timestamp
     private long lastLogin; // Timestamp

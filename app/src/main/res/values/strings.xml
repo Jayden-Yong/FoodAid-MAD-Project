@@ -200,6 +200,7 @@
     <!-- Community -->
     <string name="Community">Community</string>
     <string name="Post_Title">%1$s posted a %2$s</string><!-- User, Post_Type -->
+    <string name="User_Action_Post">%1$s</string> <!-- Just User Name for now, or "%1$s shared a story" -->
     <string name="Create_Post">Create a new post</string>
     <string-array name="Post_Type">
         <item>tip</item>
@@ -211,6 +212,10 @@
     <string name="Post_Likes">%1$d likes</string><!-- Number -->
     <string name="Post_Comments">%1$d comments</string><!-- Number -->
     <string name="View_Details"><u>View Details</u></string>
+    <string name="Post_Hint">What\'s on your mind?</string>
+    <string name="Add_Photo">Add Photo (Optional)</string>
+    <string name="Cancel">Cancel</string>
+    <string name="Post">Post</string>
 
     <!-- Profile -->
     <string name="Profile">Profile</string>

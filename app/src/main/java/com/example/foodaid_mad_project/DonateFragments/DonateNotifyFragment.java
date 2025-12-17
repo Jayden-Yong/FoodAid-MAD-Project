@@ -23,19 +23,21 @@ public class DonateNotifyFragment extends Fragment {
     private String location;
     private String donator;
     private String imageUri;
+    private String description;
 
     public DonateNotifyFragment() {
     }
 
     public DonateNotifyFragment(String title, String[] pickupTime, int category, double weight, String location,
-            String donator, String imageUri) {
+            String donator, String imageUri, String description) {
         this.title = title;
         this.pickupTime = pickupTime;
         this.category = category;
         this.weight = weight;
         this.location = location;
         this.donator = donator;
-        this.imageUri = imageUri; // Save it
+        this.imageUri = imageUri;
+        this.description = description;
     }
 
     @Nullable
@@ -63,7 +65,7 @@ public class DonateNotifyFragment extends Fragment {
             // Ideally DonateNotifyFragment should receive the full FoodItem object
             com.example.foodaid_mad_project.Model.FoodItem item = new com.example.foodaid_mad_project.Model.FoodItem(
                     null, null, donator, title, catString, "MEET_UP", location,
-                    0, 0, imageUri, weight, 1, 0, 0, "AVAILABLE", null, System.currentTimeMillis());
+                    0, 0, imageUri, weight, 1, 0, 0, "AVAILABLE", null, System.currentTimeMillis(), description);
 
             requireActivity().getSupportFragmentManager().beginTransaction()
                     .replace(R.id.coveringFragment,

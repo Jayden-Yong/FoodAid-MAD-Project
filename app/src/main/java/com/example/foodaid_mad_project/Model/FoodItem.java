@@ -25,6 +25,7 @@ public class FoodItem implements Parcelable {
     private String status; // "AVAILABLE" or "CLAIMED"
     private String claimedBy; // UID of claimer (null if available)
     private long timestamp; // Posted time
+    private String description;
 
     // Empty constructor needed for Firebase Firestore
     public FoodItem() {
@@ -35,7 +36,7 @@ public class FoodItem implements Parcelable {
             String category, String pickupMethod, String locationName,
             double latitude, double longitude, String imageUri,
             double weight, int quantity, long startTime, long endTime,
-            String status, String claimedBy, long timestamp) {
+            String status, String claimedBy, long timestamp, String description) {
         this.donationId = donationId;
         this.donatorId = donatorId;
         this.donatorName = donatorName;
@@ -53,6 +54,7 @@ public class FoodItem implements Parcelable {
         this.status = status;
         this.claimedBy = claimedBy;
         this.timestamp = timestamp;
+        this.description = description;
     }
 
     protected FoodItem(Parcel in) {
@@ -70,8 +72,8 @@ public class FoodItem implements Parcelable {
         quantity = in.readInt();
         startTime = in.readLong();
         endTime = in.readLong();
-        status = in.readString();
         claimedBy = in.readString();
+        description = in.readString();
         timestamp = in.readLong();
     }
 
@@ -110,10 +112,19 @@ public class FoodItem implements Parcelable {
         dest.writeLong(endTime);
         dest.writeString(status);
         dest.writeString(claimedBy);
+        dest.writeString(description);
         dest.writeLong(timestamp);
     }
 
     // Getters and Setters
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public int getQuantity() {
         return quantity;

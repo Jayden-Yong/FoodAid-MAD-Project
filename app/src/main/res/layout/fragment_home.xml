@@ -43,14 +43,6 @@
                 android:src="@drawable/ic_notification"
                 android:backgroundTint="@color/white" />
 
-            <ImageButton
-                android:id="@+id/btnToQR"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="center"
-                android:contentDescription="@string/QR_Code"
-                android:src="@drawable/ic_qr"
-                android:backgroundTint="@color/white" />
         </LinearLayout>
     </LinearLayout>
 

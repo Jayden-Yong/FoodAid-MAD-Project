@@ -453,12 +453,11 @@ public class DonateFragment extends Fragment {
             Calendar selectedTime = Calendar.getInstance();
             selectedTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
             selectedTime.set(Calendar.MINUTE, minuteOfHour);
-            // Ensure date is today (or handle date picker too, but for now assuming today
-            // only per simplified requirement)
-            // Ideally we should have a DatePicker too, but user req only mentioned
-            // TimePicker inputs.
-            // We'll assume the donation is for TODAY or TOMORROW if time is past?
-            // Simple logic: Set to today.
+
+            // If time is in the past, assume it's for tomorrow
+            if (selectedTime.before(Calendar.getInstance())) {
+                selectedTime.add(Calendar.DAY_OF_YEAR, 1);
+            }
 
             SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
             editText.setText(sdf.format(selectedTime.getTime()));
@@ -475,27 +474,33 @@ public class DonateFragment extends Fragment {
     private void processImageAndSave(Uri imageUri, String title, double weight, int quantity, String description,
             String category,
             String pickupMethod) {
-        Toast.makeText(getContext(), "Processing image...", Toast.LENGTH_SHORT).show();
-
-        try {
-            // Database-Only approach: Convert to Base64
-            // This is blocking UI thread slightly, ideally assume Async or use
-            // Coroutines/Thread,
-            // but for <500KB resize it's usually fast enough for a prototype.
-            String base64Image = com.example.foodaid_mad_project.Utils.ImageUtil.uriToBase64(getContext(), imageUri);
-
-            if (base64Image != null) {
-                saveDonationToFirestore(base64Image, title, weight, quantity, description, category, pickupMethod);
-            } else {
-                Toast.makeText(getContext(), "Failed to process image", Toast.LENGTH_SHORT).show();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(getContext(), "Error processing image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
+        Toast.makeText(getContext(), "Uploading image...", Toast.LENGTH_SHORT).show();
+        uploadImageToStorage(imageUri, title, weight, quantity, description, category, pickupMethod);
     }
 
-    private void saveDonationToFirestore(String base64Image, String title, double weight, int quantity,
+    private void uploadImageToStorage(Uri imageUri, String title, double weight, int quantity, String description,
+            String category, String pickupMethod) {
+        if (imageUri == null) {
+            // Should not happen as we check before calling, but handle gracefully
+            saveDonationToFirestore(null, title, weight, quantity, description, category, pickupMethod);
+            return;
+        }
+
+        String fileName = "donations/" + UUID.randomUUID().toString() + ".jpg";
+        StorageReference ref = storageReference.child(fileName);
+
+        ref.putFile(imageUri)
+                .addOnSuccessListener(taskSnapshot -> ref.getDownloadUrl().addOnSuccessListener(uri -> {
+                    String downloadUrl = uri.toString();
+                    saveDonationToFirestore(downloadUrl, title, weight, quantity, description, category, pickupMethod);
+                }))
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Image upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    // Optional: Try saving without image or stop? For now we stop.
+                });
+    }
+
+    private void saveDonationToFirestore(String imageUrl, String title, double weight, int quantity,
             String description,
             String category, String pickupMethod) {
 
@@ -516,8 +521,8 @@ public class DonateFragment extends Fragment {
         donation.put("category", category);
         donation.put("pickupMethod", pickupMethod);
         donation.put("timestamp", System.currentTimeMillis());
-        // Store Base64 directly
-        donation.put("imageUri", base64Image);
+        // Store Storage URL instead of Base64
+        donation.put("imageUri", imageUrl);
 
         db.collection("donations").add(donation)
                 .addOnSuccessListener(documentReference -> {
@@ -528,9 +533,9 @@ public class DonateFragment extends Fragment {
 
                     FragmentManager fragmentManager = getParentFragmentManager();
                     fragmentManager.beginTransaction()
-                            .replace(R.id.DonateFragmentContainer,
+                            .replace(R.id.coveringFragment,
                                     new DonateNotifyFragment(title, timeArr, catId, weight, location, donator,
-                                            base64Image))
+                                            imageUrl, description))
                             .addToBackStack("DonateSuccess")
                             .commit();
                 })
