@@ -20,10 +20,10 @@
 > Task :app:processDebugResources UP-TO-DATE
 
 > Task :app:compileDebugJavaWithJavac FAILED
-D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\CommunityFragments\CommunityFragment.java:328: error: cannot find symbol
-                cbLike = itemView.findViewById(R.id.cbLike); // Inside llLikes
-                                                   ^
-  symbol:   variable cbLike
+D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\HomeFragments\HomeFragment.java:150: error: cannot find symbol
+        ImageButton btnToQR = view.findViewById(R.id.btnToQR);
+                                                    ^
+  symbol:   variable btnToQR
   location: class id
 Note: Some input files use or override a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
@@ -38,11 +38,10 @@ FAILURE: Build failed with an exception.
 * What went wrong:
 Execution failed for task ':app:compileDebugJavaWithJavac'.
 > Compilation failed; see the compiler output below.
-  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\CommunityFragments\CommunityFragment.java:328: error: cannot find symbol
-                  cbLike = itemView.findViewById(R.id.cbLike); // Inside llLikes
-                                                     ^
-    symbol:   variable cbLike
-18 actionable tasks: 1 executed, 17 up-to-date
+  D:\Documents\GitHub\FoodAid-MAD-Project\app\src\main\java\com\example\foodaid_mad_project\HomeFragments\HomeFragment.java:150: error: cannot find symbol
+          ImageButton btnToQR = view.findViewById(R.id.btnToQR);
+                                                      ^
+    symbol:   variable btnToQR
     location: class id
   Note: Some input files use or override a deprecated API.
   Note: Recompile with -Xlint:deprecation for details.
@@ -54,4 +53,5 @@ Execution failed for task ':app:compileDebugJavaWithJavac'.
 > Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights.
 
-BUILD FAILED in 3s
+BUILD FAILED in 1s
+18 actionable tasks: 1 executed, 17 up-to-date

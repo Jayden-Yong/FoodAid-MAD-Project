@@ -50,7 +50,8 @@ public class QRFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_qr, container, false);
     }
 
@@ -79,15 +80,15 @@ public class QRFragment extends Fragment {
             if (user != null) {
                 String email = user.getEmail();
 
-                if (user.getFullName() != null) {
-                    username = user.getFullName();
-                } else if(user.getDisplayName() != null){
+                if (user.getDisplayName() != null) {
+                    username = user.getDisplayName();
+                } else if (user.getDisplayName() != null) {
                     username = user.getDisplayName();
                 } else {
                     username = email.substring(0, email.indexOf("@")).toUpperCase();
                 }
 
-                if(user.getUid() != null){
+                if (user.getUid() != null) {
                     userId = user.getUid();
                 }
             }
@@ -106,16 +107,18 @@ public class QRFragment extends Fragment {
         btnTabScanQr.setOnClickListener(v -> switchTab(false));
 
         // System back button
-        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                // Manually pop the Donate Fragment
-                if (getParentFragmentManager().getBackStackEntryCount() > 0) {
-                    getParentFragmentManager().popBackStack("ItemDetail", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                    getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                }
-            }
-        });
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        // Manually pop the Donate Fragment
+                        if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                            getParentFragmentManager().popBackStack("ItemDetail",
+                                    FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                            getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                        }
+                    }
+                });
 
         Toolbar toolbar = view.findViewById(R.id.Toolbar);
         if (toolbar != null) {
@@ -136,7 +139,8 @@ public class QRFragment extends Fragment {
                     barcodeScanner.pause(); // Pause to prevent multiple scans
                     Toast.makeText(getContext(), "Scanned: " + result.getText(), Toast.LENGTH_SHORT).show();
 
-                    // TODO: Handle the scanned data (e.g., navigate to item detail or confirm claim)
+                    // TODO: Handle the scanned data (e.g., navigate to item detail or confirm
+                    // claim)
 
                     // To resume scanning after handling:
                     // barcodeScanner.resume();
@@ -144,7 +148,8 @@ public class QRFragment extends Fragment {
             }
 
             @Override
-            public void possibleResultPoints(List<ResultPoint> resultPoints) { }
+            public void possibleResultPoints(List<ResultPoint> resultPoints) {
+            }
         });
     }
 
@@ -187,10 +192,10 @@ public class QRFragment extends Fragment {
     }
 
     private void checkPermissionAndStartScanner() {
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(requireActivity(),
-                    new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+                    new String[] { Manifest.permission.CAMERA }, CAMERA_PERMISSION_CODE);
         } else {
             resumeScanner();
         }
