@@ -141,84 +141,144 @@ public class ItemDetailsFragment extends Fragment {
     }
 
     private void claimDonation() {
-        if (foodItem.getDonationId() == null) {
+        if (foodItem == null || foodItem.getDonationId() == null) {
             Toast.makeText(getContext(), "Error: Invalid Item ID", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Check if quantity > 1 to show dialog
+        // Always show dialog if logic requires user to confirm quantity, even for 1.
+        // But per original logic: if quantity > 1, show dialog.
+        // If quantity == 1, maybe confirm?
+        // Let's stick to: if > 1, show dialog. Else auto-claim 1 (but maybe add
+        // confirmation?)
+        // For better UX, let's just claim directly if Qty=1 but with a "Confirm"
+        // dialog?
+        // To stick to request "choose how many", if Qty=1, choice is trivial.
+
         if (foodItem.getQuantity() > 1) {
             showQuantityDialog();
         } else {
+            // Confirm single claim? Or just claim.
+            // Let's just claim 1 for simplicity consistent with previous flow
             performClaimTransaction(1);
         }
     }
 
     private void showQuantityDialog() {
-        // Simple Alert Dialog with NumberPicker or Input
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
-        builder.setTitle("Claim Quantity");
+        // Inflate the custom layout
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_claim_quantity, null);
+        builder.setView(dialogView);
 
-        final android.widget.EditText input = new android.widget.EditText(getContext());
-        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
-        input.setHint("Enter quantity (Max: " + foodItem.getQuantity() + ")");
-        builder.setView(input);
+        android.app.AlertDialog dialog = builder.create();
+        // Transparent background for rounded corners
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
 
-        builder.setPositiveButton("Claim", (dialog, which) -> {
-            String qtyStr = input.getText().toString();
+        TextView tvTitle = dialogView.findViewById(R.id.tvClaimDialogTitle);
+        TextView tvMax = dialogView.findViewById(R.id.tvMaxQuantity);
+        android.widget.EditText etQuantity = dialogView.findViewById(R.id.etClaimQuantity);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancelClaim);
+        Button btnConfirm = dialogView.findViewById(R.id.btnConfirmClaim);
+
+        tvMax.setText(getString(R.string.String, "Available: " + foodItem.getQuantity()));
+        etQuantity.setHint("Max " + foodItem.getQuantity());
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnConfirm.setOnClickListener(v -> {
+            String qtyStr = etQuantity.getText().toString().trim();
             if (!qtyStr.isEmpty()) {
-                int qtyToClaim = Integer.parseInt(qtyStr);
-                if (qtyToClaim > 0 && qtyToClaim <= foodItem.getQuantity()) {
-                    performClaimTransaction(qtyToClaim);
-                } else {
-                    Toast.makeText(getContext(), "Invalid quantity", Toast.LENGTH_SHORT).show();
+                try {
+                    int qtyToClaim = Integer.parseInt(qtyStr);
+                    if (qtyToClaim > 0 && qtyToClaim <= foodItem.getQuantity()) {
+                        performClaimTransaction(qtyToClaim);
+                        dialog.dismiss();
+                    } else {
+                        Toast.makeText(getContext(), "Invalid quantity (1-" + foodItem.getQuantity() + ")",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                } catch (NumberFormatException e) {
+                    Toast.makeText(getContext(), "Enter a number", Toast.LENGTH_SHORT).show();
                 }
+            } else {
+                Toast.makeText(getContext(), "Enter quantity", Toast.LENGTH_SHORT).show();
             }
         });
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
-        builder.show();
+        // Show
+        dialog.show();
     }
 
     private void performClaimTransaction(int claimQty) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference docRef = db.collection("donations").document(foodItem.getDonationId());
 
+        // Get user info
+        String uid = FirebaseAuth.getInstance().getUid();
+        String userName = "Anonymous";
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            String name = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+            if (name != null && !name.isEmpty())
+                userName = name;
+        }
+        final String finalUserName = userName;
+
         db.runTransaction(transaction -> {
             DocumentSnapshot snapshot = transaction.get(docRef);
             String status = snapshot.getString("status");
             Long endTime = snapshot.getLong("endTime");
             Long currentQtyComp = snapshot.getLong("quantity");
-            int currentQty = (currentQtyComp != null) ? currentQtyComp.intValue() : 1;
+            int currentQty = (currentQtyComp != null) ? currentQtyComp.intValue() : 0; // Default 0 safety
 
             long currentTime = System.currentTimeMillis();
 
+            // Validation inside transaction
             if (status != null && status.equals("AVAILABLE") &&
-                    endTime != null && endTime > currentTime && currentQty >= claimQty) {
+                    (endTime == null || endTime > currentTime) &&
+                    currentQty >= claimQty) {
 
                 int newQty = currentQty - claimQty;
                 transaction.update(docRef, "quantity", newQty);
 
                 if (newQty == 0) {
                     transaction.update(docRef, "status", "CLAIMED");
-                    transaction.update(docRef, "claimedBy", FirebaseAuth.getInstance().getUid()); // Only marks as
-                                                                                                  // claimed by LAST
-                                                                                                  // person? Or logic
-                                                                                                  // needs a
-                                                                                                  // subcollection?
-                    // For Phase 1 simplicity: The item is "Gone" when qty is 0.
-                    // Tracking "who claimed what" might need a separate "claims" collection or
-                    // array.
-                    // Let's add to a "claims" collection for history tracking.
-                    // But for this transaction, just decrement.
+                    // Optimization: claimedBy could be the last person, or "Multiple"
+                    transaction.update(docRef, "claimedBy", uid);
                 }
 
-                // Add to 'claims' collection for record (Atomic?)
-                // Ideally yes, but firestore transactions on multiple docs work.
-                // Let's keep it simple: Update donation doc. Context: "User X claimed N items".
-                // Maybe update an array field "claimants"?
-                // transaction.update(docRef, "claimants", FieldValue.arrayUnion(uid + ":" +
-                // claimQty));
+                // --- NEW TRACKING LOGIC ---
+                // Add to sub-collection: donations/{id}/claims/{auto-id}
+                DocumentReference newClaimRef = docRef.collection("claims").document();
+                java.util.Map<String, Object> claimData = new java.util.HashMap<>();
+                claimData.put("claimerId", uid);
+                claimData.put("claimerName", finalUserName);
+                claimData.put("quantityClaimed", claimQty);
+                claimData.put("timestamp", currentTime);
+
+                transaction.set(newClaimRef, claimData);
+                // --------------------------
+
+                // --- NEW TRACKING LOGIC ---
+                // Add to sub-collection: donations/{id}/claims/{auto-id}
+                DocumentReference newClaimRef = docRef.collection("claims").document();
+                java.util.Map<String, Object> claimData = new java.util.HashMap<>();
+                claimData.put("claimerId", uid);
+                claimData.put("claimerName", finalUserName);
+                claimData.put("quantityClaimed", claimQty);
+                claimData.put("timestamp", currentTime);
+
+                // Redundant data for Impact Page efficiency
+                claimData.put("foodTitle", foodItem.getTitle());
+                claimData.put("foodImage", foodItem.getImageUrl()); // Assuming mix of URL/ResID handled by logic or
+                                                                    // field
+                claimData.put("location", foodItem.getLocationName());
+                claimData.put("unit", foodItem.getQuantityUnit()); // Ensure this getter exists
+
+                transaction.set(newClaimRef, claimData);
+                // --------------------------
 
                 return null; // Success
             } else {
