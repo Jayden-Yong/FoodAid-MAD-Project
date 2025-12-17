@@ -10,12 +10,13 @@ public class User {
     private List<String> earnedBadges; // List of Badge IDs (e.g., "badge_10kg")
     private String userType; // "student"
     private long createdAt; // Timestamp
+    private long lastLogin; // Timestamp
 
     public User() {
     }
 
     public User(String uid, String email, String displayName, String photoUrl, List<String> earnedBadges,
-            String userType, long createdAt) {
+            String userType, long createdAt, long lastLogin) {
         this.uid = uid;
         this.email = email;
         this.displayName = displayName;
@@ -23,6 +24,7 @@ public class User {
         this.earnedBadges = earnedBadges;
         this.userType = userType;
         this.createdAt = createdAt;
+        this.lastLogin = lastLogin;
     }
 
     public String getUid() {
@@ -79,6 +81,14 @@ public class User {
 
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public long getLastLogin() {
+        return lastLogin;
+    }
+
+    public void setLastLogin(long lastLogin) {
+        this.lastLogin = lastLogin;
     }
 
     public void addAdditionalData(java.util.Map<String, Object> data) {

@@ -124,25 +124,18 @@
                 android:text="@string/Filter_All" />
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/chipPantry"
+                android:id="@+id/chipGroceries"
                 style="@style/FoodAidChipStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/Filter_Pantry" />
+                android:text="Groceries" />
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/chipLeftover"
+                android:id="@+id/chipMeals"
                 style="@style/FoodAidChipStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/Filter_Leftover" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipFreeTable"
-                style="@style/FoodAidChipStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/Filter_Free_Table" />
+                android:text="Meals" />
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
 

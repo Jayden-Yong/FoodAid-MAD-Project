@@ -46,7 +46,6 @@ public class MapPinItemFragment extends Fragment {
         TextView tvName = view.findViewById(R.id.selectedItemName);
         TextView tvLocation = view.findViewById(R.id.selectedItemLocation);
         TextView tvQuantity = view.findViewById(R.id.selectedItemQuantity);
-        TextView tvDonator = view.findViewById(R.id.selectedItemDonator);
         ImageView ivImage = view.findViewById(R.id.selectedItemImage);
         ImageButton btnClose = view.findViewById(R.id.fragmentCloseButton);
         Button btnClaim = view.findViewById(R.id.selectedItemClaimButton);
@@ -64,19 +63,30 @@ public class MapPinItemFragment extends Fragment {
         // Populate the views with food item data
         tvName.setText(foodItem.getTitle());
         tvLocation.setText(foodItem.getLocationName());
-        tvQuantity.setText("Weight: " + foodItem.getWeight() + " kg");
-        tvDonator.setText("By: " + foodItem.getDonatorName());
 
-        // Handle image (URI or resource)
-        // Handle image (URI or resource)
+        // Contextually combine
+        String qtyText = "Qty: " + foodItem.getQuantity() + " • " + foodItem.getWeight() + " kg";
+        tvQuantity.setText(qtyText);
+
+        // tvWeight & tvDonator removed from UI to save space
+
         if (foodItem.getImageUri() != null && !foodItem.getImageUri().isEmpty()) {
             String imageStr = foodItem.getImageUri();
             if (imageStr.startsWith("http")) {
-                com.bumptech.glide.Glide.with(getContext()).load(imageStr).into(ivImage);
+                com.bumptech.glide.Glide.with(getContext())
+                        .load(imageStr)
+                        .placeholder(R.drawable.ic_launcher_background)
+                        .error(R.drawable.ic_launcher_background)
+                        .into(ivImage);
             } else {
                 try {
                     byte[] imageBytes = com.example.foodaid_mad_project.Utils.ImageUtil.base64ToBytes(imageStr);
-                    com.bumptech.glide.Glide.with(getContext()).load(imageBytes).into(ivImage);
+                    com.bumptech.glide.Glide.with(getContext())
+                            .asBitmap()
+                            .load(imageBytes)
+                            .placeholder(R.drawable.ic_launcher_background)
+                            .error(R.drawable.ic_launcher_background)
+                            .into(ivImage);
                 } catch (Exception e) {
                     ivImage.setImageResource(R.drawable.ic_launcher_background);
                 }

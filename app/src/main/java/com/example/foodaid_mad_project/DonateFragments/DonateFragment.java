@@ -330,8 +330,17 @@ public class DonateFragment extends Fragment {
                     donatorId = "anon";
                 }
 
+                int quantityVal = 1;
+                try {
+                    quantityVal = Integer.parseInt(quantityStr);
+                } catch (NumberFormatException e) {
+                    Toast.makeText(getContext(), "Invalid quantity", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 pickupMethodStr = spinnerPickupMethod.getSelectedItem().toString();
-                processImageAndSave(selectedImageUri, donationTitle, weightVal, desc, categoryStr, pickupMethodStr);
+                processImageAndSave(selectedImageUri, donationTitle, weightVal, quantityVal, desc, categoryStr,
+                        pickupMethodStr);
             });
         }
 
@@ -463,7 +472,8 @@ public class DonateFragment extends Fragment {
         timePickerDialog.show();
     }
 
-    private void processImageAndSave(Uri imageUri, String title, double weight, String description, String category,
+    private void processImageAndSave(Uri imageUri, String title, double weight, int quantity, String description,
+            String category,
             String pickupMethod) {
         Toast.makeText(getContext(), "Processing image...", Toast.LENGTH_SHORT).show();
 
@@ -475,7 +485,7 @@ public class DonateFragment extends Fragment {
             String base64Image = com.example.foodaid_mad_project.Utils.ImageUtil.uriToBase64(getContext(), imageUri);
 
             if (base64Image != null) {
-                saveDonationToFirestore(base64Image, title, weight, description, category, pickupMethod);
+                saveDonationToFirestore(base64Image, title, weight, quantity, description, category, pickupMethod);
             } else {
                 Toast.makeText(getContext(), "Failed to process image", Toast.LENGTH_SHORT).show();
             }
@@ -485,15 +495,9 @@ public class DonateFragment extends Fragment {
         }
     }
 
-    private void saveDonationToFirestore(String base64Image, String title, double weight, String description,
+    private void saveDonationToFirestore(String base64Image, String title, double weight, int quantity,
+            String description,
             String category, String pickupMethod) {
-
-        int quantity = 1;
-        try {
-            EditText etQuantity = getView().findViewById(R.id.etQuantity);
-            quantity = Integer.parseInt(etQuantity.getText().toString());
-        } catch (Exception e) {
-        }
 
         Map<String, Object> donation = new HashMap<>();
         donation.put("title", title);

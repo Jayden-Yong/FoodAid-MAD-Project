@@ -35,7 +35,7 @@ public class ItemDetailsFragment extends Fragment {
 
     private FoodItem foodItem;
 
-    private TextView tvProductTitle, tvPickupTime, tvQuantity, tvLocationLabel, tvPostedBy;
+    private TextView tvProductTitle, tvPickupTime, tvQuantity, tvLocationLabel, tvPostedBy, tvPickupMethod;
     private ImageView ivProductImage;
     private RadioGroup radioGroupCategory;
 
@@ -64,6 +64,7 @@ public class ItemDetailsFragment extends Fragment {
         tvProductTitle = view.findViewById(R.id.tvProductTitle);
         tvPickupTime = view.findViewById(R.id.tvPickupTime);
         tvQuantity = view.findViewById(R.id.tvQuantity);
+        tvPickupMethod = view.findViewById(R.id.tvPickupMethod);
         tvLocationLabel = view.findViewById(R.id.tvLocationLabel);
         tvPostedBy = view.findViewById(R.id.tvPostedBy);
         ivProductImage = view.findViewById(R.id.ivProductImage);
@@ -81,16 +82,22 @@ public class ItemDetailsFragment extends Fragment {
         String endStr = sdf.format(new Date(foodItem.getEndTime()));
         tvPickupTime.setText(getString(R.string.Pickup_Time, startStr, endStr));
 
-        tvQuantity.setText("Weight: " + foodItem.getWeight() + " kg");
+        tvQuantity.setText("Quantity: " + foodItem.getQuantity() + " (" + foodItem.getWeight() + " kg Total)");
+
+        String pickupMethod = foodItem.getPickupMethod();
+        if (pickupMethod == null || pickupMethod.isEmpty())
+            pickupMethod = "Meet Up";
+        tvPickupMethod.setText("Pickup Method: " + pickupMethod);
+
         tvLocationLabel.setText(getString(R.string.Food_Location, foodItem.getLocationName()));
         tvPostedBy.setText(getString(R.string.Food_Donator, foodItem.getDonatorName()));
 
         // Category check
         if (foodItem.getCategory() != null) {
-            // Check based on string
-            if (foodItem.getCategory().equalsIgnoreCase("GROCERIES")) {
+            String cat = foodItem.getCategory();
+            if (cat.equalsIgnoreCase("GROCERIES") || cat.equalsIgnoreCase("Pantry")) {
                 radioGroupCategory.check(R.id.radioGroceries);
-            } else if (foodItem.getCategory().equalsIgnoreCase("MEALS")) {
+            } else if (cat.equalsIgnoreCase("MEALS") || cat.equalsIgnoreCase("Leftover")) {
                 radioGroupCategory.check(R.id.radioMeals);
             }
         }
@@ -98,11 +105,20 @@ public class ItemDetailsFragment extends Fragment {
         if (foodItem.getImageUri() != null && !foodItem.getImageUri().isEmpty()) {
             String imageStr = foodItem.getImageUri();
             if (imageStr.startsWith("http")) {
-                com.bumptech.glide.Glide.with(this).load(imageStr).into(ivProductImage);
+                com.bumptech.glide.Glide.with(this)
+                        .load(imageStr)
+                        .placeholder(R.drawable.ic_launcher_background)
+                        .error(R.drawable.ic_launcher_background)
+                        .into(ivProductImage);
             } else {
                 try {
                     byte[] imageBytes = com.example.foodaid_mad_project.Utils.ImageUtil.base64ToBytes(imageStr);
-                    com.bumptech.glide.Glide.with(this).load(imageBytes).into(ivProductImage);
+                    com.bumptech.glide.Glide.with(this)
+                            .asBitmap()
+                            .load(imageBytes)
+                            .placeholder(R.drawable.ic_launcher_background)
+                            .error(R.drawable.ic_launcher_background)
+                            .into(ivProductImage);
                 } catch (Exception e) {
                     ivProductImage.setImageResource(R.drawable.ic_launcher_background);
                 }
@@ -231,7 +247,11 @@ public class ItemDetailsFragment extends Fragment {
             String status = snapshot.getString("status");
             Long endTime = snapshot.getLong("endTime");
             Long currentQtyComp = snapshot.getLong("quantity");
-            int currentQty = (currentQtyComp != null) ? currentQtyComp.intValue() : 0; // Default 0 safety
+            int currentQty = (currentQtyComp != null) ? currentQtyComp.intValue() : 0;
+
+            Double currentWeight = snapshot.getDouble("weight");
+            if (currentWeight == null)
+                currentWeight = 0.0;
 
             long currentTime = System.currentTimeMillis();
 
@@ -240,8 +260,17 @@ public class ItemDetailsFragment extends Fragment {
                     (endTime == null || endTime > currentTime) &&
                     currentQty >= claimQty) {
 
+                double unitWeight = (currentQty > 0) ? (currentWeight / currentQty) : 0.0;
+                double claimedWeight = unitWeight * claimQty;
+
                 int newQty = currentQty - claimQty;
+                double newTotalWeight = currentWeight - claimedWeight;
+                // Ensure non-negative
+                if (newTotalWeight < 0)
+                    newTotalWeight = 0.0;
+
                 transaction.update(docRef, "quantity", newQty);
+                transaction.update(docRef, "weight", newTotalWeight);
 
                 if (newQty == 0) {
                     transaction.update(docRef, "status", "CLAIMED");
@@ -260,16 +289,15 @@ public class ItemDetailsFragment extends Fragment {
 
                 // Redundant data for Impact Page efficiency
                 claimData.put("foodTitle", foodItem.getTitle());
-                claimData.put("foodImage", foodItem.getImageUri());
+                // Only save image URI if it is a remote URL (http/https).
+                // Creating a claim document with a massive Base64 string can exceed Firestore
+                // limits (1MB) or cause crashes.
+                if (foodItem.getImageUri() != null && foodItem.getImageUri().startsWith("http")) {
+                    claimData.put("foodImage", foodItem.getImageUri());
+                }
                 claimData.put("location", foodItem.getLocationName());
 
-                // Calculate Weight (Best Effort)
-                double totalWeight = foodItem.getWeight();
-                int totalQty = foodItem.getQuantity();
-                double claimedWeight = 0.0;
-                if (totalQty > 0) {
-                    claimedWeight = (totalWeight / totalQty) * claimQty;
-                }
+                // Store correctly calculated claimed weight
                 claimData.put("weight", claimedWeight);
 
                 transaction.set(newClaimRef, claimData);
@@ -284,11 +312,11 @@ public class ItemDetailsFragment extends Fragment {
             // Navigate to Success
             FragmentManager fragmentManager = getParentFragmentManager();
             fragmentManager.beginTransaction()
-                    .replace(R.id.ItemDetailsFragmentContainer, new ClaimNotifyFragment())
+                    .replace(R.id.coveringFragment, new ClaimNotifyFragment())
                     .addToBackStack("ClaimSuccess")
                     .commit();
         }).addOnFailureListener(e -> {
-            Toast.makeText(getContext(), "Claim failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Claim failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
         });
     }
 }

@@ -62,6 +62,21 @@ public class HomeFragment extends Fragment
 
         tvWelcomeUser = view.findViewById(R.id.tvWelcomeUser);
 
+        com.google.android.material.chip.ChipGroup chipGroup = view.findViewById(R.id.chipGroupFilters);
+        chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            String category = "All";
+            if (checkedIds.contains(R.id.chipGroceries)) {
+                category = "Groceries";
+            } else if (checkedIds.contains(R.id.chipMeals)) {
+                category = "Meals";
+            }
+
+            MapFragment mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.MapFragment);
+            if (mapFragment != null) {
+                mapFragment.filterItems(category);
+            }
+        });
+
         try {
             User user = UserManager.getInstance().getUser();
             if (user != null) {

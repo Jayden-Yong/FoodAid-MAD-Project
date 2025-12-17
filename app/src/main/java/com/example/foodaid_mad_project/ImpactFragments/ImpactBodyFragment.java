@@ -249,9 +249,6 @@ public class ImpactBodyFragment extends Fragment {
         Calendar startCal = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
 
-        ConstraintSet constraintSet = new ConstraintSet();
-        constraintSet.clone(impactConstraint);
-
         // Filter items for the list
         List<FoodItem> filteredItems = new ArrayList<>();
 
@@ -261,7 +258,6 @@ public class ImpactBodyFragment extends Fragment {
                 startTime = startCal.getTimeInMillis();
                 dateRangeText = sdf.format(startCal.getTime()) + " - " + sdf.format(now.getTime());
 
-                constraintSet.connect(R.id.statsContainer, ConstraintSet.TOP, R.id.chartWeek, ConstraintSet.BOTTOM);
                 tvContributionsHeader.setText("This Week's Contribution");
                 headerMonthYear.setVisibility(View.GONE);
                 chartWeek.setVisibility(View.VISIBLE);
@@ -275,7 +271,6 @@ public class ImpactBodyFragment extends Fragment {
                 startTime = startCal.getTimeInMillis();
                 dateRangeText = new SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(now.getTime());
 
-                constraintSet.connect(R.id.statsContainer, ConstraintSet.TOP, R.id.chartMonth, ConstraintSet.BOTTOM);
                 tvContributionsHeader.setText("This Month's Contribution");
                 tvMonthYear.setText("Week");
                 headerMonthYear.setVisibility(View.VISIBLE);
@@ -290,7 +285,6 @@ public class ImpactBodyFragment extends Fragment {
                 startTime = startCal.getTimeInMillis();
                 dateRangeText = new SimpleDateFormat("yyyy", Locale.getDefault()).format(now.getTime());
 
-                constraintSet.connect(R.id.statsContainer, ConstraintSet.TOP, R.id.chartYear, ConstraintSet.BOTTOM);
                 tvContributionsHeader.setText("This Year's Contribution");
                 tvMonthYear.setText("Month");
                 headerMonthYear.setVisibility(View.VISIBLE);
@@ -300,8 +294,6 @@ public class ImpactBodyFragment extends Fragment {
                 setupPieChart();
                 break;
         }
-
-        constraintSet.applyTo(impactConstraint);
         tvDateRange.setText(dateRangeText);
 
         // Calculate Stats using Calculator
@@ -327,34 +319,172 @@ public class ImpactBodyFragment extends Fragment {
 
     // --- Chart Setup (Visuals only for now, can perform further data binding if
     // needed) ---
+    // --- Chart Setup ---
+
     private void setupBarChart() {
+        if (claimedItems == null || claimedItems.isEmpty()) {
+            chartWeek.clear();
+            return;
+        }
+
+        // 1. Determine Range (Week)
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek()); // Start of week coverage
+        long startOfWeek = cal.getTimeInMillis();
+        long endOfWeek = System.currentTimeMillis(); // Up to now
+
+        // 2. Aggregate Daily Weights
+        // Map: DayOfYear -> Weight
+        // We only care about 7 days
+        float[] dailyWeights = new float[7];
+        // 0=Sun, 1=Mon ... depending on Locale. Let's align with Calendar.DAY_OF_WEEK
+        // (1-7)
+
+        for (FoodItem item : claimedItems) {
+            long ts = item.getTimestamp();
+            if (ts >= startOfWeek && ts <= endOfWeek) {
+                Calendar c = Calendar.getInstance();
+                c.setTimeInMillis(ts);
+                int dayOfWeek = c.get(Calendar.DAY_OF_WEEK); // 1 (Sun) - 7 (Sat)
+                // Normalize to array index 0-6
+                int index = dayOfWeek - 1;
+                if (index >= 0 && index < 7) {
+                    dailyWeights[index] += (float) item.getWeight();
+                }
+            }
+        }
+
         List<BarEntry> entries = new ArrayList<>();
-        entries.add(new BarEntry(1, 10)); // Dummy data to keep UI stable
-        BarDataSet set = new BarDataSet(entries, "Items");
+        // Create entries for each day
+        for (int i = 0; i < 7; i++) {
+            entries.add(new BarEntry(i + 1, dailyWeights[i]));
+        }
+
+        BarDataSet set = new BarDataSet(entries, "Saved (kg)");
         set.setColor(getResources().getColor(R.color.teal_200));
+        set.setValueTextSize(10f);
+
         BarData data = new BarData(set);
+        data.setBarWidth(0.9f);
+
         chartWeek.setData(data);
+        chartWeek.getDescription().setEnabled(false);
+        chartWeek.setFitBars(true);
         chartWeek.invalidate();
     }
 
     private void setupLineChart() {
+        if (claimedItems == null) {
+            chartMonth.clear();
+            return;
+        }
+
+        // 1. Determine Range (Month)
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        long startOfMonth = cal.getTimeInMillis();
+        long endOfMonth = System.currentTimeMillis();
+        int maxDays = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+        // 2. Aggregate Daily Weights for the Month
+        float[] dailyWeights = new float[maxDays + 1]; // Index 1 to maxDays
+
+        for (FoodItem item : claimedItems) {
+            if (item == null)
+                continue;
+            long ts = item.getTimestamp();
+            if (ts >= startOfMonth && ts <= endOfMonth) {
+                Calendar c = Calendar.getInstance();
+                c.setTimeInMillis(ts);
+                int day = c.get(Calendar.DAY_OF_MONTH);
+                if (day >= 1 && day <= maxDays) {
+                    dailyWeights[day] += (float) item.getWeight();
+                }
+            }
+        }
+
         List<Entry> entries = new ArrayList<>();
-        entries.add(new Entry(1, 10)); // Dummy
-        LineDataSet set = new LineDataSet(entries, "Kg");
-        set.setColor(Color.BLUE);
+        // Show ALL days in the month, not just up to today
+        for (int i = 1; i <= maxDays; i++) {
+            entries.add(new Entry(i, dailyWeights[i]));
+        }
+
+        LineDataSet set = new LineDataSet(entries, "Saved (kg)");
+        set.setColor(getResources().getColor(R.color.teal_200)); // Use app color
+        set.setLineWidth(2.5f);
+        set.setCircleColor(getResources().getColor(R.color.teal_200));
+        set.setCircleRadius(4f);
+        set.setDrawValues(false); // Cleaner look
+        set.setMode(LineDataSet.Mode.CUBIC_BEZIER); // Smooth curves
+        set.setDrawFilled(true);
+        set.setFillColor(getResources().getColor(R.color.teal_200));
+        set.setFillAlpha(50);
+
         LineData data = new LineData(set);
         chartMonth.setData(data);
+        chartMonth.getDescription().setEnabled(false);
+        chartMonth.getXAxis().setDrawGridLines(false);
+        chartMonth.getAxisRight().setEnabled(false);
+        chartMonth.animateX(1000);
         chartMonth.invalidate();
     }
 
     private void setupPieChart() {
+        // Filter for Year
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.DAY_OF_YEAR, 1);
+        long startOfYear = cal.getTimeInMillis();
+        long endOfYear = System.currentTimeMillis();
+
+        int claimedCount = 0;
+        for (FoodItem i : claimedItems) {
+            if (i.getTimestamp() >= startOfYear && i.getTimestamp() <= endOfYear)
+                claimedCount++;
+        }
+
+        int donatedCount = 0;
+        for (FoodItem i : donatedItems) {
+            if (i.getTimestamp() >= startOfYear && i.getTimestamp() <= endOfYear)
+                donatedCount++;
+        }
+
         List<PieEntry> entries = new ArrayList<>();
-        entries.add(new PieEntry((float) claimedItems.size(), "Claimed"));
-        entries.add(new PieEntry((float) donatedItems.size(), "Donated"));
-        PieDataSet set = new PieDataSet(entries, "Impact");
-        set.setColors(ColorTemplate.JOYFUL_COLORS);
+        if (claimedCount > 0)
+            entries.add(new PieEntry((float) claimedCount, "Claimed"));
+        if (donatedCount > 0)
+            entries.add(new PieEntry((float) donatedCount, "Donated"));
+
+        // Handle Empty State
+        if (entries.isEmpty()) {
+            chartYear.setCenterText("No Activity");
+            chartYear.setData(null);
+            chartYear.invalidate();
+            return;
+        } else {
+            chartYear.setCenterText("");
+        }
+
+        PieDataSet set = new PieDataSet(entries, ""); // Blank label to hide legend title if redundant
+
+        // Custom Colors: Teal (App Primary) for Claims, Orange for Donations
+        List<Integer> colors = new ArrayList<>();
+        if (claimedCount > 0)
+            colors.add(getResources().getColor(R.color.teal_200));
+        if (donatedCount > 0)
+            colors.add(Color.parseColor("#FF9800")); // Orange
+        set.setColors(colors);
+
+        set.setValueTextSize(14f);
+        set.setValueTextColor(Color.WHITE);
+        set.setSliceSpace(3f);
+        set.setSelectionShift(5f);
+
         PieData data = new PieData(set);
         chartYear.setData(data);
+        chartYear.getDescription().setEnabled(false);
+        chartYear.setHoleRadius(40f);
+        chartYear.setTransparentCircleRadius(45f);
+        chartYear.animateY(1000);
         chartYear.invalidate();
     }
 
@@ -384,7 +514,32 @@ public class ImpactBodyFragment extends Fragment {
                     .setText(new SimpleDateFormat("dd/MM", Locale.getDefault()).format(new Date(item.getTimestamp())));
             holder.tvStatus.setText("Saved");
             holder.tvWeight.setText(item.getWeight() + " kg");
-            holder.ivItemImage.setImageResource(R.drawable.ic_launcher_background); // Placeholder or load URI
+            // Handle image logic
+            if (item.getImageUri() != null && !item.getImageUri().isEmpty()) {
+                String imageStr = item.getImageUri();
+                if (imageStr.startsWith("http")) {
+                    com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                            .load(imageStr)
+                            .placeholder(R.drawable.ic_launcher_background)
+                            .error(R.drawable.ic_launcher_background)
+                            .into(holder.ivItemImage);
+                } else {
+                    try {
+                        // Decode Base64 to bytes
+                        byte[] imageBytes = com.example.foodaid_mad_project.Utils.ImageUtil.base64ToBytes(imageStr);
+                        com.bumptech.glide.Glide.with(holder.itemView.getContext())
+                                .asBitmap()
+                                .load(imageBytes)
+                                .placeholder(R.drawable.ic_launcher_background)
+                                .error(R.drawable.ic_launcher_background)
+                                .into(holder.ivItemImage);
+                    } catch (Exception e) {
+                        holder.ivItemImage.setImageResource(R.drawable.ic_launcher_background);
+                    }
+                }
+            } else {
+                holder.ivItemImage.setImageResource(R.drawable.ic_launcher_background);
+            }
         }
 
         @Override

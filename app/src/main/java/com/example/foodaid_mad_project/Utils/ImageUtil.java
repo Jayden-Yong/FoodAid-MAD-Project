@@ -8,13 +8,14 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.util.Log;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class ImageUtil {
 
-    private static final int MAX_DIMENSION = 500;
-    private static final int COMPRESSION_QUALITY = 50; // 0-100
+    private static final int MAX_DIMENSION = 300; // Reduced from 500 to save memory/bandwidth
+    private static final int COMPRESSION_QUALITY = 40; // Reduced from 50
 
     /**
      * Converts a Uri to a compressed Base64 String.
@@ -41,23 +42,20 @@ public class ImageUtil {
         byte[] byteArray = byteArrayOutputStream.toByteArray();
 
         // 3. Encode to Base64
-        return Base64.encodeToString(byteArray, Base64.DEFAULT); // Default = includes newlines, might want NO_WRAP?
-        // Glide likes DEFAULT usually, but NO_WRAP is safer for transport. Let's use
-        // DEFAULT for now as it handles newlines.
-        // Actually, NO_WRAP is safer for Firestore strings to avoid weird parsing
-        // issues if manual.
-        // Let's stick to standard `encodeToString` which defaults to standard Base64.
+        return Base64.encodeToString(byteArray, Base64.DEFAULT);
     }
 
     /**
      * Decodes a Base64 String back to a Bitmap.
      */
     public static Bitmap base64ToBitmap(String base64Str) {
+        if (base64Str == null || base64Str.isEmpty())
+            return null;
         try {
             byte[] decodedBytes = Base64.decode(base64Str, Base64.DEFAULT);
             return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+            Log.e("ImageUtil", "Base64 decode error", e);
             return null;
         }
     }
@@ -66,9 +64,12 @@ public class ImageUtil {
      * Helper to get byte[] for Glide to load easily.
      */
     public static byte[] base64ToBytes(String base64Str) {
+        if (base64Str == null || base64Str.isEmpty())
+            return new byte[0];
         try {
             return Base64.decode(base64Str, Base64.DEFAULT);
         } catch (IllegalArgumentException e) {
+            Log.e("ImageUtil", "Base64 decode error", e);
             return new byte[0];
         }
     }

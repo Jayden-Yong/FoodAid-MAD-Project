@@ -55,13 +55,15 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/poppins_light"
+            android:maxLines="2"
             android:text="@string/Food_Location"
             android:textSize="11sp"
-            android:fontFamily="@font/poppins_light"
-            app:layout_constraintTop_toBottomOf="@id/selectedItemName"
-            app:layout_constraintStart_toEndOf="@id/selectedItemImage"
+            app:layout_constraintBottom_toTopOf="@id/selectedItemQuantity"
             app:layout_constraintEnd_toStartOf="@id/fragmentCloseButton"
-            app:layout_constraintBottom_toTopOf="@id/selectedItemQuantity" />
+            app:layout_constraintStart_toEndOf="@id/selectedItemImage"
+            app:layout_constraintTop_toBottomOf="@id/selectedItemName" />
 
         <TextView
             android:id="@+id/selectedItemQuantity"
@@ -74,20 +76,7 @@
             app:layout_constraintTop_toBottomOf="@id/selectedItemLocation"
             app:layout_constraintStart_toEndOf="@id/selectedItemImage"
             app:layout_constraintEnd_toStartOf="@id/fragmentCloseButton"
-            app:layout_constraintBottom_toTopOf="@id/selectedItemDonator"/>
-
-        <TextView
-            android:id="@+id/selectedItemDonator"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:text="@string/Food_Donator"
-            android:textSize="11sp"
-            android:fontFamily="@font/poppins_light"
-            app:layout_constraintTop_toBottomOf="@id/selectedItemQuantity"
-            app:layout_constraintBottom_toTopOf="@id/selectedItemClaimButton"
-            app:layout_constraintStart_toEndOf="@id/selectedItemImage"
-            app:layout_constraintEnd_toStartOf="@id/fragmentCloseButton" />
+            app:layout_constraintBottom_toTopOf="@id/selectedItemClaimButton"/>
 
         <TextView
             android:id="@+id/selectedItemPostDuration"

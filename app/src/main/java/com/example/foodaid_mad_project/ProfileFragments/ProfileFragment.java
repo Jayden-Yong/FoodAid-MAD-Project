@@ -309,17 +309,41 @@ public class ProfileFragment extends Fragment {
                 tvUserId.setText(user.getEmail());
 
                 if (photoData != null && !photoData.isEmpty()) {
-                    if (photoData.startsWith("http")) {
-                        // Old URL
-                        Glide.with(this).load(photoData).circleCrop().into(ivProfile);
-                    } else {
-                        // Base64
-                        byte[] imageBytes = com.example.foodaid_mad_project.Utils.ImageUtil.base64ToBytes(photoData);
-                        Glide.with(this).load(imageBytes).circleCrop().into(ivProfile);
+                    try {
+                        if (photoData.startsWith("http")) {
+                            // Old URL
+                            Glide.with(this)
+                                    .load(photoData)
+                                    .placeholder(R.drawable.ic_launcher_background)
+                                    .error(R.drawable.ic_launcher_background)
+                                    .circleCrop()
+                                    .into(ivProfile);
+                        } else {
+                            // Base64
+                            byte[] imageBytes = com.example.foodaid_mad_project.Utils.ImageUtil
+                                    .base64ToBytes(photoData);
+                            if (imageBytes.length > 0) {
+                                Glide.with(this)
+                                        .asBitmap()
+                                        .load(imageBytes)
+                                        .placeholder(R.drawable.ic_launcher_background)
+                                        .error(R.drawable.ic_launcher_background)
+                                        .circleCrop()
+                                        .into(ivProfile);
+                            }
+                        }
+                    } catch (Exception imageError) {
+                        Log.e("ProfileFragment", "Error loading profile image", imageError);
+                        Glide.with(this).load(R.drawable.ic_launcher_background).circleCrop().into(ivProfile);
                     }
                 } else if (user.getPhotoUrl() != null) {
                     // Fallback to Auth Photo if Firestore empty
-                    Glide.with(this).load(user.getPhotoUrl()).circleCrop().into(ivProfile);
+                    Glide.with(this)
+                            .load(user.getPhotoUrl())
+                            .placeholder(R.drawable.ic_launcher_background)
+                            .error(R.drawable.ic_launcher_background)
+                            .circleCrop()
+                            .into(ivProfile);
                 }
 
                 // Load Badges

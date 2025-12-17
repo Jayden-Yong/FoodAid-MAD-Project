@@ -336,13 +336,23 @@ public class LoginFragment extends Fragment {
     private void fetchUserAndNavigate(String uid) {
         db.collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    com.example.foodaid_mad_project.AuthFragments.User currentUser = documentSnapshot
-                            .toObject(com.example.foodaid_mad_project.AuthFragments.User.class);
-                    UserManager.getInstance().setUser(currentUser);
+                    try {
+                        com.example.foodaid_mad_project.AuthFragments.User currentUser = documentSnapshot
+                                .toObject(com.example.foodaid_mad_project.AuthFragments.User.class);
+                        UserManager.getInstance().setUser(currentUser);
 
-                    Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_LONG).show();
-                    startActivity(new Intent(getContext(), MainActivity.class));
-                    requireActivity().finish();
+                        Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_LONG).show();
+                        startActivity(new Intent(getContext(), MainActivity.class));
+                        requireActivity().finish();
+                    } catch (Exception e) {
+                        Toast.makeText(getContext(), "Error loading user data: " + e.getMessage(), Toast.LENGTH_LONG)
+                                .show();
+                        // Proceed partially or stay?
+                        // Stay to let them try again or maybe clear data?
+                        // Let's force navigation to Main anyway to avoid being locked out
+                        startActivity(new Intent(getContext(), MainActivity.class));
+                        requireActivity().finish();
+                    }
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Failed to retrieve user data: " + e.getMessage(), Toast.LENGTH_LONG)

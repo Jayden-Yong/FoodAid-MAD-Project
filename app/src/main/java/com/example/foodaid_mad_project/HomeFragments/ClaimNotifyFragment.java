@@ -38,25 +38,12 @@ public class ClaimNotifyFragment extends Fragment {
         if (tvTitle != null)
             tvTitle.setText("Claim Successful!");
         if (tvGuide != null)
-            tvGuide.setText("Please collect your item within the time window. Check details in 'My Claims'.");
+            tvGuide.setText(
+                    "Please collect your item within the time window. You can view your claims in the Impact page.");
 
-        // "View Item" used for "My Claims"
+        // "View Item" used for "My Claims" - User requested to REMOVE this button
         if (btnViewItem != null) {
-            btnViewItem.setVisibility(View.VISIBLE);
-            btnViewItem.setText("My Claims");
-            btnViewItem.setOnClickListener(v -> {
-                // 1. Close this fragment (overlay)
-                getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-
-                // 2. Select Impact Tab using MainActivity's BottomNav
-                if (getActivity() instanceof com.example.foodaid_mad_project.MainActivity) {
-                    com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = getActivity()
-                            .findViewById(R.id.bottomNavigationView);
-                    if (bottomNav != null) {
-                        bottomNav.setSelectedItemId(R.id.impactFragment);
-                    }
-                }
-            });
+            btnViewItem.setVisibility(View.GONE); // Hiding the button
         }
 
         if (btnBackToHome != null) {

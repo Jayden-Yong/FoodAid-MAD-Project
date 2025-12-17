@@ -105,6 +105,8 @@ public class MapFragment extends Fragment {
     }
 
     private void addMarker(GeoPoint point, String title) {
+        if (mapView == null)
+            return;
         Marker marker = new Marker(mapView);
         marker.setPosition(point);
         marker.setTitle(title);
@@ -113,6 +115,8 @@ public class MapFragment extends Fragment {
     }
 
     private void addFoodMarker(FoodItem item) {
+        if (mapView == null)
+            return;
         Marker marker = new Marker(mapView);
         marker.setPosition(new GeoPoint(item.getLatitude(), item.getLongitude()));
         marker.setIcon(AppCompatResources.getDrawable(
@@ -161,47 +165,58 @@ public class MapFragment extends Fragment {
                     }
 
                     if (snapshots != null) {
-                        // Clear existing food markers (keep user location)
-                        List<Overlay> overlaysToRemove = new ArrayList<>();
-                        for (Overlay overlay : mapView.getOverlays()) {
-                            if (overlay instanceof Marker && !overlay.equals(locationOverlay)) {
-                                String title = ((Marker) overlay).getTitle();
-                                // Check if it's not the user marker ("You are here" or similar checks)
-                                // Better way: Check if it is NOT in our new list?
-                                // Simplest way: Clear ALL markers and re-add user location marker?
-                                // OR: Distinct markers.
-                                // Let's try to remove all markers that are NOT the location overlay
-                                // and re-add them.
-                                overlaysToRemove.add(overlay);
-                            }
-                        }
-                        // Actually, locationOverlay draws itself. We just need to remove Markers we
-                        // added.
-                        // We can clear overlays and re-add locationOverlay?
-                        // Let's filter.
-
-                        // Robust way:
-                        for (Overlay o : new ArrayList<>(mapView.getOverlays())) {
-                            if (o instanceof Marker) {
-                                Marker m = (Marker) o;
-                                if (!"You are here".equals(m.getTitle())) {
-                                    mapView.getOverlays().remove(o);
-                                }
-                            }
-                        }
-
                         foodItems.clear();
 
                         for (QueryDocumentSnapshot doc : snapshots) {
                             FoodItem item = doc.toObject(FoodItem.class);
                             item.setDonationId(doc.getId()); // Ensure ID is set
                             foodItems.add(item);
-                            addFoodMarker(item);
                         }
 
-                        mapView.invalidate();
+                        // Apply current filter
+                        filterItems(currentCategory);
                     }
                 });
+    }
+
+    private String currentCategory = "All";
+
+    public void filterItems(String category) {
+        this.currentCategory = category;
+        if (mapView == null)
+            return;
+
+        // Clear existing food markers
+        for (Overlay o : new ArrayList<>(mapView.getOverlays())) {
+            if (o instanceof Marker) {
+                Marker m = (Marker) o;
+                if (!"You are here".equals(m.getTitle())) {
+                    mapView.getOverlays().remove(o);
+                }
+            }
+        }
+
+        for (FoodItem item : foodItems) {
+            boolean matches = false;
+            if (category.equals("All")) {
+                matches = true;
+            } else if (item.getCategory() != null) {
+                if (category.equalsIgnoreCase("Groceries") &&
+                        (item.getCategory().equalsIgnoreCase("GROCERIES")
+                                || item.getCategory().equalsIgnoreCase("Pantry"))) {
+                    matches = true;
+                } else if (category.equalsIgnoreCase("Meals") &&
+                        (item.getCategory().equalsIgnoreCase("MEALS")
+                                || item.getCategory().equalsIgnoreCase("Leftover"))) {
+                    matches = true;
+                }
+            }
+
+            if (matches) {
+                addFoodMarker(item);
+            }
+        }
+        mapView.invalidate();
     }
 
     public void focusOnFoodItem(FoodItem item) {
