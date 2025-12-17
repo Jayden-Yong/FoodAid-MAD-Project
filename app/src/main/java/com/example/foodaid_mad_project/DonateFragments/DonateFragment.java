@@ -507,25 +507,34 @@ public class DonateFragment extends Fragment {
     }
 
     private void processImageAndSave(Uri imageUri, String title, double weight, int quantity, String description,
-            String category,
-            String pickupMethod) {
+            String category, String pickupMethod) {
 
-        Toast.makeText(getContext(), "Processing image...", Toast.LENGTH_SHORT).show();
+        com.example.foodaid_mad_project.Utils.LoadingDialog loadingDialog = new com.example.foodaid_mad_project.Utils.LoadingDialog(
+                requireContext());
+        loadingDialog.show(); // Assuming you have a loading dialog or use ProgressBar
 
-        try {
-            // Compress and convert to Base64
-            String base64Image = ImageUtil.uriToBase64(requireContext(), imageUri);
-            if (base64Image == null) {
-                Toast.makeText(getContext(), "Failed to process image", Toast.LENGTH_SHORT).show();
-                return;
+        new Thread(() -> {
+            try {
+                // Compress and convert to Base64 in background
+                String base64Image = ImageUtil.uriToBase64(requireContext(), imageUri);
+
+                requireActivity().runOnUiThread(() -> {
+                    loadingDialog.dismiss();
+                    if (base64Image == null) {
+                        Toast.makeText(getContext(), "Failed to process image", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    saveDonationToFirestore(base64Image, title, weight, quantity, description, category, pickupMethod);
+                });
+
+            } catch (Exception e) {
+                Log.e("Donate", "Image Error", e);
+                requireActivity().runOnUiThread(() -> {
+                    loadingDialog.dismiss();
+                    Toast.makeText(getContext(), "Image Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
             }
-            // Save to Firestore directly
-            saveDonationToFirestore(base64Image, title, weight, quantity, description, category, pickupMethod);
-
-        } catch (Exception e) {
-            Log.e("Donate", "Image Error", e);
-            Toast.makeText(getContext(), "Image Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
+        }).start();
     }
 
     // UPDATED: Now accepts base64Image string instead of URL

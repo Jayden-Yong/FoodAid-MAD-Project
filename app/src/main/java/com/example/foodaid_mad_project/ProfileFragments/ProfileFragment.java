@@ -55,6 +55,7 @@ public class ProfileFragment extends Fragment {
     private FirebaseFirestore db;
     private FirebaseStorage storage;
     private GoogleSignInClient mGoogleSignInClient;
+    private com.google.firebase.firestore.ListenerRegistration userListener;
 
     // Image Picker Launcher
     private ActivityResultLauncher<PickVisualMediaRequest> pickMediaLauncher;
@@ -159,6 +160,15 @@ public class ProfileFragment extends Fragment {
                 (buttonView, isChecked) -> updateNotificationSetting("pushNotificationEnabled", isChecked));
         switchEmail.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> updateNotificationSetting("emailNotificationEnabled", isChecked));
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (userListener != null) {
+            userListener.remove();
+            userListener = null;
+        }
     }
 
     private void showChangePasswordDialog() {
@@ -451,13 +461,19 @@ public class ProfileFragment extends Fragment {
             return;
 
         // Load specific user document
-        db.collection("users").document(user.getUid()).addSnapshotListener((snapshot, e) -> {
+        if (userListener != null)
+            userListener.remove(); // Remove existing if any
+        userListener = db.collection("users").document(user.getUid()).addSnapshotListener((snapshot, e) -> {
             if (e != null) {
                 Log.e("Profile", "Listen failed.", e);
                 return;
             }
 
             if (snapshot != null && snapshot.exists()) {
+                if (!isAdded() || getContext() == null) {
+                    return; // Avoid crash if fragment is detached
+                }
+
                 String name = snapshot.getString("name");
                 if (name == null && user.getDisplayName() != null)
                     name = user.getDisplayName();
@@ -474,7 +490,7 @@ public class ProfileFragment extends Fragment {
                     try {
                         if (photoData.startsWith("http")) {
                             // Old URL
-                            Glide.with(this)
+                            Glide.with(ProfileFragment.this)
                                     .load(photoData)
                                     .placeholder(R.drawable.ic_launcher_background)
                                     .error(R.drawable.ic_launcher_background)
@@ -485,7 +501,7 @@ public class ProfileFragment extends Fragment {
                             byte[] imageBytes = com.example.foodaid_mad_project.Utils.ImageUtil
                                     .base64ToBytes(photoData);
                             if (imageBytes.length > 0) {
-                                Glide.with(this)
+                                Glide.with(ProfileFragment.this)
                                         .asBitmap()
                                         .load(imageBytes)
                                         .placeholder(R.drawable.ic_launcher_background)
@@ -496,11 +512,14 @@ public class ProfileFragment extends Fragment {
                         }
                     } catch (Exception imageError) {
                         Log.e("ProfileFragment", "Error loading profile image", imageError);
-                        Glide.with(this).load(R.drawable.ic_launcher_background).circleCrop().into(ivProfile);
+                        if (isAdded()) {
+                            Glide.with(ProfileFragment.this).load(R.drawable.ic_launcher_background).circleCrop()
+                                    .into(ivProfile);
+                        }
                     }
                 } else if (user.getPhotoUrl() != null) {
                     // Fallback to Auth Photo if Firestore empty
-                    Glide.with(this)
+                    Glide.with(ProfileFragment.this)
                             .load(user.getPhotoUrl())
                             .placeholder(R.drawable.ic_launcher_background)
                             .error(R.drawable.ic_launcher_background)

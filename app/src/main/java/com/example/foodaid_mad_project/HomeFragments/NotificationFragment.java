@@ -130,6 +130,7 @@ public class NotificationFragment extends Fragment {
         db.collection("notifications")
                 .whereIn("userId", java.util.Arrays.asList(auth.getCurrentUser().getUid(), "ALL"))
                 .orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(20) // Optimization: Fetch only latest 20
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null) {
                         return;

@@ -69,6 +69,7 @@ public class ImpactBodyFragment extends Fragment {
     private ConstraintLayout impactConstraint;
 
     private String currentMode = MODE_WEEK;
+    private Calendar displayedDate;
 
     // Real Data Lists
     private List<FoodItem> claimedItems = new ArrayList<>();
@@ -101,6 +102,8 @@ public class ImpactBodyFragment extends Fragment {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        displayedDate = Calendar.getInstance();
+
         // Date Range
         btnPrevDate = view.findViewById(R.id.btnPrevDate);
         btnNextDate = view.findViewById(R.id.btnNextDate);
@@ -127,6 +130,7 @@ public class ImpactBodyFragment extends Fragment {
         rvContributions.setLayoutManager(new LinearLayoutManager(getContext()));
 
         setupListeners();
+        setupDateNavigation();
     }
 
     @Override
@@ -262,7 +266,36 @@ public class ImpactBodyFragment extends Fragment {
     public void updateViewMode(String mode) {
         this.currentMode = mode;
         if (tvDateRange != null) {
+            // Reset to today when switching modes? Or keep the date?
+            // Let's reset to today for better UX when switching granularity
+            displayedDate = Calendar.getInstance();
             refreshStats(); // Trigger refresh with new mode
+        }
+    }
+
+    private void setupDateNavigation() {
+        btnPrevDate.setOnClickListener(v -> {
+            adjustDate(-1);
+            refreshStats();
+        });
+
+        btnNextDate.setOnClickListener(v -> {
+            adjustDate(1);
+            refreshStats();
+        });
+    }
+
+    private void adjustDate(int amount) {
+        switch (currentMode) {
+            case MODE_WEEK:
+                displayedDate.add(Calendar.WEEK_OF_YEAR, amount);
+                break;
+            case MODE_MONTH:
+                displayedDate.add(Calendar.MONTH, amount);
+                break;
+            case MODE_YEAR:
+                displayedDate.add(Calendar.YEAR, amount);
+                break;
         }
     }
 
@@ -270,58 +303,95 @@ public class ImpactBodyFragment extends Fragment {
         if (getContext() == null)
             return;
 
-        Calendar now = Calendar.getInstance();
-        long endTime = now.getTimeInMillis();
-        long startTime = 0;
-        String dateRangeText = "";
+        // Clone the displayed date so we don't mess up the state variable
+        Calendar calSnapshot = (Calendar) displayedDate.clone();
 
-        // Calculate Start Time based on Mode
-        Calendar startCal = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+        long startTime = 0;
+        long endTime = 0;
+        String dateRangeText = "";
+        SimpleDateFormat sdfDayMonth = new SimpleDateFormat("dd MMM", Locale.getDefault());
+        SimpleDateFormat sdfFull = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
 
         // Filter items for the list
         List<FoodItem> filteredItems = new ArrayList<>();
 
         switch (currentMode) {
             case MODE_WEEK:
-                startCal.set(Calendar.DAY_OF_WEEK, startCal.getFirstDayOfWeek());
-                startTime = startCal.getTimeInMillis();
-                dateRangeText = sdf.format(startCal.getTime()) + " - " + sdf.format(now.getTime());
+                // Set to start of week
+                calSnapshot.set(Calendar.DAY_OF_WEEK, calSnapshot.getFirstDayOfWeek());
+                calSnapshot.set(Calendar.HOUR_OF_DAY, 0);
+                calSnapshot.set(Calendar.MINUTE, 0);
+                calSnapshot.set(Calendar.SECOND, 0);
+                calSnapshot.set(Calendar.MILLISECOND, 0);
+                startTime = calSnapshot.getTimeInMillis();
 
-                tvContributionsHeader.setText("This Week's Contribution");
+                // Set to end of week
+                calSnapshot.add(Calendar.DAY_OF_YEAR, 6);
+                calSnapshot.set(Calendar.HOUR_OF_DAY, 23);
+                calSnapshot.set(Calendar.MINUTE, 59);
+                calSnapshot.set(Calendar.SECOND, 59);
+                endTime = calSnapshot.getTimeInMillis();
+
+                // Format: "03 Dec - 09 Dec 2024" or simpler
+                // Let's do: "03 Dec - 09 Dec" (and maybe year if different?)
+                String startStr = sdfDayMonth.format(new Date(startTime));
+                String endStr = sdfFull.format(new Date(endTime));
+                dateRangeText = startStr + " - " + endStr;
+
+                tvContributionsHeader.setText("Contribution (Week)");
                 headerMonthYear.setVisibility(View.GONE);
                 chartWeek.setVisibility(View.VISIBLE);
                 chartMonth.setVisibility(View.GONE);
                 chartYear.setVisibility(View.GONE);
-                setupBarChart();
+                setupBarChart(startTime, endTime);
                 break;
 
             case MODE_MONTH:
-                startCal.set(Calendar.DAY_OF_MONTH, 1);
-                startTime = startCal.getTimeInMillis();
-                dateRangeText = new SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(now.getTime());
+                calSnapshot.set(Calendar.DAY_OF_MONTH, 1);
+                calSnapshot.set(Calendar.HOUR_OF_DAY, 0);
+                calSnapshot.set(Calendar.MINUTE, 0);
+                calSnapshot.set(Calendar.SECOND, 0);
+                startTime = calSnapshot.getTimeInMillis();
 
-                tvContributionsHeader.setText("This Month's Contribution");
+                int maxDay = calSnapshot.getActualMaximum(Calendar.DAY_OF_MONTH);
+                calSnapshot.set(Calendar.DAY_OF_MONTH, maxDay);
+                calSnapshot.set(Calendar.HOUR_OF_DAY, 23);
+                calSnapshot.set(Calendar.MINUTE, 59);
+                endTime = calSnapshot.getTimeInMillis();
+
+                dateRangeText = new SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(new Date(startTime));
+
+                tvContributionsHeader.setText("Contribution (Month)");
                 tvMonthYear.setText("Week");
                 headerMonthYear.setVisibility(View.VISIBLE);
                 chartWeek.setVisibility(View.GONE);
                 chartMonth.setVisibility(View.VISIBLE);
                 chartYear.setVisibility(View.GONE);
-                setupLineChart();
+                setupLineChart(startTime, endTime);
                 break;
 
             case MODE_YEAR:
-                startCal.set(Calendar.DAY_OF_YEAR, 1);
-                startTime = startCal.getTimeInMillis();
-                dateRangeText = new SimpleDateFormat("yyyy", Locale.getDefault()).format(now.getTime());
+                calSnapshot.set(Calendar.DAY_OF_YEAR, 1);
+                calSnapshot.set(Calendar.HOUR_OF_DAY, 0);
+                calSnapshot.set(Calendar.MINUTE, 0);
+                startTime = calSnapshot.getTimeInMillis();
 
-                tvContributionsHeader.setText("This Year's Contribution");
+                // End of year
+                calSnapshot.set(Calendar.MONTH, 11); // Dec
+                calSnapshot.set(Calendar.DAY_OF_MONTH, 31);
+                calSnapshot.set(Calendar.HOUR_OF_DAY, 23);
+                calSnapshot.set(Calendar.MINUTE, 59);
+                endTime = calSnapshot.getTimeInMillis();
+
+                dateRangeText = new SimpleDateFormat("yyyy", Locale.getDefault()).format(new Date(startTime));
+
+                tvContributionsHeader.setText("Contribution (Year)");
                 tvMonthYear.setText("Month");
                 headerMonthYear.setVisibility(View.VISIBLE);
                 chartWeek.setVisibility(View.GONE);
                 chartMonth.setVisibility(View.GONE);
                 chartYear.setVisibility(View.VISIBLE);
-                setupPieChart();
+                setupPieChart(startTime, endTime);
                 break;
         }
         tvDateRange.setText(dateRangeText);
@@ -351,17 +421,11 @@ public class ImpactBodyFragment extends Fragment {
     // needed) ---
     // --- Chart Setup ---
 
-    private void setupBarChart() {
+    private void setupBarChart(long startOfWeek, long endOfWeek) {
         if (claimedItems == null || claimedItems.isEmpty()) {
             chartWeek.clear();
             return;
         }
-
-        // 1. Determine Range (Week)
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek()); // Start of week coverage
-        long startOfWeek = cal.getTimeInMillis();
-        long endOfWeek = System.currentTimeMillis(); // Up to now
 
         // 2. Aggregate Daily Weights
         // Map: DayOfYear -> Weight
@@ -403,17 +467,14 @@ public class ImpactBodyFragment extends Fragment {
         chartWeek.invalidate();
     }
 
-    private void setupLineChart() {
+    private void setupLineChart(long startOfMonth, long endOfMonth) {
         if (claimedItems == null) {
             chartMonth.clear();
             return;
         }
 
-        // 1. Determine Range (Month)
         Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.DAY_OF_MONTH, 1);
-        long startOfMonth = cal.getTimeInMillis();
-        long endOfMonth = System.currentTimeMillis();
+        cal.setTimeInMillis(startOfMonth);
         int maxDays = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
 
         // 2. Aggregate Daily Weights for the Month
@@ -459,13 +520,7 @@ public class ImpactBodyFragment extends Fragment {
         chartMonth.invalidate();
     }
 
-    private void setupPieChart() {
-        // Filter for Year
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.DAY_OF_YEAR, 1);
-        long startOfYear = cal.getTimeInMillis();
-        long endOfYear = System.currentTimeMillis();
-
+    private void setupPieChart(long startOfYear, long endOfYear) {
         int claimedCount = 0;
         for (FoodItem i : claimedItems) {
             if (i.getTimestamp() >= startOfYear && i.getTimestamp() <= endOfYear)
