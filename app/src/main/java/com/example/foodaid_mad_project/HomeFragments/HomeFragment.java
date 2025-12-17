@@ -146,17 +146,6 @@ public class HomeFragment extends Fragment
         // ((SupportMapFragment) mapFragment).getMapAsync(this);
         // }
 
-        // To QR Page
-        ImageButton btnToQR = view.findViewById(R.id.btnToQR);
-        btnToQR.setOnClickListener(v -> {
-            // Use requireActivity().getSupportFragmentManager() because coveringFragment
-            // belongs to MainActivity, not the NavHostFragment.
-            requireActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.coveringFragment, new QRFragment())
-                    .addToBackStack("QRFragment")
-                    .commit();
-        });
-
         // Initialize Notification Button
         ImageButton btnToNotification = view.findViewById(R.id.btnToNotification);
         View notificationBadge = view.findViewById(R.id.notificationBadge);

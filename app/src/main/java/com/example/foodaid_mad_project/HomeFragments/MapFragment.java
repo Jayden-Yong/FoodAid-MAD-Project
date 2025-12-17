@@ -47,15 +47,24 @@ public class MapFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_map, container, false);
 
+        // Important! Set your user agent to prevent getting banned from the OSM servers
         Configuration.getInstance().setUserAgentValue(requireContext().getPackageName());
+        // Set configuration to use persistent storage
+        Configuration.getInstance().setOsmdroidBasePath(new java.io.File(requireContext().getFilesDir(), "osmdroid"));
+        Configuration.getInstance()
+                .setOsmdroidTileCache(new java.io.File(requireContext().getFilesDir(), "osmdroid/tiles"));
 
         mapView = view.findViewById(R.id.mapView);
         mapView.setMultiTouchControls(true);
 
         // Initial map view
         IMapController controller = mapView.getController();
-        controller.setZoom(20.0);
+        controller.setZoom(16.0); // Slightly zoomed out to see area
         controller.setCenter(DEFAULT_LOCATION);
+
+        // Cache UM Area
+        cacheUMArea();
+
         /*
          * // Setup mock data
          * generateMockData();
@@ -316,5 +325,49 @@ public class MapFragment extends Fragment {
         }
         if (locationOverlay != null)
             locationOverlay.disableMyLocation();
+    }
+
+    private void cacheUMArea() {
+        // Run in background to avoid blocking UI
+        new Thread(() -> {
+            try {
+                org.osmdroid.tileprovider.cachemanager.CacheManager cacheManager = new org.osmdroid.tileprovider.cachemanager.CacheManager(
+                        mapView);
+                // Define Bounding Box for UM and surroundings (Approx coordinates)
+                // North: 3.13, South: 3.11, East: 101.67, West: 101.64
+                org.osmdroid.util.BoundingBox bbox = new org.osmdroid.util.BoundingBox(3.135, 101.670, 3.110, 101.640);
+
+                // Cache Zoom Levels 12 to 17 (Standard viewing range)
+                cacheManager.downloadAreaAsync(requireContext(), bbox, 12, 17,
+                        new org.osmdroid.tileprovider.cachemanager.CacheManager.CacheManagerCallback() {
+                            @Override
+                            public void onTaskComplete() {
+                                // Optional: filtering or callback log
+                            }
+
+                            @Override
+                            public void updateProgress(int progress, int currentZoomLevel, int zoomMin, int zoomMax) {
+                                // Optional: update progress
+                            }
+
+                            @Override
+                            public void downloadStarted() {
+                                // Optional: log start
+                            }
+
+                            @Override
+                            public void setPossibleTilesInArea(int total) {
+                                // Optional: log total
+                            }
+
+                            @Override
+                            public void onTaskFailed(int errors) {
+                                // Optional: log error
+                            }
+                        });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 }
