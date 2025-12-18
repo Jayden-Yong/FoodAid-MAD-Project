@@ -32,13 +32,10 @@ import com.example.foodaid_mad_project.AuthActivity;
 import com.example.foodaid_mad_project.MainActivity;
 import com.example.foodaid_mad_project.R;
 import com.example.foodaid_mad_project.UserManager;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
@@ -50,11 +47,30 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+/**
+ * <h1>RegisterFragment</h1>
+ * <p>
+ * This fragment handles new user registration.
+ * It provides:
+ * <ul>
+ * <li>Email/Password registration with strict password strength
+ * validation.</li>
+ * <li>Google Sign-In integration.</li>
+ * <li>Password visibility toggling for both password and confirm password
+ * fields.</li>
+ * <li>Automatic basic profile creation in Firestore upon successful
+ * registration.</li>
+ * </ul>
+ * </p>
+ */
 public class RegisterFragment extends Fragment implements CompoundButton.OnCheckedChangeListener {
 
+    // Firebase & Utilities
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     private CredentialManager credentialManager;
+
+    // UI Elements
     private EditText etRegisterName, etRegisterEmail, etRegisterPassword, etRegisterConfirmPassword;
     private CheckBox btnCheckPassword, btnCheckConfirmPassword;
     private MaterialButton btnRegister, btnGoogle;
@@ -70,18 +86,22 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Handle back button
-        ImageButton btnBack = view.findViewById(R.id.btnBack);
-        btnBack.setOnClickListener(v -> {
-            if (getActivity() instanceof AuthActivity) {
-                ((AuthActivity) getActivity()).showLandingPage();
-            }
-        });
-
+        // Initialize Firebase and Helpers
         auth = FirebaseAuth.getInstance();
         credentialManager = CredentialManager.create(requireContext());
         db = FirebaseFirestore.getInstance();
 
+        // Bind Views
+        initializeViews(view);
+
+        // Setup Listeners
+        setupListeners(view);
+    }
+
+    /**
+     * Finds and assigns all UI components from the layout.
+     */
+    private void initializeViews(View view) {
         etRegisterName = view.findViewById(R.id.etRegisterName);
         etRegisterEmail = view.findViewById(R.id.etRegisterEmail);
         etRegisterPassword = view.findViewById(R.id.etRegisterPassword);
@@ -90,10 +110,25 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
         btnCheckConfirmPassword = view.findViewById(R.id.btnCheckConfirmPassword);
         btnRegister = view.findViewById(R.id.btnRegister);
         btnGoogle = view.findViewById(R.id.btnGoogle);
+    }
 
+    /**
+     * Sets up click listeners for buttons and input interactions.
+     */
+    private void setupListeners(View view) {
+        // Back Button
+        ImageButton btnBack = view.findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> {
+            if (getActivity() instanceof AuthActivity) {
+                ((AuthActivity) getActivity()).showLandingPage();
+            }
+        });
+
+        // Checkbox Listeners (implemented in onCheckedChanged)
         btnCheckPassword.setOnCheckedChangeListener(this);
         btnCheckConfirmPassword.setOnCheckedChangeListener(this);
 
+        // Main Actions
         btnRegister.setOnClickListener(v -> registerNewUser());
         btnGoogle.setOnClickListener(v -> launchCredentialManager());
     }
@@ -101,14 +136,16 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
     /**
      * Validates password strength according to security requirements.
      * Password must:
-     * - Be at least 8 characters long
-     * - Contain at least one uppercase letter
-     * - Contain at least one lowercase letter
-     * - Contain at least one digit
-     * - Contain at least one special character
+     * <ul>
+     * <li>Be at least 8 characters long</li>
+     * <li>Contain at least one uppercase letter</li>
+     * <li>Contain at least one lowercase letter</li>
+     * <li>Contain at least one digit</li>
+     * <li>Contain at least one special character</li>
+     * </ul>
      *
-     * @param password The password to validate
-     * @return Error message if validation fails, null if password is valid
+     * @param password The password to validate.
+     * @return Error message if validation fails, null if password is valid.
      */
     private String validatePasswordStrength(String password) {
         if (password.length() < 8) {
@@ -121,15 +158,14 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
         boolean hasSpecial = false;
 
         for (char c : password.toCharArray()) {
-            if (Character.isUpperCase(c)) {
+            if (Character.isUpperCase(c))
                 hasUppercase = true;
-            } else if (Character.isLowerCase(c)) {
+            else if (Character.isLowerCase(c))
                 hasLowercase = true;
-            } else if (Character.isDigit(c)) {
+            else if (Character.isDigit(c))
                 hasDigit = true;
-            } else if (!Character.isLetterOrDigit(c) && !Character.isWhitespace(c)) {
+            else if (!Character.isLetterOrDigit(c) && !Character.isWhitespace(c))
                 hasSpecial = true;
-            }
 
             // Early exit if all requirements are met
             if (hasUppercase && hasLowercase && hasDigit && hasSpecial) {
@@ -137,29 +173,28 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
             }
         }
 
-        if (!hasUppercase) {
+        if (!hasUppercase)
             return "Password must contain at least one uppercase letter";
-        }
-        if (!hasLowercase) {
+        if (!hasLowercase)
             return "Password must contain at least one lowercase letter";
-        }
-        if (!hasDigit) {
+        if (!hasDigit)
             return "Password must contain at least one digit";
-        }
-        if (!hasSpecial) {
+        if (!hasSpecial)
             return "Password must contain at least one special character";
-        }
 
         return null; // Password is valid
     }
 
+    /**
+     * Validates input fields and attempts to create a new user in Firebase Auth.
+     */
     private void registerNewUser() {
         String name = etRegisterName.getText().toString().trim();
         String email = etRegisterEmail.getText().toString().trim();
         String password = etRegisterPassword.getText().toString();
         String confirmPassword = etRegisterConfirmPassword.getText().toString();
 
-        // input validations
+        // Step 1: Input Validation
         if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(getContext(), "Please enter all credentials", Toast.LENGTH_LONG).show();
             return;
@@ -181,11 +216,12 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
             return;
         }
 
-        // register new user
+        // Step 2: Create User in Firebase Auth
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
                     FirebaseUser user = authResult.getUser();
                     if (user != null) {
+                        // Step 3: Create User Profile in Firestore
                         saveUserToFirestore(user, "email", name, null);
                     }
                 })
@@ -199,36 +235,39 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
                 });
     }
 
+    /**
+     * Handles password visibility toggling for both password fields.
+     */
     @Override
     public void onCheckedChanged(@NonNull CompoundButton buttonView, boolean isChecked) {
         if (buttonView.getId() == R.id.btnCheckPassword) {
-            Typeface passwordTypeface = etRegisterPassword.getTypeface();
-            if (isChecked) {
-                etRegisterPassword
-                        .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-            } else {
-                etRegisterPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-            }
-            etRegisterPassword.setTypeface(passwordTypeface);
-            etRegisterPassword.setSelection(etRegisterPassword.getText().length());
+            togglePasswordVisibility(etRegisterPassword, isChecked);
         } else {
-            Typeface confirmPasswordTypeface = etRegisterConfirmPassword.getTypeface();
-            if (isChecked) {
-                etRegisterConfirmPassword
-                        .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-            } else {
-                etRegisterConfirmPassword
-                        .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-            }
-            etRegisterConfirmPassword.setTypeface(confirmPasswordTypeface);
-            etRegisterConfirmPassword.setSelection(etRegisterConfirmPassword.getText().length());
+            togglePasswordVisibility(etRegisterConfirmPassword, isChecked);
         }
     }
 
-    // use google account
+    /**
+     * Helper to toggle password visibility and preserve cursor position/font.
+     */
+    private void togglePasswordVisibility(EditText editText, boolean isVisible) {
+        Typeface originalTypeface = editText.getTypeface();
+        if (isVisible) {
+            editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+        } else {
+            editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        }
+        editText.setTypeface(originalTypeface);
+        editText.setSelection(editText.getText().length());
+    }
+
+    // ============================================================================================
+    // GOOGLE SIGN IN
+    // ============================================================================================
+
     private void launchCredentialManager() {
         GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()
-                .setFilterByAuthorizedAccounts(false)
+                .setFilterByAuthorizedAccounts(false) // For Reg, we might want to allow any account
                 .setServerClientId(getString(R.string.default_web_client_id))
                 .build();
 
@@ -236,7 +275,6 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
                 .addCredentialOption(googleIdOption)
                 .build();
 
-        // starts credential manager ui
         credentialManager.getCredentialAsync(
                 requireContext(),
                 request,
@@ -258,14 +296,12 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
     }
 
     private void handleSignIn(Credential credential) {
-        // check if credential is google id
         if (credential instanceof CustomCredential
                 && credential.getType().equals(TYPE_GOOGLE_ID_TOKEN_CREDENTIAL)) {
             CustomCredential customCredential = (CustomCredential) credential;
             Bundle credentialData = customCredential.getData();
             GoogleIdTokenCredential googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credentialData);
 
-            // sign in to firebase with google
             firebaseAuthWithGoogle(googleIdTokenCredential.getIdToken());
         } else {
             requireActivity().runOnUiThread(
@@ -293,18 +329,33 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
                 });
     }
 
+    // ============================================================================================
+    // FIRESTORE
+    // ============================================================================================
+
+    /**
+     * Saves or updates user data in Firestore.
+     *
+     * @param user         The FirebaseUser object.
+     * @param providerType The type of login ("email" or "google").
+     * @param localName    The name provided in the registration form (if
+     *                     applicable).
+     * @param photoUrl     The photo URL to save.
+     */
     private void saveUserToFirestore(FirebaseUser user, String providerType, String localName, String photoUrl) {
         String uid = user.getUid();
         String email = user.getEmail();
 
-        // Priority: localName (Form matches intent) > user.getDisplayName()
-        // (Firebase/Google)
+        // Priority 1: Name from Registration Form
+        // Priority 2: Name from Google Account
         String displayName = (localName != null && !localName.isEmpty()) ? localName : user.getDisplayName();
 
-        // Priority: photoUrl (Google) > user.getPhotoUrl()
+        // Priority 1: Photo from args
+        // Priority 2: Photo from Google Account
         String finalPhotoUrl = (photoUrl != null) ? photoUrl
                 : (user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : null);
 
+        // Fallback Name Generation
         if (displayName == null || displayName.isEmpty()) {
             if (email != null && email.contains("@")) {
                 displayName = email.substring(0, email.indexOf("@"));
@@ -318,33 +369,21 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
         userData.put("email", email);
         userData.put("displayName", displayName);
         userData.put("photoUrl", finalPhotoUrl);
-        // userData.put("earnedBadges", ...); // Not needed to explicitly put empty list
-        // on MERGE if we don't want to overwrite, but for new user it's good.
-        // We'll let Firestore handle it or initialize if missing in future logic.
-        // For now, let's keep it simple and safe.
-        // If document exists, we merge. If we want to Initialize badges ONLY if they
-        // don't exist, we can't do it easily with just .set(merge).
-        // But for "Register & Go", minimal friction.
 
-        // Checking if we should overwrite badges?
-        // If it's a NEW registration, overwrite is fine.
-        // If it's a LOGIN that triggers this, we shouldn't overwrite badges.
-
-        // Simplified Logic: Just update profile info.
-        userData.put("userType", "student");
-
+        // logic for new vs existing handling
         if ("email".equals(providerType)) {
+            // New Email Registration: Initialize metadata
             userData.put("createdAt", System.currentTimeMillis());
-            userData.put("earnedBadges", new java.util.ArrayList<String>()); // Only init for new email reg
+            userData.put("earnedBadges", new java.util.ArrayList<String>());
         } else {
+            // Google Login/Reg: Update login time
             userData.put("lastLogin", System.currentTimeMillis());
-            // Don't overwrite badges for Google Login if they exist
         }
 
+        // Save to Firestore (Merge)
         db.collection("users").document(uid).set(userData, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
-                    // Fetch latest data to ensure UserManager is up to date (handles merges for
-                    // existing users)
+                    // Fetch full user object for Session Manager
                     db.collection("users").document(uid).get()
                             .addOnSuccessListener(documentSnapshot -> {
                                 User currentUser = documentSnapshot.toObject(User.class);
@@ -352,20 +391,15 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
 
                                 Toast.makeText(getContext(), "Registration/Login successful!", Toast.LENGTH_LONG)
                                         .show();
-
                                 Intent intent = new Intent(getContext(), MainActivity.class);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(intent);
                                 requireActivity().finish();
                             })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(getContext(), "Failed to retrieve user data: " + e.getMessage(),
-                                        Toast.LENGTH_LONG).show();
-                            });
+                            .addOnFailureListener(e -> Toast.makeText(getContext(),
+                                    "Failed to retrieve user data: " + e.getMessage(), Toast.LENGTH_LONG).show());
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Failed to save user data: " + e.getMessage(), Toast.LENGTH_LONG)
-                            .show();
-                });
+                .addOnFailureListener(e -> Toast.makeText(getContext(),
+                        "Failed to save user data: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 }

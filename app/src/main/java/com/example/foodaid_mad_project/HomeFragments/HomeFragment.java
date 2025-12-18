@@ -1,10 +1,11 @@
 package com.example.foodaid_mad_project.HomeFragments;
 
-import android.media.Image;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -19,39 +20,41 @@ import com.example.foodaid_mad_project.AuthFragments.User;
 import com.example.foodaid_mad_project.Model.FoodItem;
 import com.example.foodaid_mad_project.R;
 import com.example.foodaid_mad_project.UserManager;
-
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-// import com.google.firebase.firestore.FirebaseFirestore;
-// import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-public class HomeFragment extends Fragment
-// implements OnMapReadyCallback
-{
+/**
+ * <h1>HomeFragment</h1>
+ * <p>
+ * The main landing fragment of the application.
+ * Features:
+ * <ul>
+ * <li>Displays a welcome message to the user.</li>
+ * <li>Provides a Search Bar and Category Filters (Groceries vs Meals).</li>
+ * <li>Embeds the {@link MapFragment} to show donation locations.</li>
+ * <li>Handles Notification Badge updates by listening to Firestore.</li>
+ * <li>Navigates to {@link NotificationFragment} and shows
+ * {@link MapPinItemFragment} details.</li>
+ * </ul>
+ * </p>
+ */
+public class HomeFragment extends Fragment {
 
     private String email, username, welcomeDisplay;
     private TextView tvWelcomeUser;
-
-    // My Map
-    // private GoogleMap mMap;
-    // private FirebaseFirestore db; // Commented out for now
-    // private FragmentContainerView mapPinContainer;
-
-    // List to hold Mock Data
-    private List<FoodItem> mockFoodItems;
+    private ListenerRegistration notificationListener;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
@@ -60,9 +63,51 @@ public class HomeFragment extends Fragment
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // 1. Setup Header & User Info
+        setupHeader(view);
+
+        // 2. Setup Search & Filters
+        setupSearchAndFilters(view);
+
+        // 3. Load Map Fragment
+        loadMapFragment();
+
+        // 4. Setup Notification Button & Badge
+        setupNotifications(view);
+    }
+
+    /**
+     * initializes welcome text based on the current user session.
+     */
+    private void setupHeader(View view) {
         tvWelcomeUser = view.findViewById(R.id.tvWelcomeUser);
 
-        com.google.android.material.chip.ChipGroup chipGroup = view.findViewById(R.id.chipGroupFilters);
+        try {
+            User user = UserManager.getInstance().getUser();
+            if (user != null) {
+                email = user.getEmail();
+
+                if (user.getDisplayName() != null && !user.getDisplayName().isEmpty()) {
+                    username = user.getDisplayName();
+                } else if (email != null && email.contains("@")) {
+                    username = email.substring(0, email.indexOf("@")).toUpperCase();
+                } else {
+                    username = "User";
+                }
+                welcomeDisplay = username;
+            }
+        } catch (NullPointerException e) {
+            welcomeDisplay = "Guest";
+        }
+        tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
+    }
+
+    /**
+     * sets up the search bar listener and chip group filters for the map.
+     */
+    private void setupSearchAndFilters(View view) {
+        // Chip Group (Filtering)
+        ChipGroup chipGroup = view.findViewById(R.id.chipGroupFilters);
         chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
             String category = "All";
             if (checkedIds.contains(R.id.chipGroceries)) {
@@ -77,76 +122,35 @@ public class HomeFragment extends Fragment
             }
         });
 
-        try {
-            User user = UserManager.getInstance().getUser();
-            if (user != null) {
-                email = user.getEmail();
-
-                if (user.getDisplayName() != null && !user.getDisplayName().isEmpty()) {
-                    username = user.getDisplayName();
-                } else if (email != null && email.contains("@")) {
-                    username = email.substring(0, email.indexOf("@")).toUpperCase();
-                } else {
-                    username = "User";
-                }
-
-                welcomeDisplay = username;
-            }
-
-        } catch (NullPointerException e) {
-            welcomeDisplay = "Guest";
-        }
-        tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
-
-        // Initialize search EditText
+        // Search Bar
         EditText etSearch = view.findViewById(R.id.etSearch);
-
-        // Add search listener here
         etSearch.setOnEditorActionListener((v, actionId, event) -> {
-            // Trigger only when the user presses "Search" or "Done"
-            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH ||
-                    actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
-
+            if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_DONE) {
                 String query = etSearch.getText().toString().trim();
                 if (!query.isEmpty()) {
                     searchLocation(query);
                 }
-                return true; // consume the event
+                return true;
             }
             return false;
         });
+    }
 
-        // --- Load MapFragment into FragmentContainerView ---
+    /**
+     * Dynamically replaces the placeholder with the MapFragment instance.
+     */
+    private void loadMapFragment() {
         getChildFragmentManager()
                 .beginTransaction()
                 .replace(R.id.MapFragment, new MapFragment())
                 .commit();
+    }
 
-        // Vibe Coded map using Google Map
-        // // db = FirebaseFirestore.getInstance(); // Commented out
-        //
-        // // --- MOCK DATA GENERATION (Temporary) ---
-        // generateMockData();
-        // // ----------------------------------------
-        //
-        // mapPinContainer = view.findViewById(R.id.MapPinFragment);
-        // mapPinContainer.setVisibility(View.GONE);
-
-        // // Initialize Map
-        // Fragment mapFragment =
-        // getChildFragmentManager().findFragmentById(R.id.MapFragment);
-        // if (mapFragment == null) {
-        // mapFragment = new SupportMapFragment();
-        // getChildFragmentManager().beginTransaction()
-        // .replace(R.id.MapFragment, mapFragment)
-        // .commit();
-        // }
-        //
-        // if (mapFragment instanceof SupportMapFragment) {
-        // ((SupportMapFragment) mapFragment).getMapAsync(this);
-        // }
-
-        // Initialize Notification Button
+    /**
+     * Wired up the navigation to NotificationFragment and starts the badge
+     * listener.
+     */
+    private void setupNotifications(View view) {
         ImageButton btnToNotification = view.findViewById(R.id.btnToNotification);
         View notificationBadge = view.findViewById(R.id.notificationBadge);
 
@@ -157,58 +161,89 @@ public class HomeFragment extends Fragment
                     .commit();
         });
 
-        // Listen for Unread Notifications
+        // Listen for unread notifications to toggle red dot
         setupNotificationListener(notificationBadge);
     }
 
-    private com.google.firebase.firestore.ListenerRegistration notificationListener;
-
+    /**
+     * Real-time listener for "notifications" collection to show/hide the red badge.
+     * Checks both personal notifications and Global ("ALL") ones.
+     */
     private void setupNotificationListener(View badge) {
         if (FirebaseAuth.getInstance().getCurrentUser() == null)
             return;
 
-        notificationListener = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        notificationListener = FirebaseFirestore.getInstance()
                 .collection("notifications")
-                .whereIn("userId", java.util.Arrays.asList(FirebaseAuth.getInstance().getCurrentUser().getUid(), "ALL"))
-                .whereEqualTo("isRead", false)
+                .whereIn("userId", Arrays.asList(FirebaseAuth.getInstance().getCurrentUser().getUid(), "ALL"))
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(20) // Limit check to 20 latest for performance
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null)
                         return;
-                    if (snapshots != null && !snapshots.isEmpty()) {
-                        badge.setVisibility(View.VISIBLE);
-                    } else {
-                        badge.setVisibility(View.GONE);
+
+                    boolean hasUnread = false;
+                    if (snapshots != null) {
+                        for (DocumentSnapshot doc : snapshots) {
+                            boolean isRead = Boolean.TRUE.equals(doc.getBoolean("isRead"));
+                            String docUserId = doc.getString("userId");
+                            String docId = doc.getId();
+
+                            if ("ALL".equals(docUserId)) {
+                                // Global notification: Check SharedPreferences for read status
+                                if (!isGlobalReadLocally(docId)) {
+                                    hasUnread = true;
+                                    break;
+                                }
+                            } else {
+                                // Personal notification: Check Firestore field
+                                if (!isRead) {
+                                    hasUnread = true;
+                                    break;
+                                }
+                            }
+                        }
                     }
+
+                    badge.setVisibility(hasUnread ? View.VISIBLE : View.GONE);
                 });
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        if (notificationListener != null) {
-            notificationListener.remove();
-        }
+    /**
+     * Checks SharedPreferences to see if a Global Notification ID has been marked
+     * as read.
+     */
+    private boolean isGlobalReadLocally(String notificationId) {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null || getContext() == null)
+            return false;
+
+        SharedPreferences prefs = requireContext().getSharedPreferences(
+                "foodaid_prefs_" + FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                android.content.Context.MODE_PRIVATE);
+        Set<String> readSet = prefs.getStringSet("read_global_ids", new HashSet<>());
+        return readSet.contains(notificationId);
     }
 
+    /**
+     * Called by MapFragment when a pin is clicked. Shows the mini-detail fragment.
+     */
     public void showMapPinDetails(FoodItem item) {
-        // Get the container
         FragmentContainerView mapPinContainer = getView().findViewById(R.id.MapPinFragment);
         if (mapPinContainer == null)
             return;
 
-        // Make container visible
         mapPinContainer.setVisibility(View.VISIBLE);
 
-        // Create the fragment with the selected FoodItem
         MapPinItemFragment pinFragment = new MapPinItemFragment(item);
-
-        // Replace the container with this fragment
         getChildFragmentManager()
                 .beginTransaction()
                 .replace(R.id.MapPinFragment, pinFragment)
                 .commit();
     }
 
+    /**
+     * Searches for a FoodItem in the MapFragment based on title or location name.
+     */
     private void searchLocation(String query) {
         MapFragment mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.MapFragment);
         if (mapFragment == null)
@@ -223,13 +258,11 @@ public class HomeFragment extends Fragment
         FoodItem foundItem = null;
         String lowerQuery = query.toLowerCase().trim();
         for (FoodItem item : items) {
-            // Check Location Name
-            if (item.getLocationName() != null && item.getLocationName().toLowerCase().contains(lowerQuery)) {
-                foundItem = item;
-                break;
-            }
-            // Check Title
-            if (item.getTitle() != null && item.getTitle().toLowerCase().contains(lowerQuery)) {
+            boolean matchLocation = item.getLocationName() != null
+                    && item.getLocationName().toLowerCase().contains(lowerQuery);
+            boolean matchTitle = item.getTitle() != null && item.getTitle().toLowerCase().contains(lowerQuery);
+
+            if (matchLocation || matchTitle) {
                 foundItem = item;
                 break;
             }
@@ -242,7 +275,6 @@ public class HomeFragment extends Fragment
         }
     }
 
-    // Show centered message
     private void showFoodbankNotFoundMessage() {
         Toast toast = Toast.makeText(getContext(), "", Toast.LENGTH_SHORT);
 
@@ -259,79 +291,11 @@ public class HomeFragment extends Fragment
         toast.show();
     }
 
-    // private void generateMockData() {
-    // mockFoodItems = new ArrayList<>();
-    // // Using local drawables for testing
-    // mockFoodItems.add(new FoodItem("1", "Tiger Biscuits", "Universiti Malaya",
-    // "50 packs", "Student Council", R.drawable.ic_launcher_background, 3.1209,
-    // 101.6538));
-    // mockFoodItems.add(new FoodItem("2", "Leftover Catering", "Mid Valley", "20
-    // kg", "Grand Hotel", R.drawable.ic_launcher_background, 3.1176, 101.6776));
-    // mockFoodItems.add(new FoodItem("3", "Canned Soup", "Jaya One", "100 cans",
-    // "Community NGO", R.drawable.ic_launcher_background, 3.1180, 101.6360));
-    // }
-    //
-    // @Override
-    // public void onMapReady(@NonNull GoogleMap googleMap) {
-    // mMap = googleMap;
-    //
-    // // Default Camera Position
-    // LatLng startLocation = new LatLng(3.1209, 101.6538);
-    // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startLocation, 12));
-    //
-    // // --- REAL DATABASE CODE (Commented Out) ---
-    // /*
-    // db.collection("donations").get().addOnCompleteListener(task -> {
-    // if (task.isSuccessful()) {
-    // for (QueryDocumentSnapshot document : task.getResult()) {
-    // FoodItem item = document.toObject(FoodItem.class);
-    // if (item != null) {
-    // LatLng loc = new LatLng(item.getLat(), item.getLng());
-    // Marker marker = mMap.addMarker(new
-    // MarkerOptions().position(loc).title(item.getName()));
-    // if (marker != null) marker.setTag(item);
-    // }
-    // }
-    // } else {
-    // Toast.makeText(getContext(), "Failed to load map pins",
-    // Toast.LENGTH_SHORT).show();
-    // }
-    // });
-    // */
-    //
-    // // --- MOCK DATA CODE (Temporary) ---
-    // for (FoodItem item : mockFoodItems) {
-    // LatLng position = new LatLng(item.getLat(), item.getLng());
-    // Marker marker = mMap.addMarker(new MarkerOptions()
-    // .position(position)
-    // .title(item.getName()));
-    //
-    // if (marker != null) {
-    // marker.setTag(item);
-    // }
-    // }
-    // // ----------------------------------
-    //
-    // mMap.setOnMarkerClickListener(marker -> {
-    // FoodItem selectedItem = (FoodItem) marker.getTag();
-    // if (selectedItem != null) {
-    // showMapPinDetails(selectedItem);
-    // return true;
-    // }
-    // return false;
-    // });
-    //
-    // mMap.setOnMapClickListener(latLng -> {
-    // mapPinContainer.setVisibility(View.GONE);
-    // });
-    // }
-    //
-    // private void showMapPinDetails(FoodItem item) {
-    // mapPinContainer.setVisibility(View.VISIBLE);
-    // MapPinItemFragment pinFragment = new MapPinItemFragment(item);
-    //
-    // getChildFragmentManager().beginTransaction()
-    // .replace(R.id.MapPinFragment, pinFragment)
-    // .commit();
-    // }
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (notificationListener != null) {
+            notificationListener.remove();
+        }
+    }
 }

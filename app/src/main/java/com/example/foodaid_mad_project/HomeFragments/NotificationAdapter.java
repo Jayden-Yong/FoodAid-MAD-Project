@@ -14,6 +14,17 @@ import com.example.foodaid_mad_project.R;
 
 import java.util.List;
 
+/**
+ * <h1>NotificationAdapter</h1>
+ * <p>
+ * Adapter for displaying notifications in {@link NotificationFragment}.
+ * Supports two view types:
+ * <ul>
+ * <li>Header (Date grouping)</li>
+ * <li>Item (Notification content)</li>
+ * </ul>
+ * </p>
+ */
 public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private static final int TYPE_HEADER = 0;
@@ -41,11 +52,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     @Override
     public int getItemViewType(int position) {
-        if (notificationList.get(position).isHeader()) {
-            return TYPE_HEADER;
-        } else {
-            return TYPE_ITEM;
-        }
+        return notificationList.get(position).isHeader() ? TYPE_HEADER : TYPE_ITEM;
     }
 
     @NonNull
@@ -68,6 +75,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         if (holder instanceof HeaderViewHolder) {
             ((HeaderViewHolder) holder).tvHeader.setText(item.getTitle());
+
         } else if (holder instanceof ItemViewHolder) {
             ItemViewHolder itemHolder = (ItemViewHolder) holder;
 
@@ -75,34 +83,28 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             itemHolder.tvDesc.setText(item.getDescription());
             itemHolder.tvTime.setText(item.getTimeString());
 
-            // Icon Logic
+            // Icon Logic based on Notification Type
+            int iconRes = R.drawable.ic_notification; // Default
             if (item.getType() != null) {
                 switch (item.getType()) {
                     case "Request":
                     case "Donation":
-                        itemHolder.ivIcon.setImageResource(R.drawable.ic_new_donation);
+                        iconRes = R.drawable.ic_new_donation;
                         break;
                     case "Pickup":
-                        itemHolder.ivIcon.setImageResource(R.drawable.ic_qr);
+                        iconRes = R.drawable.ic_qr;
                         break;
                     case "Community":
-                        itemHolder.ivIcon.setImageResource(R.drawable.ic_community_selected);
+                        iconRes = R.drawable.ic_community_selected;
                         break;
-                    case "Impact":
-                        itemHolder.ivIcon.setImageResource(R.drawable.ic_notification); // Use default if leaf not
-                                                                                        // available
-                        break;
-                    default:
-                        itemHolder.ivIcon.setImageResource(R.drawable.ic_notification);
                 }
             }
+            itemHolder.ivIcon.setImageResource(iconRes);
 
-            if (!item.isRead()) {
-                itemHolder.unreadDot.setVisibility(View.VISIBLE);
-            } else {
-                itemHolder.unreadDot.setVisibility(View.GONE);
-            }
+            // Unread Dot Visibility
+            itemHolder.unreadDot.setVisibility(item.isRead() ? View.GONE : View.VISIBLE);
 
+            // Click Listener
             itemHolder.itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onItemClick(item);
@@ -116,7 +118,10 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return notificationList.size();
     }
 
-    // View Holders
+    // ============================================================================================
+    // VIEW HOLDERS
+    // ============================================================================================
+
     static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView tvHeader;
 

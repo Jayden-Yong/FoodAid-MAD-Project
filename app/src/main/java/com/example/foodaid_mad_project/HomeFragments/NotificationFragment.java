@@ -1,10 +1,11 @@
 package com.example.foodaid_mad_project.HomeFragments;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,7 +14,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,32 +22,56 @@ import com.example.foodaid_mad_project.Model.NotificationItem;
 import com.example.foodaid_mad_project.R;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.Filter;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
+/**
+ * <h1>NotificationFragment</h1>
+ * <p>
+ * Displays a list of notifications for the user.
+ * Supports:
+ * <ul>
+ * <li>Real-time updates from Firestore.</li>
+ * <li>Filtering by "All", "Donation", or "Community".</li>
+ * <li>Handling "Global" notifications (system-wide) with local read-status
+ * tracking.</li>
+ * <li>Grouping notifications by date (Today, Yesterday, etc.).</li>
+ * </ul>
+ * </p>
+ */
 public class NotificationFragment extends Fragment {
 
     private RecyclerView rvNotifications;
     private NotificationAdapter adapter;
-    private List<NotificationItem> allDataItems; // All fetched items mapped to ViewModels
+    private List<NotificationItem> allDataItems; // Raw fetched items mapped to ViewModels
     private List<NotificationItem> displayedList; // Items currently displayed (filtered + headers)
+
+    // UI Elements
     private ChipGroup chipGroupFilters;
     private TextView btnViewHistory;
     private TextView tvEmptyState;
 
+    // Pagination / Display Logic
     private int currentDisplayCount = 5;
     private static final int ITEMS_PER_PAGE = 5;
 
+    // Firebase
     private FirebaseFirestore db;
     private FirebaseAuth auth;
+    private ListenerRegistration notificationListener;
 
     @Nullable
     @Override
@@ -63,32 +87,41 @@ public class NotificationFragment extends Fragment {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        // 1. Initialize Views
+        initializeViews(view);
+
+        // 2. Setup RecyclerView
+        setupRecyclerView();
+
+        // 3. Setup Actions (Back, Filter, Load More)
+        setupActions(view);
+
+        // 4. Load Data
+        loadNotificationsFromFirestore();
+    }
+
+    private void initializeViews(View view) {
         rvNotifications = view.findViewById(R.id.rvNotifications);
         chipGroupFilters = view.findViewById(R.id.chip_group_filters);
         btnViewHistory = view.findViewById(R.id.tv_view_history);
         tvEmptyState = view.findViewById(R.id.tvEmptyState);
+        TextView toolBarTitle = view.findViewById(R.id.toolbarTitle);
+        if (toolBarTitle != null) {
+            toolBarTitle.setText("Notifications");
+        }
+    }
 
+    private void setupRecyclerView() {
         rvNotifications.setLayoutManager(new LinearLayoutManager(getContext()));
-
         allDataItems = new ArrayList<>();
         displayedList = new ArrayList<>();
         adapter = new NotificationAdapter(displayedList);
         adapter.setOnItemClickListener(this::onNotificationClicked);
         rvNotifications.setAdapter(adapter);
+    }
 
-        TextView toolBarTitle = view.findViewById(R.id.toolbarTitle);
-        // Ensure R.string.String exists or use hardcoded if not (assuming "String" is a
-        // key in incoming strings.xml, but it looks weird. Using "Notifications" or
-        // similar if possible, but sticking to incoming pattern for safety if I knew it
-        // existed. I'll use hardcoded "Notifications" to be safe or "Food Aid Details"
-        // as in incoming code if it was generic wrapper.)
-        // Incoming code had: toolBarTitle.setText(getString(R.string.String, "Food Aid
-        // Details")); - This implies R.string.String is a format string. I'll assume it
-        // exists.
-        if (toolBarTitle != null) {
-            toolBarTitle.setText("Notifications");
-        }
-
+    private void setupActions(View view) {
+        // Back Navigation
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
                 new OnBackPressedCallback(true) {
                     @Override
@@ -101,130 +134,156 @@ public class NotificationFragment extends Fragment {
 
         Toolbar toolbar = view.findViewById(R.id.Toolbar);
         if (toolbar != null) {
-            toolbar.setNavigationOnClickListener(v -> {
-                getParentFragmentManager().popBackStack();
-            });
+            toolbar.setNavigationOnClickListener(v -> getParentFragmentManager().popBackStack());
         }
 
         // Filter Logic
-        chipGroupFilters.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            if (checkedIds.isEmpty())
-                return;
-            currentDisplayCount = ITEMS_PER_PAGE;
-            btnViewHistory.setVisibility(View.VISIBLE);
-            updateDisplayedList();
-            adapter.updateList(displayedList);
-        });
+        chipGroupFilters.setOnCheckedStateChangeListener((group, checkedIds) -> loadNotificationsFromFirestore());
 
-        // Load More
-        btnViewHistory.setOnClickListener(v -> {
-            loadMoreItems();
-        });
-
-        loadNotificationsFromFirestore();
+        // Load More Logic
+        btnViewHistory.setOnClickListener(v -> loadMoreItems());
     }
 
+    /**
+     * Setups the Firestore listener based on the selected filter chip.
+     * Uses efficient server-side filtering logic.
+     */
     private void loadNotificationsFromFirestore() {
         if (auth.getCurrentUser() == null)
             return;
 
-        db.collection("notifications")
-                .whereIn("userId", java.util.Arrays.asList(auth.getCurrentUser().getUid(), "ALL"))
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .limit(20) // Optimization: Fetch only latest 20
-                .addSnapshotListener((snapshots, e) -> {
-                    if (e != null) {
-                        return;
-                    }
+        if (notificationListener != null) {
+            notificationListener.remove();
+        }
 
-                    if (snapshots != null) {
-                        allDataItems.clear();
-                        for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots) {
-                            Notification n = doc.toObject(Notification.class);
-                            if (n != null) {
-                                n.setId(doc.getId());
-                                allDataItems.add(mapToViewModel(n));
-                            }
-                        }
+        int checkedId = chipGroupFilters.getCheckedChipId();
+        Query query;
 
-                        // Apply current filter and update UI
-                        updateDisplayedList();
-                        adapter.updateList(displayedList);
-                        toggleEmptyState();
+        if (checkedId == R.id.chip_community) {
+            // Community: All posts of type "Community"
+            query = db.collection("notifications")
+                    .whereEqualTo("type", "Community")
+                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                    .limit(20);
+
+        } else if (checkedId == R.id.chip_donation) {
+            // Donation: Explicitly for User OR Global, but type must be "Donation"
+            query = db.collection("notifications")
+                    .whereIn("userId", Arrays.asList(auth.getCurrentUser().getUid(), "ALL"))
+                    .whereEqualTo("type", "Donation")
+                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                    .limit(20);
+
+        } else {
+            // All: (User OR Global) OR (type == Community)
+            // Uses Filter.or for composite query
+            query = db.collection("notifications")
+                    .where(Filter.or(
+                            Filter.inArray("userId", Arrays.asList(auth.getCurrentUser().getUid(), "ALL")),
+                            Filter.equalTo("type", "Community")))
+                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                    .limit(20);
+        }
+
+        notificationListener = query.addSnapshotListener((snapshots, e) -> {
+            if (e != null) {
+                Log.e("Notify", "Listen failed.", e);
+                return;
+            }
+
+            if (snapshots != null) {
+                allDataItems.clear();
+                for (DocumentSnapshot doc : snapshots) {
+                    Notification n = doc.toObject(Notification.class);
+                    if (n != null) {
+                        n.setId(doc.getId());
+                        allDataItems.add(mapToViewModel(n));
                     }
-                });
+                }
+
+                // Update UI
+                updateDisplayedList();
+                adapter.updateList(displayedList);
+                toggleEmptyState();
+            }
+        });
     }
 
+    /**
+     * Maps the raw Firestore model to the View Model.
+     * Handles local read status for Global notifications.
+     */
     private NotificationItem mapToViewModel(Notification n) {
         String timeString = new SimpleDateFormat("hh:mm a, dd MMM", Locale.getDefault())
                 .format(new Date(n.getTimestamp()));
+
+        boolean isRead = n.isRead();
+
+        // Check local read state for Global items
+        if ("ALL".equals(n.getUserId())) {
+            if (isGlobalReadLocally(n.getId())) {
+                isRead = true;
+            }
+        }
+
         return new NotificationItem(
                 n.getTitle(),
                 n.getMessage(),
                 timeString,
                 n.getType(),
-                n.isRead(),
+                isRead,
                 new Date(n.getTimestamp()),
-                n.getId()); // Added ID
-        // Note: NotificationItem needs to hold the original Notification ID to mark as
-        // read.
-        // But NotificationItem definition I saw didn't have ID field.
-        // I might need to abuse 'title' or add a field to NotificationItem, or assume I
-        // can find it later.
-        // Better: Add `id` field to NotificationItem or extend it.
-        // Since I can't easily change NotificationItem used by Adapter without
-        // potentially breaking other things (if any),
-        // I will assume I can't pass ID easily unless I add it to NotificationItem.
-        // Wait, I can Modify NotificationItem.java to add ID field.
+                n.getId(),
+                n.getUserId());
     }
 
+    /**
+     * Handles "Mark as Read" logic.
+     */
+    private void onNotificationClicked(NotificationItem item) {
+        if (item.getId() != null && !item.isRead()) {
+            Toast.makeText(getContext(), "Marking as read...", Toast.LENGTH_SHORT).show();
+
+            if ("ALL".equals(item.getUserId())) {
+                // Global: Save to SharedPreferences
+                markGlobalReadLocally(item.getId());
+                // Reload to reflect change (simplest way to re-run mapToViewModel)
+                loadNotificationsFromFirestore();
+            } else {
+                // Personal: Update Firestore
+                db.collection("notifications").document(item.getId())
+                        .update("isRead", true)
+                        .addOnFailureListener(e -> Toast
+                                .makeText(getContext(), "Error updating: " + e.getMessage(), Toast.LENGTH_SHORT)
+                                .show());
+            }
+        }
+    }
+
+    // ============================================================================================
+    // DISPLAY & PAGINATION
+    // ============================================================================================
+
     private void loadMoreItems() {
-        List<NotificationItem> sourceList = getCurrentFilteredData();
-        if (currentDisplayCount < sourceList.size()) {
+        if (currentDisplayCount < allDataItems.size()) {
             currentDisplayCount += ITEMS_PER_PAGE;
             updateDisplayedList();
             adapter.updateList(displayedList);
         }
-        if (currentDisplayCount >= sourceList.size()) {
+        // Check visibility again after update
+        if (currentDisplayCount >= allDataItems.size()) {
             btnViewHistory.setVisibility(View.GONE);
         }
     }
 
     private void updateDisplayedList() {
         displayedList.clear();
-        List<NotificationItem> sourceList = getCurrentFilteredData();
+        if (allDataItems.isEmpty())
+            return;
 
-        if (sourceList.isEmpty()) {
-            // Let empty state handle it
-        } else {
-            int limit = Math.min(sourceList.size(), currentDisplayCount);
-            List<NotificationItem> slice = new ArrayList<>();
-            for (int i = 0; i < limit; i++) {
-                slice.add(sourceList.get(i));
-            }
-            displayedList = groupItemsWithHeaders(slice);
-        }
-    }
-
-    private List<NotificationItem> getCurrentFilteredData() {
-        int checkedId = chipGroupFilters.getCheckedChipId();
-        String typeToFilter = "All";
-        if (checkedId == R.id.chip_donation)
-            typeToFilter = "Donation";
-        else if (checkedId == R.id.chip_community)
-            typeToFilter = "Community";
-
-        if (typeToFilter.equals("All"))
-            return allDataItems;
-
-        List<NotificationItem> filtered = new ArrayList<>();
-        for (NotificationItem item : allDataItems) {
-            // Check null type
-            if (item.getType() != null && item.getType().equalsIgnoreCase(typeToFilter)) {
-                filtered.add(item);
-            }
-        }
-        return filtered;
+        int limit = Math.min(allDataItems.size(), currentDisplayCount);
+        List<NotificationItem> slice = new ArrayList<>(allDataItems.subList(0, limit));
+        displayedList = groupItemsWithHeaders(slice);
     }
 
     private List<NotificationItem> groupItemsWithHeaders(List<NotificationItem> items) {
@@ -284,8 +343,7 @@ public class NotificationFragment extends Fragment {
         } else {
             tvEmptyState.setVisibility(View.GONE);
             rvNotifications.setVisibility(View.VISIBLE);
-            // view history visibility handled by loadMore/filter
-            if (displayedList.size() < getCurrentFilteredData().size()) {
+            if (displayedList.size() < allDataItems.size()) {
                 btnViewHistory.setVisibility(View.VISIBLE);
             } else {
                 btnViewHistory.setVisibility(View.GONE);
@@ -293,24 +351,34 @@ public class NotificationFragment extends Fragment {
         }
     }
 
-    private void onNotificationClicked(NotificationItem item) {
-        if (item.getId() != null && !item.isRead()) {
-            Toast.makeText(getContext(), "Marking as read...", Toast.LENGTH_SHORT).show(); // Feedback
-            db.collection("notifications").document(item.getId())
-                    .update("isRead", true)
-                    .addOnSuccessListener(aVoid -> {
-                        // Optional: could manually update local list here to reflect change immediately
-                        // but snapshot listener should handle it.
-                    })
-                    .addOnFailureListener(
-                            e -> Toast.makeText(getContext(), "Error updating: " + e.getMessage(), Toast.LENGTH_SHORT)
-                                    .show());
-        } else {
-            // Debug why it might not be working
-            if (item.getId() == null)
-                Log.e("Notify", "Item ID is null");
-            if (item.isRead())
-                Log.d("Notify", "Item already read");
+    // ============================================================================================
+    // LOCAL STORAGE HELPERS
+    // ============================================================================================
+
+    private boolean isGlobalReadLocally(String notificationId) {
+        if (auth.getCurrentUser() == null || getContext() == null)
+            return false;
+        SharedPreferences prefs = requireContext().getSharedPreferences(
+                "foodaid_prefs_" + auth.getCurrentUser().getUid(), android.content.Context.MODE_PRIVATE);
+        Set<String> readSet = prefs.getStringSet("read_global_ids", new HashSet<>());
+        return readSet.contains(notificationId);
+    }
+
+    private void markGlobalReadLocally(String notificationId) {
+        if (auth.getCurrentUser() == null || getContext() == null)
+            return false;
+        SharedPreferences prefs = requireContext().getSharedPreferences(
+                "foodaid_prefs_" + auth.getCurrentUser().getUid(), android.content.Context.MODE_PRIVATE);
+        Set<String> readSet = new HashSet<>(prefs.getStringSet("read_global_ids", new HashSet<>()));
+        readSet.add(notificationId);
+        prefs.edit().putStringSet("read_global_ids", readSet).apply();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (notificationListener != null) {
+            notificationListener.remove();
         }
     }
 }

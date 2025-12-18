@@ -23,6 +23,15 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.concurrent.ExecutionException;
 
+/**
+ * <h1>NotificationWorker</h1>
+ * <p>
+ * Background worker for checking new notifications periodically.
+ * Useful for polling global notifications (e.g., new donations) even when the
+ * app is in the background.
+ * Uses Firestore queries to find messages created after the last check time.
+ * </p>
+ */
 public class NotificationWorker extends Worker {
 
     private static final String CHANNEL_ID = "FoodAid_Global";
@@ -43,27 +52,23 @@ public class NotificationWorker extends Worker {
         }
 
         SharedPreferences prefs = getApplicationContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        long lastCheckTime = prefs.getLong(LAST_CHECK_KEY, System.currentTimeMillis() - 15 * 60 * 1000); // Default to
-                                                                                                         // 15 mins ago
+        long lastCheckTime = prefs.getLong(LAST_CHECK_KEY, System.currentTimeMillis() - 15 * 60 * 1000);
 
-        // We want to fetch notifications created AFTER the last check
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         try {
-            // Synchronous Firestore call (Blocking)
+            // Synchronously fetch notifications created > lastCheckTime
             QuerySnapshot querySnapshot = Tasks.await(db.collection("notifications")
-                    .whereEqualTo("userId", "ALL")
+                    .whereEqualTo("userId", "ALL") // Check for Global notifications
                     .whereGreaterThan("timestamp", lastCheckTime)
                     .orderBy("timestamp", Query.Direction.DESCENDING)
-                    .limit(1) // Just need to know if there is *at least one*
+                    .limit(1) // Only need one to trigger alert
                     .get());
 
             if (!querySnapshot.isEmpty()) {
-                // Show Notification
                 String title = "New Donation Available!";
-                String message = "Someone nearby has posted a donation. Open the app to check it out.";
+                String message = "Someone nearby has posted a donation.";
 
-                // Use data from doc if available
                 if (querySnapshot.getDocuments().get(0).contains("message")) {
                     message = querySnapshot.getDocuments().get(0).getString("message");
                 }
@@ -73,7 +78,7 @@ public class NotificationWorker extends Worker {
                 Log.d("NotificationWorker", "No new notifications found.");
             }
 
-            // Update local time
+            // Update local time to now
             prefs.edit().putLong(LAST_CHECK_KEY, System.currentTimeMillis()).apply();
 
         } catch (ExecutionException | InterruptedException e) {
@@ -104,14 +109,13 @@ public class NotificationWorker extends Worker {
                 context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground) // Ensure this resource exists, fallback to standard
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
 
-        // ID = 1 to overwrite previous, or System.currentTimeMillis() to stack
         notificationManager.notify(1001, builder.build());
     }
 }

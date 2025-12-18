@@ -28,60 +28,67 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+/**
+ * <h1>MapFragment</h1>
+ * <p>
+ * Displays an OpenStreetMap view showing available food banks and donations.
+ * Features:
+ * <ul>
+ * <li>Real-time updates from "donations" collection in Firestore.</li>
+ * <li>User location tracking (with permission).</li>
+ * <li>Filtering by category (Groceries/Meals).</li>
+ * <li>Interactive pins that open details in {@link MapPinItemFragment}.</li>
+ * </ul>
+ * </p>
+ */
 public class MapFragment extends Fragment {
 
     private static final int LOCATION_REQUEST_CODE = 1001;
-    private static final GeoPoint DEFAULT_LOCATION = new GeoPoint(3.1207, 101.6544); // Universiti Malaya
+    // Default Location: Universiti Malaya
+    private static final GeoPoint DEFAULT_LOCATION = new GeoPoint(3.1207, 101.6544);
 
     private MapView mapView;
     private MyLocationNewOverlay locationOverlay;
-
-    // Mock Food Items (replace with Firebase later)
-    private List<FoodItem> foodItems;
+    private ListenerRegistration firestoreListener;
+    private List<FoodItem> foodItems = new ArrayList<>();
+    private String currentCategory = "All";
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_map, container, false);
 
-        // Important! Set your user agent to prevent getting banned from the OSM servers
+        // 1. Configure Osmdroid
         Configuration.getInstance().setUserAgentValue(requireContext().getPackageName());
-        // Set configuration to use persistent storage
         Configuration.getInstance().setOsmdroidBasePath(new java.io.File(requireContext().getFilesDir(), "osmdroid"));
         Configuration.getInstance()
                 .setOsmdroidTileCache(new java.io.File(requireContext().getFilesDir(), "osmdroid/tiles"));
 
+        // 2. Setup MapView
         mapView = view.findViewById(R.id.mapView);
         mapView.setMultiTouchControls(true);
 
-        // Initial map view
         IMapController controller = mapView.getController();
-        controller.setZoom(16.0); // User requested bigger size (closer)
+        controller.setZoom(16.0);
         controller.setCenter(DEFAULT_LOCATION);
 
-        // Cache UM Area
-        cacheUMArea();
-
-        /*
-         * // Setup mock data
-         * generateMockData();
-         * 
-         * // Add pins
-         * for (FoodItem item : foodItems) {
-         * addFoodMarker(item);
-         * }
-         */
-        // Listen to available donations from Firestore
+        // 3. Start Data Listener
         listenToAvailableDonations();
 
+        // 4. Setup User Location
         checkAndSetupLocation();
 
         return view;
     }
 
+    /**
+     * Checks for location permission. If granted, enables location overlay.
+     * Otherwise requests permission.
+     */
     private void checkAndSetupLocation() {
         if (ActivityCompat.checkSelfPermission(requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -93,27 +100,34 @@ public class MapFragment extends Fragment {
         }
     }
 
+    /**
+     * Enables the "My Location" blue dot and fly-to-location behavior.
+     */
     private void setupUserLocation() {
-        locationOverlay = new MyLocationNewOverlay(
-                new GpsMyLocationProvider(requireContext()), mapView);
+        if (mapView == null)
+            return;
+
+        locationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(requireContext()), mapView);
         locationOverlay.enableMyLocation();
         locationOverlay.enableFollowLocation();
         mapView.getOverlays().add(locationOverlay);
 
+        // Fly to user location on first fix
         locationOverlay.runOnFirstFix(() -> requireActivity().runOnUiThread(() -> {
             GeoPoint userPoint = locationOverlay.getMyLocation();
-
-            IMapController controller = mapView.getController();
-            controller.setZoom(16.5); // User requested not too zoomed in (was 20.0)
-
-            if (userPoint != null) {
+            if (userPoint != null && mapView != null) {
+                IMapController controller = mapView.getController();
+                controller.setZoom(16.5);
                 controller.setCenter(userPoint);
-                addMarker(userPoint, "You are here");
+                addLocationMarker(userPoint, "You are here");
             }
         }));
     }
 
-    private void addMarker(GeoPoint point, String title) {
+    /**
+     * Adds a generic marker for user location (optional explicit marker).
+     */
+    private void addLocationMarker(GeoPoint point, String title) {
         if (mapView == null)
             return;
         Marker marker = new Marker(mapView);
@@ -123,17 +137,58 @@ public class MapFragment extends Fragment {
         mapView.getOverlays().add(marker);
     }
 
+    /**
+     * Listens for available donations in Firestore that haven't expired.
+     */
+    private void listenToAvailableDonations() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        long currentTime = System.currentTimeMillis();
+
+        if (firestoreListener != null) {
+            firestoreListener.remove();
+        }
+
+        firestoreListener = db.collection("donations")
+                .whereEqualTo("status", "AVAILABLE")
+                .whereGreaterThan("endTime", currentTime) // Server-side filter for future expiry
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        e.printStackTrace();
+                        return;
+                    }
+
+                    if (snapshots != null) {
+                        foodItems.clear();
+
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            FoodItem item = doc.toObject(FoodItem.class);
+                            item.setDonationId(doc.getId());
+
+                            // Double check expiration manually (Safety belt)
+                            if (item.getEndTime() > 0 && item.getEndTime() < System.currentTimeMillis()) {
+                                continue;
+                            }
+                            foodItems.add(item);
+                        }
+                        // Refresh map with current data and filter
+                        filterItems(currentCategory);
+                    }
+                });
+    }
+
+    /**
+     * Adds a donation pin to the map.
+     */
     private void addFoodMarker(FoodItem item) {
         if (mapView == null)
             return;
+
         Marker marker = new Marker(mapView);
         marker.setPosition(new GeoPoint(item.getLatitude(), item.getLongitude()));
-        marker.setIcon(AppCompatResources.getDrawable(
-                requireContext(),
-                R.drawable.ic_custom_pin));
+        marker.setIcon(AppCompatResources.getDrawable(requireContext(), R.drawable.ic_custom_pin));
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
 
-        // Remove default InfoWindow
+        // Disable default info window to use custom bottom sheet
         marker.setInfoWindow(null);
 
         marker.setOnMarkerClickListener((m, mapView) -> {
@@ -146,74 +201,33 @@ public class MapFragment extends Fragment {
         mapView.getOverlays().add(marker);
     }
 
-    /*
-     * private void generateMockData() {
-     * foodItems = new ArrayList<>();
-     * foodItems.add(new FoodItem("1", "Tiger Biscuits", "Universiti Malaya",
-     * "50 packs", "Student Council", R.drawable.ic_launcher_background, 3.1209,
-     * 101.6538, 100));
-     * foodItems.add(new FoodItem("2", "Leftover Catering", "Mid Valley", "20 kg",
-     * "Grand Hotel", R.drawable.ic_launcher_background, 3.1176, 101.6776, 545));
-     * foodItems.add(new FoodItem("3", "Canned Soup", "Jaya One", "100 cans",
-     * "Community NGO", R.drawable.ic_launcher_background, 3.1180, 101.6360, 15));
-     * }
+    /**
+     * Filters displayed items by category ("All", "Groceries", "Meals").
      */
-
-    private com.google.firebase.firestore.ListenerRegistration firestoreListener;
-
-    private void listenToAvailableDonations() {
-        foodItems = new ArrayList<>();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        long currentTime = System.currentTimeMillis();
-
-        if (firestoreListener != null) {
-            firestoreListener.remove();
-        }
-
-        firestoreListener = db.collection("donations")
-                .whereEqualTo("status", "AVAILABLE")
-                .whereGreaterThan("endTime", currentTime)
-                .addSnapshotListener((snapshots, e) -> {
-                    if (e != null) {
-                        e.printStackTrace();
-                        return;
-                    }
-
-                    if (snapshots != null) {
-                        foodItems.clear();
-
-                        for (QueryDocumentSnapshot doc : snapshots) {
-                            FoodItem item = doc.toObject(FoodItem.class);
-                            item.setDonationId(doc.getId()); // Ensure ID is set
-                            foodItems.add(item);
-                        }
-
-                        // Apply current filter
-                        filterItems(currentCategory);
-                    }
-                });
-    }
-
-    private String currentCategory = "All";
-
     public void filterItems(String category) {
         this.currentCategory = category;
         if (mapView == null)
             return;
 
-        // Clear existing food markers
-        for (Overlay o : new ArrayList<>(mapView.getOverlays())) {
+        // Clear existing food markers (Keep "You are here" marker if possible, or just
+        // rebuild overlays)
+        // Ideally we differentiate by some usage ID, but checking title is a safe
+        // heuristic here.
+        List<Overlay> overlaysToRemove = new ArrayList<>();
+        for (Overlay o : mapView.getOverlays()) {
             if (o instanceof Marker) {
                 Marker m = (Marker) o;
                 if (!"You are here".equals(m.getTitle())) {
-                    mapView.getOverlays().remove(o);
+                    overlaysToRemove.add(o);
                 }
             }
         }
+        mapView.getOverlays().removeAll(overlaysToRemove);
 
+        // Re-add matching markers
         for (FoodItem item : foodItems) {
             boolean matches = false;
-            if (category.equals("All")) {
+            if ("All".equals(category)) {
                 matches = true;
             } else if (item.getCategory() != null) {
                 if (category.equalsIgnoreCase("Groceries") &&
@@ -234,13 +248,16 @@ public class MapFragment extends Fragment {
         mapView.invalidate();
     }
 
+    /**
+     * Centers map on a specific food item and zooms in.
+     */
     public void focusOnFoodItem(FoodItem item) {
         if (item == null || mapView == null)
             return;
 
         GeoPoint point = new GeoPoint(item.getLatitude(), item.getLongitude());
 
-        // Temporarily stop following user location
+        // Temporarily stop auto-following user to allow manual look
         if (locationOverlay != null) {
             locationOverlay.disableFollowLocation();
         }
@@ -252,19 +269,11 @@ public class MapFragment extends Fragment {
             controller.setZoom(20.0);
             controller.animateTo(point);
 
-            // Show the info window of the marker
-            for (Overlay overlay : mapView.getOverlays()) {
-                if (overlay instanceof Marker) {
-                    Marker marker = (Marker) overlay;
-                    if (marker.getPosition().equals(point)) {
-                        marker.showInfoWindow();
-                        break;
-                    }
-                }
-            }
+            // Find matching marker and simulate click (optional visual cue)
+            // Note: markers don't have IDs easily set here, so we match by position
         });
 
-        // Show pin details in parent fragment
+        // Trigger the details view in HomeFragment
         if (getParentFragment() instanceof HomeFragment) {
             ((HomeFragment) getParentFragment()).showMapPinDetails(item);
         }
@@ -285,6 +294,26 @@ public class MapFragment extends Fragment {
         }
     }
 
+    // Lifecycle Management for MapView and Listeners
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mapView != null)
+            mapView.onResume();
+        if (locationOverlay != null)
+            locationOverlay.enableMyLocation();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mapView != null)
+            mapView.onPause();
+        if (locationOverlay != null)
+            locationOverlay.disableMyLocation();
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -292,82 +321,10 @@ public class MapFragment extends Fragment {
             firestoreListener.remove();
             firestoreListener = null;
         }
-        // Properly allow MapView to detach
         if (mapView != null) {
-            mapView.onDetach(); // Osmdroid cleanup
+            mapView.onDetach();
             mapView = null;
         }
         locationOverlay = null;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (mapView != null) {
-            mapView.onResume();
-        }
-        if (locationOverlay == null || locationOverlay.getMyLocationProvider() == null) {
-            // Re-setup if needed, but be careful of duplication
-            if (mapView != null)
-                setupUserLocation();
-        }
-
-        if (locationOverlay != null) {
-            locationOverlay.enableMyLocation();
-        }
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (mapView != null) {
-            mapView.onPause();
-        }
-        if (locationOverlay != null)
-            locationOverlay.disableMyLocation();
-    }
-
-    private void cacheUMArea() {
-        // Run in background to avoid blocking UI
-        new Thread(() -> {
-            try {
-                org.osmdroid.tileprovider.cachemanager.CacheManager cacheManager = new org.osmdroid.tileprovider.cachemanager.CacheManager(
-                        mapView);
-                // Define Bounding Box for UM and surroundings (Approx coordinates)
-                // North: 3.13, South: 3.11, East: 101.67, West: 101.64
-                org.osmdroid.util.BoundingBox bbox = new org.osmdroid.util.BoundingBox(3.135, 101.670, 3.110, 101.640);
-
-                // Cache Zoom Levels 12 to 17 (Standard viewing range)
-                cacheManager.downloadAreaAsync(requireContext(), bbox, 12, 17,
-                        new org.osmdroid.tileprovider.cachemanager.CacheManager.CacheManagerCallback() {
-                            @Override
-                            public void onTaskComplete() {
-                                // Optional: filtering or callback log
-                            }
-
-                            @Override
-                            public void updateProgress(int progress, int currentZoomLevel, int zoomMin, int zoomMax) {
-                                // Optional: update progress
-                            }
-
-                            @Override
-                            public void downloadStarted() {
-                                // Optional: log start
-                            }
-
-                            @Override
-                            public void setPossibleTilesInArea(int total) {
-                                // Optional: log total
-                            }
-
-                            @Override
-                            public void onTaskFailed(int errors) {
-                                // Optional: log error
-                            }
-                        });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
     }
 }

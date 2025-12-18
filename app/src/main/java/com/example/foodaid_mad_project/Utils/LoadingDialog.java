@@ -7,6 +7,14 @@ import android.graphics.drawable.ColorDrawable;
 import android.view.Window;
 import com.example.foodaid_mad_project.R;
 
+/**
+ * <h1>LoadingDialog</h1>
+ * <p>
+ * A custom dialog to show a loading indicator during long-running operations.
+ * Displays a transparent background with a centered layout (usually a
+ * ProgressBar).
+ * </p>
+ */
 public class LoadingDialog {
     private Dialog dialog;
 
@@ -18,9 +26,12 @@ public class LoadingDialog {
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
-        dialog.setCancelable(false);
+        dialog.setCancelable(false); // User cannot dismiss by tapping outside
     }
 
+    /**
+     * Shows the loading dialog. Safe to call multiple times.
+     */
     public void show() {
         try {
             if (!dialog.isShowing())
@@ -30,6 +41,9 @@ public class LoadingDialog {
         }
     }
 
+    /**
+     * Dismisses the loading dialog.
+     */
     public void dismiss() {
         try {
             if (dialog.isShowing())

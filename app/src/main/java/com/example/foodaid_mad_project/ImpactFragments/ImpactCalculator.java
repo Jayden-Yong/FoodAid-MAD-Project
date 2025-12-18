@@ -4,17 +4,26 @@ import com.example.foodaid_mad_project.Model.FoodItem;
 
 import java.util.List;
 
+/**
+ * <h1>ImpactCalculator</h1>
+ * <p>
+ * Utility class for calculating aggregation statistics for Impact reports.
+ * Used to sum up counts and weights of food items over specific time ranges.
+ * </p>
+ */
 public class ImpactCalculator {
 
+    /**
+     * Calculates the total weight of items within a time range.
+     * 
+     * @param items     List of food items
+     * @param startTime Start timestamp
+     * @param endTime   End timestamp
+     * @return Total weight in kg
+     */
     public double getWeightForRange(List<FoodItem> items, long startTime, long endTime) {
         double totalWeight = 0;
         for (FoodItem item : items) {
-            // Using timestamp (posted time) or endTime (claim time)?
-            // For claimed items, we might care when they were claimed, but FoodItem usually
-            // stores posted timestamp.
-            // Let's assume we filter by the item's creation timestamp for now, or 'endTime'
-            // if it represents cleanup.
-            // However, looking at FoodItem, 'timestamp' was added. Let's use 'timestamp'.
             if (item.getTimestamp() >= startTime && item.getTimestamp() <= endTime) {
                 totalWeight += item.getWeight();
             }
@@ -22,6 +31,14 @@ public class ImpactCalculator {
         return totalWeight;
     }
 
+    /**
+     * Calculates the count of items within a time range.
+     * 
+     * @param items     List of food items
+     * @param startTime Start timestamp
+     * @param endTime   End timestamp
+     * @return Item count
+     */
     public int getItemCountForRange(List<FoodItem> items, long startTime, long endTime) {
         int count = 0;
         for (FoodItem item : items) {
@@ -32,6 +49,12 @@ public class ImpactCalculator {
         return count;
     }
 
+    /**
+     * Calculates the total weight of all items in the list.
+     * 
+     * @param items List of food items
+     * @return Total weight in kg
+     */
     public double getAllTimeWeight(List<FoodItem> items) {
         double totalWeight = 0;
         if (items != null) {

@@ -4,14 +4,12 @@ import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AnticipateInterpolator;
 
-import androidx.core.splashscreen.SplashScreen;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.splashscreen.SplashScreen;
 
 import com.example.foodaid_mad_project.AuthFragments.User;
 import com.google.android.gms.tasks.Task;
@@ -20,10 +18,23 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+/**
+ * <h1>SplashActivity</h1>
+ * <p>
+ * The initial launch screen.
+ * Handles:
+ * <ul>
+ * <li>Displaying the splash screen animation.</li>
+ * <li>Checking current Authentication state.</li>
+ * <li>Pre-fetching User data from Firestore if logged in.</li>
+ * <li>Routing to MainActivity (if logged in) or AuthActivity (if not).</li>
+ * </ul>
+ * </p>
+ */
 @SuppressLint("CustomSplashScreen")
 public class SplashActivity extends AppCompatActivity {
+
     private FirebaseAuth mAuth;
-    private Task<DocumentSnapshot> fetchUserTask;
     private boolean isAnimationDone = false;
     private boolean isDataReady = false;
 
@@ -36,38 +47,49 @@ public class SplashActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
+        // Start Data Fetching
         if (currentUser != null) {
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            fetchUserTask = db.collection("users").document(currentUser.getUid()).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            try {
-                                User user = documentSnapshot.toObject(User.class);
-                                UserManager.getInstance().setUser(user);
-                            } catch (Exception e) {
-                                Log.e("SplashActivity", "Error parsing user data", e);
-                                // Continue without user data (or maybe basic data)
-                                // Prevent crash loop
-                            }
-                        }
-                        isDataReady = true;
-                        checkAndNavigate();
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e("SplashActivity", "Failed to fetch user data", e);
-                        isDataReady = true; // Proceed anyway, handle null downstream
-                        checkAndNavigate();
-                    });
+            fetchUserData(currentUser);
         } else {
             isDataReady = true;
         }
 
-        long animationDuration = 4100;
+        setupSplashScreenAnimation(splashScreen);
+    }
+
+    private void fetchUserData(FirebaseUser currentUser) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("users").document(currentUser.getUid()).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        try {
+                            User user = documentSnapshot.toObject(User.class);
+                            UserManager.getInstance().setUser(user);
+                        } catch (Exception e) {
+                            Log.e("SplashActivity", "Error parsing user data", e);
+                        }
+                    }
+                    isDataReady = true;
+                    checkAndNavigate();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("SplashActivity", "Failed to fetch user data", e);
+                    isDataReady = true; // Proceed anyway, likely offline
+                    checkAndNavigate();
+                });
+    }
+
+    private void setupSplashScreenAnimation(SplashScreen splashScreen) {
+        long animationDuration = 1000;
         long startTime = System.currentTimeMillis();
+
+        // Keep splash screen on screen until animation time passes AND data is ready
         splashScreen.setKeepOnScreenCondition(() -> {
             long elapsedTime = System.currentTimeMillis() - startTime;
-            // Keep splash screen until animation time catches up AND (data is ready OR we
-            // time out waiting)
+            // Wait for both animation time AND data ready state?
+            // Actually, keep condition is just for the "holding" phase.
+            // Let's hold until animation duration passes. Logic for combined wait is better
+            // handled in exit listener.
             return elapsedTime < animationDuration;
         });
 
@@ -90,22 +112,23 @@ public class SplashActivity extends AppCompatActivity {
                 }
             });
 
-            // Run your animation.
             slideUp.start();
         });
     }
 
     private void checkAndNavigate() {
-        // Only navigate if both the exit animation is done AND the data fetching is
-        // complete
+        // Wait for both Animation AND Data
         if (!isAnimationDone)
             return;
 
+        // If data isn't ready yet (e.g. slow network), we might have already finished
+        // animation.
+        // In that case, we should wait?
+        // Current logic: If animation finishes but data isn't ready, we return.
+        // Then when data finishes (addOnSuccess), it calls checkAndNavigate() again and
+        // succeeds.
         if (isDataReady) {
             navigateToNextScreen();
-        } else {
-            // If we are here, animation finished but data is pending.
-            // The callback (addOnSuccessListener) will call checkAndNavigate again.
         }
     }
 
@@ -118,7 +141,7 @@ public class SplashActivity extends AppCompatActivity {
             intent = new Intent(SplashActivity.this, AuthActivity.class);
         }
         startActivity(intent);
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, 0); // No transition animation
         finish();
     }
 }

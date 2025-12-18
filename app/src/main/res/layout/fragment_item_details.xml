@@ -102,42 +102,17 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvPickupTime" />
 
-            <RadioGroup
-                android:id="@+id/radioGroupCategory"
+            <TextView
+                android:id="@+id/tvCategoryValue"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="24dp"
-                android:paddingVertical="8dp"
-                android:orientation="horizontal"
-                android:checkedButton="@id/radioGroceries"
-                android:weightSum="2"
-                app:layout_constraintTop_toBottomOf="@id/tvCategoryLabel"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
-
-                <RadioButton
-                    android:id="@+id/radioGroceries"
-                    style="@style/FoodAidDonateTypeBtnStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Groceries"
-                    android:fontFamily="@font/poppins_bold"
-                    android:layout_weight="1"
-                    android:clickable="false"
-                    android:focusable="false"/>
-
-                <RadioButton
-                    android:id="@+id/radioMeals"
-                    style="@style/FoodAidDonateTypeBtnStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="10dp"
-                    android:text="Meals"
-                    android:fontFamily="@font/poppins_bold"
-                    android:layout_weight="1"
-                    android:clickable="false"
-                    android:focusable="false"/>
-            </RadioGroup>
+                android:text="Groceries"
+                android:textColor="@color/font_primary"
+                android:textSize="16sp"
+                android:fontFamily="@font/poppins_semi_bold"
+                app:layout_constraintTop_toBottomOf="@+id/tvCategoryLabel"
+                app:layout_constraintStart_toStartOf="parent" />
 
             <TextView
                 android:id="@+id/tvQuantity"
@@ -149,7 +124,7 @@
                 android:textColor="@color/font_primary"
                 android:textSize="16sp"
                 android:fontFamily="@font/poppins_semi_bold"
-                app:layout_constraintTop_toBottomOf="@+id/radioGroupCategory" />
+                app:layout_constraintTop_toBottomOf="@+id/tvCategoryValue" />
 
             <TextView
                 android:id="@+id/tvPickupMethod"

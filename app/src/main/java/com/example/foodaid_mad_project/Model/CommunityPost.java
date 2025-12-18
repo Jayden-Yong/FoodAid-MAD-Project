@@ -3,6 +3,14 @@ package com.example.foodaid_mad_project.Model;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * <h1>CommunityPost</h1>
+ * <p>
+ * Represents a user-generated post in the Community feed.
+ * Includes text content, optional images, and interaction data
+ * (likes/comments).
+ * </p>
+ */
 public class CommunityPost {
     private String postId;
     private String userId;
@@ -15,7 +23,7 @@ public class CommunityPost {
     private List<String> likes; // List of User IDs who liked
     private int commentCount;
 
-    // Empty constructor for Firestore
+    // Empty constructor for Firestore deserialization
     public CommunityPost() {
         this.likes = new ArrayList<>();
     }
@@ -34,7 +42,9 @@ public class CommunityPost {
         this.commentCount = 0;
     }
 
-    // Getters and Setters
+    // ============================================================================================
+    // GETTERS & SETTERS
+    // ============================================================================================
 
     public String getPostId() {
         return postId;

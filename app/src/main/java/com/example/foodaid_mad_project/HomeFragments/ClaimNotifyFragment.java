@@ -4,18 +4,25 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.example.foodaid_mad_project.R;
 import com.google.android.material.button.MaterialButton;
 
+/**
+ * <h1>ClaimNotifyFragment</h1>
+ * <p>
+ * Displays a success message after a user claims a food item.
+ * Reuses the layout {@code fragment_donate_notify.xml} but customizes text for
+ * claims.
+ * </p>
+ */
 public class ClaimNotifyFragment extends Fragment {
-    private MaterialButton btnViewQr, btnBackToHome;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -28,28 +35,31 @@ public class ClaimNotifyFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Bind Views from fragment_donate_notify.xml
-        android.widget.TextView tvTitle = view.findViewById(R.id.tvClaimTitle);
-        android.widget.TextView tvGuide = view.findViewById(R.id.tvClaimGuide);
+        // Bind Views
+        TextView tvTitle = view.findViewById(R.id.tvClaimTitle);
+        TextView tvGuide = view.findViewById(R.id.tvClaimGuide);
         MaterialButton btnViewItem = view.findViewById(R.id.btnViewItem);
         MaterialButton btnBackToHome = view.findViewById(R.id.btnBackToHome);
 
-        // Customize Text for Claim
-        if (tvTitle != null)
+        // Customize Text for Claim Logic
+        if (tvTitle != null) {
             tvTitle.setText("Claim Successful!");
-        if (tvGuide != null)
+        }
+        if (tvGuide != null) {
             tvGuide.setText(
                     "Please collect your item within the time window. You can view your claims in the Impact page.");
-
-        // "View Item" used for "My Claims" - User requested to REMOVE this button
-        if (btnViewItem != null) {
-            btnViewItem.setVisibility(View.GONE); // Hiding the button
         }
 
+        // Hide "View Item" as per design request (claims are viewed in Impact/History)
+        if (btnViewItem != null) {
+            btnViewItem.setVisibility(View.GONE);
+        }
+
+        // Configure Back Button
         if (btnBackToHome != null) {
             btnBackToHome.setText("Back to Home");
             btnBackToHome.setOnClickListener(v -> {
-                // Clear back stack to Home
+                // Clear entire back stack to return to HomeFragment fresh
                 getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
             });
         }

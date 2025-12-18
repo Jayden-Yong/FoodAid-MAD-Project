@@ -33,6 +33,7 @@ import androidx.fragment.app.Fragment;
 import com.example.foodaid_mad_project.AuthActivity;
 import com.example.foodaid_mad_project.MainActivity;
 import com.example.foodaid_mad_project.R;
+import com.example.foodaid_mad_project.UserManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
@@ -44,27 +45,44 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.example.foodaid_mad_project.AuthFragments.User;
-import com.example.foodaid_mad_project.UserManager;
 import com.google.firebase.firestore.SetOptions;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+/**
+ * <h1>LoginFragment</h1>
+ * <p>
+ * This fragment handles the user login process.
+ * It supports:
+ * <ul>
+ * <li>Email/Password login.</li>
+ * <li>Google Sign-In integration (using Android Credential Manager).</li>
+ * <li>"Remember Me" functionality using SharedPreferences.</li>
+ * <li>Password visibility toggling.</li>
+ * <li>Navigation to "Forgot Password" and Registration flows.</li>
+ * </ul>
+ * </p>
+ */
 public class LoginFragment extends Fragment {
 
+    // SharedPreferences Constants
     private static final String PREFS_NAME = "LoginPrefs";
     private static final String KEY_SAVED_EMAIL = "saved_email";
     private static final String KEY_REMEMBER_ME = "remember_me";
 
+    // Firebase & Utilities
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     private CredentialManager credentialManager;
+    private SharedPreferences sharedPreferences;
+
+    // UI Elements
     private EditText etLoginEmail, etLoginPassword;
     private CheckBox btnCheckPassword, cbRememberMe;
     private TextView tvForgotPassword;
     private MaterialButton btnLogin, btnGoogle;
-    private SharedPreferences sharedPreferences;
 
     @Nullable
     @Override
@@ -77,21 +95,28 @@ public class LoginFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Handle back button
-        ImageButton btnBack = view.findViewById(R.id.btnBack);
-        btnBack.setOnClickListener(v -> {
-            if (getActivity() instanceof AuthActivity) {
-                ((AuthActivity) getActivity()).showLandingPage();
-            }
-        });
-
+        // Initialize Firebase and Helpers
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         credentialManager = CredentialManager.create(requireContext());
-
-        // Initialize SharedPreferences
         sharedPreferences = requireActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
+        // Bind Views
+        initializeViews(view);
+
+        // Load Preferences
+        loadSavedEmail();
+
+        // Setup Listeners
+        setupListeners(view);
+    }
+
+    /**
+     * Finds and assigns all UI components from the layout.
+     *
+     * @param view The root view of the fragment.
+     */
+    private void initializeViews(View view) {
         etLoginEmail = view.findViewById(R.id.etLoginEmail);
         etLoginPassword = view.findViewById(R.id.etLoginPassword);
         btnCheckPassword = view.findViewById(R.id.btnCheckPassword);
@@ -99,42 +124,65 @@ public class LoginFragment extends Fragment {
         tvForgotPassword = view.findViewById(R.id.tvForgotPassword);
         btnLogin = view.findViewById(R.id.btnLogin);
         btnGoogle = view.findViewById(R.id.btnGoogle);
+    }
 
-        // Load saved email if Remember Me was checked
-        loadSavedEmail();
+    /**
+     * Sets up click listeners for buttons and input interactions.
+     *
+     * @param view The root view (used for finding the back button).
+     */
+    private void setupListeners(View view) {
+        // Back Button Logic
+        ImageButton btnBack = view.findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> {
+            if (getActivity() instanceof AuthActivity) {
+                ((AuthActivity) getActivity()).showLandingPage();
+            }
+        });
 
+        // Main Actions
         btnLogin.setOnClickListener(v -> loginEmail());
-        tvForgotPassword.setOnClickListener(v -> forgotPassword());
+        tvForgotPassword.setOnClickListener(v -> navigateToForgotPassword());
+        btnGoogle.setOnClickListener(v -> launchCredentialManager());
 
+        // Password Visibility Toggle
         btnCheckPassword.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            Typeface passwordTypeface = etLoginPassword.getTypeface();
-
+            Typeface passwordTypeface = etLoginPassword.getTypeface(); // Preserve font style
             if (isChecked) {
+                // Show password
                 etLoginPassword
                         .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
             } else {
+                // Hide password
                 etLoginPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
             }
-
             etLoginPassword.setTypeface(passwordTypeface);
-            etLoginPassword.setSelection(etLoginPassword.getText().length());
+            etLoginPassword.setSelection(etLoginPassword.getText().length()); // Keep cursor at end
         });
-
-        btnGoogle.setOnClickListener(v -> launchCredentialManager());
     }
 
-    private void forgotPassword() {
+    /**
+     * Navigates to the ResetPasswordFragment.
+     */
+    private void navigateToForgotPassword() {
         getParentFragmentManager().beginTransaction()
                 .replace(R.id.authFragmentContainer, new ResetPasswordFragment(auth))
                 .addToBackStack(null)
                 .commit();
     }
 
+    /**
+     * <h2>loginEmail()</h2>
+     * <p>
+     * Validates input fields and attempts to sign in via Firebase Auth with
+     * Email/Password.
+     * </p>
+     */
     private void loginEmail() {
         String email = etLoginEmail.getText().toString().trim();
         String password = etLoginPassword.getText().toString().trim();
 
-        // validate input
+        // Step 1: Validate Inputs
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(getContext(), "Please enter all credentials", Toast.LENGTH_LONG).show();
             return;
@@ -145,24 +193,30 @@ public class LoginFragment extends Fragment {
             return;
         }
 
+        // Step 2: Firebase Sign In
         auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Save email if Remember Me is checked
-                            saveEmailPreference(email);
-
+                            // Step 3: Success Handler
+                            saveEmailPreference(email); // Save if "Remember Me" is checked
                             fetchUserAndNavigate(auth.getCurrentUser().getUid());
                         } else {
+                            // Step 4: Failure Handler
                             Toast.makeText(getContext(), "Login failed, please try again", Toast.LENGTH_LONG).show();
                         }
                     }
                 });
     }
 
+    // ============================================================================================
+    // PREFERENCES (Remember Me)
+    // ============================================================================================
+
     /**
-     * Load saved email if Remember Me was previously checked
+     * Loads the saved email from SharedPreferences if "Remember Me" was previously
+     * enabled.
      */
     private void loadSavedEmail() {
         boolean rememberMe = sharedPreferences.getBoolean(KEY_REMEMBER_ME, false);
@@ -174,27 +228,32 @@ public class LoginFragment extends Fragment {
     }
 
     /**
-     * Save or clear email based on Remember Me checkbox state
+     * Saves or clears the user's email based on the "Remember Me" checkbox state.
+     *
+     * @param email The email to save.
      */
     private void saveEmailPreference(String email) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
 
         if (cbRememberMe.isChecked()) {
-            // Save email and Remember Me state
             editor.putString(KEY_SAVED_EMAIL, email);
             editor.putBoolean(KEY_REMEMBER_ME, true);
         } else {
-            // Clear saved email and Remember Me state
             editor.remove(KEY_SAVED_EMAIL);
             editor.putBoolean(KEY_REMEMBER_ME, false);
         }
-
         editor.apply();
     }
 
-    // GOOGLE sign in
+    // ============================================================================================
+    // GOOGLE SIGN IN LOGIC
+    // ============================================================================================
+
+    /**
+     * Initiates the Google Sign-In process using Android Credential Manager.
+     * Tries to find authorized accounts first.
+     */
     private void launchCredentialManager() {
-        // First try with authorized accounts only
         GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(true)
                 .setServerClientId(getString(R.string.default_web_client_id))
@@ -217,14 +276,16 @@ public class LoginFragment extends Fragment {
 
                     @Override
                     public void onError(@NonNull GetCredentialException e) {
-                        // If no authorized accounts, try with all accounts
+                        // If no authorized accounts found, try asking user to select any account
                         launchCredentialManagerAllAccounts();
                     }
                 });
     }
 
+    /**
+     * Fallback method to show selector for ALL Google accounts on the device.
+     */
     private void launchCredentialManagerAllAccounts() {
-        // Allow selection from all Google accounts
         GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
                 .setServerClientId(getString(R.string.default_web_client_id))
@@ -254,15 +315,17 @@ public class LoginFragment extends Fragment {
                 });
     }
 
+    /**
+     * Handles the result from Credential Manager and extracts the Google ID Token.
+     */
     private void handleSignIn(Credential credential) {
-        // check if credential is google id
         if (credential instanceof CustomCredential
                 && credential.getType().equals(TYPE_GOOGLE_ID_TOKEN_CREDENTIAL)) {
             CustomCredential customCredential = (CustomCredential) credential;
             Bundle credentialData = customCredential.getData();
             GoogleIdTokenCredential googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credentialData);
 
-            // sign in to firebase with google
+            // Proceed to Firebase Auth
             firebaseAuthWithGoogle(googleIdTokenCredential.getIdToken());
         } else {
             requireActivity().runOnUiThread(
@@ -270,6 +333,9 @@ public class LoginFragment extends Fragment {
         }
     }
 
+    /**
+     * Authenticates with Firebase using the Google ID Token.
+     */
     private void firebaseAuthWithGoogle(String idToken) {
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         auth.signInWithCredential(credential)
@@ -277,6 +343,7 @@ public class LoginFragment extends Fragment {
                     if (task.isSuccessful()) {
                         FirebaseUser user = auth.getCurrentUser();
                         if (user != null) {
+                            // Ensure user exists in Firestore
                             saveUserToFirestore(user);
                         }
                     } else {
@@ -288,56 +355,64 @@ public class LoginFragment extends Fragment {
                 });
     }
 
+    // ============================================================================================
+    // FIRESTORE & NAVIGATION
+    // ============================================================================================
+
+    /**
+     * create or update the user's document in Firestore after a Google Sign-In.
+     * Merges with existing data to preserve fields like 'earnedBadges'.
+     */
     private void saveUserToFirestore(FirebaseUser user) {
         String uid = user.getUid();
         String email = user.getEmail();
-        String name = user.getDisplayName();
-        String photoUrl = (user.getPhotoUrl() != null) ? user.getPhotoUrl().toString() : null;
+        String googleName = user.getDisplayName();
+        String googlePhotoUrl = (user.getPhotoUrl() != null) ? user.getPhotoUrl().toString() : null;
 
-        if (name == null || name.isEmpty()) {
-            if (email != null && email.contains("@")) {
-                name = email.substring(0, email.indexOf("@"));
+        // Fallback for missing display name
+        String defaultName = (googleName != null && !googleName.isEmpty()) ? googleName
+                : (email != null && email.contains("@") ? email.substring(0, email.indexOf("@")) : "User");
+
+        final String finalDefaultName = defaultName;
+
+        db.collection("users").document(uid).get().addOnSuccessListener(documentSnapshot -> {
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("lastLogin", System.currentTimeMillis());
+
+            if (documentSnapshot.exists()) {
+                // UPDATE EXISTING USER: Only fill missing fields
+                if (documentSnapshot.getString("photoUrl") == null && googlePhotoUrl != null) {
+                    userData.put("photoUrl", googlePhotoUrl);
+                }
+                if (documentSnapshot.getString("displayName") == null) {
+                    userData.put("displayName", finalDefaultName);
+                }
+                userData.put("email", email);
             } else {
-                name = "User";
+                // CREATE NEW USER: Initialize all fields
+                userData.put("uid", uid);
+                userData.put("email", email);
+                userData.put("displayName", finalDefaultName);
+                userData.put("photoUrl", googlePhotoUrl);
+                userData.put("earnedBadges", java.util.Collections.emptyList());
+                userData.put("createdAt", System.currentTimeMillis());
             }
-        }
 
-        Map<String, Object> userData = new HashMap<>();
-        userData.put("uid", uid);
-        userData.put("email", email);
-        userData.put("displayName", name);
-        userData.put("photoUrl", photoUrl);
-        // Don't overwrite badges on Login if they exist, but ensure field exists if
-        // new?
-        // SetOptions.merge() won't delete existing badges.
-        // We won't put empty list here to avoid resetting existing users.
-        // Initialize for new users
-        if (!userData.containsKey("earnedBadges")) {
-            userData.put("earnedBadges", java.util.Collections.emptyList());
-        }
-        userData.put("createdAt", System.currentTimeMillis()); // Ensure createdAt is set
-        userData.put("userType", "student");
-        userData.put("lastLogin", System.currentTimeMillis());
+            // Save to Firestore (Merge to avoid overwriting unrelated data)
+            db.collection("users").document(uid).set(userData, SetOptions.merge())
+                    .addOnSuccessListener(aVoid -> fetchUserAndNavigate(uid))
+                    .addOnFailureListener(e -> Toast.makeText(getContext(),
+                            "Failed to save user data: " + e.getMessage(), Toast.LENGTH_LONG).show());
 
-        db.collection("users").document(uid).set(userData, SetOptions.merge())
-                .addOnSuccessListener(aVoid -> {
-                    // Update Local Manager
-                    db.collection("users").document(uid).get()
-                            .addOnSuccessListener(documentSnapshot -> {
-                                User currentUser = documentSnapshot.toObject(User.class);
-                                UserManager.getInstance().setUser(currentUser);
-
-                                Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_LONG).show();
-                                startActivity(new Intent(getContext(), MainActivity.class));
-                                requireActivity().finish();
-                            });
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Failed to save user data: " + e.getMessage(), Toast.LENGTH_LONG)
-                            .show();
-                });
+        }).addOnFailureListener(e -> Toast.makeText(getContext(),
+                "Error checking user data: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
+    /**
+     * Fetches the full User object from Firestore and navigates to the Main
+     * Activity.
+     * Updates the global UserManager singleton.
+     */
     private void fetchUserAndNavigate(String uid) {
         db.collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -352,9 +427,7 @@ public class LoginFragment extends Fragment {
                     } catch (Exception e) {
                         Toast.makeText(getContext(), "Error loading user data: " + e.getMessage(), Toast.LENGTH_LONG)
                                 .show();
-                        // Proceed partially or stay?
-                        // Stay to let them try again or maybe clear data?
-                        // Let's force navigation to Main anyway to avoid being locked out
+                        // Fail safe: Navigate anyway to prevent user lockout
                         startActivity(new Intent(getContext(), MainActivity.class));
                         requireActivity().finish();
                     }

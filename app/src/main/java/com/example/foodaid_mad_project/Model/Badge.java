@@ -1,11 +1,19 @@
 package com.example.foodaid_mad_project.Model;
 
+/**
+ * <h1>Badge</h1>
+ * <p>
+ * Represents an achievement badge that a user can earn based on their
+ * contributions
+ * (e.g., total weight of food donated).
+ * </p>
+ */
 public class Badge {
-    private String id; // "badge_10kg"
-    private String name; // "Food Saver"
-    private String description; // "Saved 10kg of food"
-    private double requiredWeight; // 10.0
-    private int iconResId; // R.drawable.ic_badge_something
+    private String id; // Unique ID, e.g., "badge_10kg"
+    private String name; // Display Name, e.g., "Food Saver"
+    private String description; // Description, e.g., "Saved 10kg of food"
+    private double requiredWeight; // Threshold to earn this badge
+    private int iconResId; // Resource ID for the badge icon
 
     public Badge(String id, String name, String description, double requiredWeight, int iconResId) {
         this.id = id;
@@ -14,6 +22,10 @@ public class Badge {
         this.requiredWeight = requiredWeight;
         this.iconResId = iconResId;
     }
+
+    // ============================================================================================
+    // GETTERS
+    // ============================================================================================
 
     public String getId() {
         return id;
