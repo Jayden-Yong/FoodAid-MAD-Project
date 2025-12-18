@@ -30,8 +30,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -294,7 +298,8 @@ public class ItemDetailsFragment extends Fragment {
                     (endTime == null || endTime > currentTime) &&
                     currentQty >= claimQty) {
 
-                double unitWeight = (currentQty > 0) ? (currentWeight / currentQty) : 0.0;
+                BigDecimal bd = new BigDecimal("#.00");
+                double unitWeight = (currentQty > 0) ? bd.setScale((int) (currentWeight / currentQty), RoundingMode.HALF_UP).doubleValue() : 0.0;
                 double mainClaimedWeight = unitWeight * claimQty; // Rename to avoid confusion with local var if any
 
                 int newQty = currentQty - claimQty;
