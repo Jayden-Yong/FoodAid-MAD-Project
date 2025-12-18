@@ -4,8 +4,12 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -78,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    private boolean doubleBackToExitPressedOnce = false;
     private void setupNavigation() {
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mainFragment);
@@ -85,6 +90,38 @@ public class MainActivity extends AppCompatActivity {
             NavController navController = navHostFragment.getNavController();
             BottomNavigationView bottomNav = findViewById(R.id.bottomNavigationView);
             NavigationUI.setupWithNavController(bottomNav, navController);
+
+            final NavController finalNavController = navController;
+            getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+                @Override
+                public void handleOnBackPressed() {
+                    // At other page/fragments
+                    if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                        setEnabled(false);
+                        getOnBackPressedDispatcher().onBackPressed();
+                        setEnabled(true);
+                        return;
+                    }
+
+                    // Check if the NavController can navigate back again (e.g., inside a specific tab history)
+                    if (finalNavController != null && finalNavController.getPreviousBackStackEntry() != null) {
+                        setEnabled(false);
+                        getOnBackPressedDispatcher().onBackPressed();
+                        setEnabled(true);
+                        return;
+                    }
+
+                    // At Main/Home: Handle Double Back to Exit.
+                    if (doubleBackToExitPressedOnce) {
+                        finish(); // Exit the app
+                    } else {
+                        doubleBackToExitPressedOnce = true;
+                        Toast.makeText(MainActivity.this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
+                    }
+                }
+            });
 
             // FAB Logic: Opens Donation Overlay
             FloatingActionButton fab = findViewById(R.id.fabNewDonation);

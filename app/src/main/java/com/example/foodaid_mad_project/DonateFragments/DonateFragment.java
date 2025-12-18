@@ -22,6 +22,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -134,8 +135,8 @@ public class DonateFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Toolbar toolbar = view.findViewById(R.id.Toolbar);
-        toolbar.setTitle("Donate");
+        TextView toolbarTitle = view.findViewById(R.id.toolbarTitle);
+        toolbarTitle.setText("Donate");
 
         // 1. Initialize UI Groups
         initializeInputs(view);
@@ -545,6 +546,13 @@ public class DonateFragment extends Fragment {
                 }
             });
         }
+
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            }
+        });
     }
 
     // Map Helper Methods -> Logic identical to previous impl
