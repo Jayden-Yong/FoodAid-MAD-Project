@@ -1,14 +1,16 @@
 package com.example.foodaid_mad_project.HomeFragments;
 
-import android.net.Uri;
+import android.app.AlertDialog;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -17,27 +19,43 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import com.example.foodaid_mad_project.DonateFragments.DonateNotifyFragment;
+import com.bumptech.glide.Glide;
 import com.example.foodaid_mad_project.Model.FoodItem;
 import com.example.foodaid_mad_project.R;
+import com.example.foodaid_mad_project.Utils.ImageUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
-import android.widget.Toast;
+import java.util.Map;
 
+/**
+ * <h1>ItemDetailsFragment</h1>
+ * <p>
+ * Displays the full details of a donated FoodItem.
+ * Allows users to:
+ * <ul>
+ * <li>View Item ID, Title, Image, Quantity, Weight, and Pickup Times.</li>
+ * <li>See the donor's name and location.</li>
+ * <li><b>Claim</b> the item (full or partial quantity).</li>
+ * </ul>
+ * </p>
+ */
 public class ItemDetailsFragment extends Fragment {
 
     private FoodItem foodItem;
+    private ListenerRegistration itemListener;
 
+    // UI Elements
     private TextView tvProductTitle, tvPickupTime, tvQuantity, tvLocationLabel, tvPostedBy, tvPickupMethod;
     private ImageView ivProductImage;
-    private RadioGroup radioGroupCategory;
 
     public ItemDetailsFragment() {
         // Required empty public constructor
@@ -61,6 +79,20 @@ public class ItemDetailsFragment extends Fragment {
         if (foodItem == null)
             return;
 
+        // 1. Initialize Views
+        initializeViews(view);
+
+        // 2. Bind Data
+        bindDataToViews();
+
+        // 3. Setup Actions (Back, Claim)
+        setupActions(view);
+
+        // 4. Start Real-time Updates
+        setupRealtimeUpdates();
+    }
+
+    private void initializeViews(View view) {
         tvProductTitle = view.findViewById(R.id.tvProductTitle);
         tvPickupTime = view.findViewById(R.id.tvPickupTime);
         tvQuantity = view.findViewById(R.id.tvQuantity);
@@ -68,52 +100,56 @@ public class ItemDetailsFragment extends Fragment {
         tvLocationLabel = view.findViewById(R.id.tvLocationLabel);
         tvPostedBy = view.findViewById(R.id.tvPostedBy);
         ivProductImage = view.findViewById(R.id.ivProductImage);
-        radioGroupCategory = view.findViewById(R.id.radioGroupCategory);
+    }
+
+    private void bindDataToViews() {
+        if (getContext() == null || foodItem == null)
+            return;
 
         tvProductTitle.setText(getString(R.string.Food_Name, foodItem.getTitle()));
 
-        // Convert timestamps to readable time if needed, or just show duration/range
-        // For simplicity, showing a generic message or formatting dates.
-        // Assuming user wants start/end time formatted.
-        // Simple placeholder for now as per previous logic which used string array.
-        // Let's format the start/end time.
+        // Format Dates
         SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
         String startStr = sdf.format(new Date(foodItem.getStartTime()));
         String endStr = sdf.format(new Date(foodItem.getEndTime()));
         tvPickupTime.setText(getString(R.string.Pickup_Time, startStr, endStr));
 
+        // Quantity & Weight
         tvQuantity.setText("Quantity: " + foodItem.getQuantity() + " (" + foodItem.getWeight() + " kg Total)");
 
+        // Pickup Method
         String pickupMethod = foodItem.getPickupMethod();
         if (pickupMethod == null || pickupMethod.isEmpty())
             pickupMethod = "Meet Up";
         tvPickupMethod.setText("Pickup Method: " + pickupMethod);
 
+        // Location & Donor
         tvLocationLabel.setText(getString(R.string.Food_Location, foodItem.getLocationName()));
         tvPostedBy.setText(getString(R.string.Food_Donator, foodItem.getDonatorName()));
 
-        // Category check
+        // Category (if present)
         if (foodItem.getCategory() != null) {
-            String cat = foodItem.getCategory();
-            if (cat.equalsIgnoreCase("GROCERIES") || cat.equalsIgnoreCase("Pantry")) {
-                radioGroupCategory.check(R.id.radioGroceries);
-            } else if (cat.equalsIgnoreCase("MEALS") || cat.equalsIgnoreCase("Leftover")) {
-                radioGroupCategory.check(R.id.radioMeals);
-            }
+            TextView tvCategory = getView().findViewById(R.id.tvCategoryValue);
+            if (tvCategory != null)
+                tvCategory.setText(foodItem.getCategory());
         }
 
-        if (foodItem.getImageUri() != null && !foodItem.getImageUri().isEmpty()) {
-            String imageStr = foodItem.getImageUri();
+        // Image Loading
+        loadImage(foodItem.getImageUri());
+    }
+
+    private void loadImage(String imageStr) {
+        if (imageStr != null && !imageStr.isEmpty()) {
             if (imageStr.startsWith("http")) {
-                com.bumptech.glide.Glide.with(this)
+                Glide.with(this)
                         .load(imageStr)
                         .placeholder(R.drawable.ic_launcher_background)
                         .error(R.drawable.ic_launcher_background)
                         .into(ivProductImage);
             } else {
                 try {
-                    byte[] imageBytes = com.example.foodaid_mad_project.Utils.ImageUtil.base64ToBytes(imageStr);
-                    com.bumptech.glide.Glide.with(this)
+                    byte[] imageBytes = ImageUtil.base64ToBytes(imageStr);
+                    Glide.with(this)
                             .asBitmap()
                             .load(imageBytes)
                             .placeholder(R.drawable.ic_launcher_background)
@@ -123,81 +159,76 @@ public class ItemDetailsFragment extends Fragment {
                     ivProductImage.setImageResource(R.drawable.ic_launcher_background);
                 }
             }
+        } else {
+            ivProductImage.setImageResource(R.drawable.ic_launcher_background);
         }
+    }
 
+    private void setupActions(View view) {
+        // Toolbar Title
         TextView toolBarTitle = view.findViewById(R.id.toolbarTitle);
-        toolBarTitle.setText(getString(R.string.String, "Food Aid Details"));
+        toolBarTitle.setText(getString(R.string.String, "Food Aid Details")); // "String" resource seems generic, verify
+                                                                              // later. Using literal "Food Aid Details"
+                                                                              // as safe fallback if String res is odd.
 
+        // Back Navigation
+        Toolbar toolbar = view.findViewById(R.id.Toolbar);
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> navigateBack());
+        }
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
                 new OnBackPressedCallback(true) {
                     @Override
                     public void handleOnBackPressed() {
-                        if (getParentFragmentManager().getBackStackEntryCount() > 0) {
-                            getParentFragmentManager().popBackStack("ItemDetail",
-                                    FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                            getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                        }
+                        navigateBack();
                     }
                 });
 
-        Toolbar toolbar = view.findViewById(R.id.Toolbar);
-        if (toolbar != null) {
-            toolbar.setNavigationOnClickListener(v -> {
-                if (getParentFragmentManager().getBackStackEntryCount() > 0) {
-                    getParentFragmentManager().popBackStack("ItemDetail", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                    getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                }
-            });
-        }
-
+        // Claim Button
         Button btnClaim = view.findViewById(R.id.btnClaim);
         if (btnClaim != null) {
-            btnClaim.setOnClickListener(v -> claimDonation());
+            btnClaim.setOnClickListener(v -> initiateClaimProcess());
         }
-
-        setupRealtimeUpdates();
     }
 
-    private void claimDonation() {
+    private void navigateBack() {
+        if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+            getParentFragmentManager().popBackStack("ItemDetail", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        }
+    }
+
+    private void initiateClaimProcess() {
         if (foodItem == null || foodItem.getDonationId() == null) {
             Toast.makeText(getContext(), "Error: Invalid Item ID", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Always show dialog if logic requires user to confirm quantity, even for 1.
-        // But per original logic: if quantity > 1, show dialog.
-        // If quantity == 1, maybe confirm?
-        // Let's stick to: if > 1, show dialog. Else auto-claim 1 (but maybe add
-        // confirmation?)
-        // For better UX, let's just claim directly if Qty=1 but with a "Confirm"
-        // dialog?
-        // To stick to request "choose how many", if Qty=1, choice is trivial.
-
+        // If multiple items, ask user how many to claim.
+        // If only 1, simple confirmation or direct claim is possible.
+        // We stick to direct claim for 1 to reduce friction, dialog for > 1.
         if (foodItem.getQuantity() > 1) {
             showQuantityDialog();
         } else {
-            // Confirm single claim? Or just claim.
-            // Let's just claim 1 for simplicity consistent with previous flow
             performClaimTransaction(1);
         }
     }
 
     private void showQuantityDialog() {
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
-        // Inflate the custom layout
+        if (getContext() == null)
+            return;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_claim_quantity, null);
         builder.setView(dialogView);
 
-        android.app.AlertDialog dialog = builder.create();
-        // Transparent background for rounded corners
+        AlertDialog dialog = builder.create();
         if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(
-                    new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         }
 
-        TextView tvTitle = dialogView.findViewById(R.id.tvClaimDialogTitle);
         TextView tvMax = dialogView.findViewById(R.id.tvMaxQuantity);
-        android.widget.EditText etQuantity = dialogView.findViewById(R.id.etClaimQuantity);
+        EditText etQuantity = dialogView.findViewById(R.id.etClaimQuantity);
         Button btnCancel = dialogView.findViewById(R.id.btnCancelClaim);
         Button btnConfirm = dialogView.findViewById(R.id.btnConfirmClaim);
 
@@ -226,11 +257,97 @@ public class ItemDetailsFragment extends Fragment {
             }
         });
 
-        // Show
         dialog.show();
     }
 
-    private com.google.firebase.firestore.ListenerRegistration itemListener;
+    /**
+     * Executes the Firestore transaction to claim the donation item.
+     * Updates "donations" quantity/status and creates a "claims" record.
+     */
+    private void performClaimTransaction(int claimQty) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference docRef = db.collection("donations").document(foodItem.getDonationId());
+
+        String uid = FirebaseAuth.getInstance().getUid();
+        String currentUserName = "Anonymous";
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            String name = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+            if (name != null && !name.isEmpty())
+                currentUserName = name;
+        }
+        final String finalUserName = currentUserName;
+
+        db.runTransaction(transaction -> {
+            DocumentSnapshot snapshot = transaction.get(docRef);
+            String status = snapshot.getString("status");
+            Long endTime = snapshot.getLong("endTime");
+            Long currentQtyComp = snapshot.getLong("quantity");
+            int currentQty = (currentQtyComp != null) ? currentQtyComp.intValue() : 0;
+            Double currentWeight = snapshot.getDouble("weight");
+            if (currentWeight == null)
+                currentWeight = 0.0;
+
+            long currentTime = System.currentTimeMillis();
+
+            // Transactional Validation
+            if (status != null && "AVAILABLE".equals(status) &&
+                    (endTime == null || endTime > currentTime) &&
+                    currentQty >= claimQty) {
+
+                double unitWeight = (currentQty > 0) ? (currentWeight / currentQty) : 0.0;
+                double mainClaimedWeight = unitWeight * claimQty; // Rename to avoid confusion with local var if any
+
+                int newQty = currentQty - claimQty;
+                double newTotalWeight = currentWeight - mainClaimedWeight;
+                if (newTotalWeight < 0)
+                    newTotalWeight = 0.0;
+
+                transaction.update(docRef, "quantity", newQty);
+                transaction.update(docRef, "weight", newTotalWeight);
+
+                if (newQty == 0) {
+                    transaction.update(docRef, "status", "CLAIMED");
+                    transaction.update(docRef, "claimedBy", uid);
+                }
+
+                // Create Claim Record
+                DocumentReference newClaimRef = db.collection("claims").document();
+                Map<String, Object> claimData = new HashMap<>();
+                claimData.put("donationId", foodItem.getDonationId());
+                claimData.put("claimerId", uid);
+                claimData.put("claimerName", finalUserName);
+                claimData.put("quantityClaimed", claimQty);
+                claimData.put("timestamp", currentTime);
+
+                // Redundant Data for Impact Report optimization
+                claimData.put("foodTitle", foodItem.getTitle());
+                if (foodItem.getImageUri() != null) {
+                    claimData.put("foodImage", foodItem.getImageUri());
+                }
+                claimData.put("location", foodItem.getLocationName());
+                claimData.put("weight", mainClaimedWeight);
+                claimData.put("category", foodItem.getCategory());
+
+                transaction.set(newClaimRef, claimData);
+
+                return null;
+            } else {
+                throw new FirebaseFirestoreException("Item unavailable or insufficient quantity",
+                        FirebaseFirestoreException.Code.ABORTED);
+            }
+        }).addOnSuccessListener(result -> {
+            if (isAdded()) {
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.coveringFragment, new ClaimNotifyFragment())
+                        .addToBackStack("ClaimSuccess")
+                        .commit();
+            }
+        }).addOnFailureListener(e -> {
+            if (isAdded() && getContext() != null) {
+                Toast.makeText(getContext(), "Claim failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
 
     private void setupRealtimeUpdates() {
         if (foodItem == null || foodItem.getDonationId() == null)
@@ -243,33 +360,27 @@ public class ItemDetailsFragment extends Fragment {
                         return;
 
                     if (snapshot != null && snapshot.exists()) {
-                        // Update local object
                         FoodItem updatedItem = snapshot.toObject(FoodItem.class);
                         if (updatedItem != null) {
                             updatedItem.setDonationId(snapshot.getId());
-                            this.foodItem = updatedItem; // Update reference
+                            this.foodItem = updatedItem;
 
-                            // Update UI
-                            if (tvQuantity != null)
-                                tvQuantity.setText("Quantity: " + foodItem.getQuantity() + " (" + foodItem.getWeight()
-                                        + " kg Total)");
+                            // Refresh UI
+                            tvQuantity.setText(
+                                    "Quantity: " + foodItem.getQuantity() + " (" + foodItem.getWeight() + " kg Total)");
 
-                            // If quantity is 0, we could update UI to show claimed,
-                            // but for now just keeping quantity fresh is enough.
                             if (foodItem.getQuantity() <= 0) {
-                                // Maybe disable button?
                                 Button btnClaim = getView().findViewById(R.id.btnClaim);
                                 if (btnClaim != null)
                                     btnClaim.setEnabled(false);
-                                if (tvQuantity != null)
-                                    tvQuantity.setText("Status: CLAIMED");
+                                tvQuantity.setText("Status: CLAIMED");
                             }
                         }
                     } else {
                         // Document deleted
                         if (getContext() != null) {
                             Toast.makeText(getContext(), "Item no longer exists", Toast.LENGTH_SHORT).show();
-                            getParentFragmentManager().popBackStack();
+                            navigateBack();
                         }
                     }
                 });
@@ -281,100 +392,5 @@ public class ItemDetailsFragment extends Fragment {
         if (itemListener != null) {
             itemListener.remove();
         }
-    }
-
-    private void performClaimTransaction(int claimQty) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference docRef = db.collection("donations").document(foodItem.getDonationId());
-
-        // Get user info
-        String uid = FirebaseAuth.getInstance().getUid();
-        String userName = "Anonymous";
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            String name = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
-            if (name != null && !name.isEmpty())
-                userName = name;
-        }
-        final String finalUserName = userName;
-
-        db.runTransaction(transaction -> {
-            DocumentSnapshot snapshot = transaction.get(docRef);
-            String status = snapshot.getString("status");
-            Long endTime = snapshot.getLong("endTime");
-            Long currentQtyComp = snapshot.getLong("quantity");
-            int currentQty = (currentQtyComp != null) ? currentQtyComp.intValue() : 0;
-
-            Double currentWeight = snapshot.getDouble("weight");
-            if (currentWeight == null)
-                currentWeight = 0.0;
-
-            long currentTime = System.currentTimeMillis();
-
-            // Validation inside transaction
-            if (status != null && status.equals("AVAILABLE") &&
-                    (endTime == null || endTime > currentTime) &&
-                    currentQty >= claimQty) {
-
-                double unitWeight = (currentQty > 0) ? (currentWeight / currentQty) : 0.0;
-                double claimedWeight = unitWeight * claimQty;
-
-                int newQty = currentQty - claimQty;
-                double newTotalWeight = currentWeight - claimedWeight;
-                // Ensure non-negative
-                if (newTotalWeight < 0)
-                    newTotalWeight = 0.0;
-
-                transaction.update(docRef, "quantity", newQty);
-                transaction.update(docRef, "weight", newTotalWeight);
-
-                if (newQty == 0) {
-                    transaction.update(docRef, "status", "CLAIMED");
-                    // Optimization: claimedBy could be the last person, or "Multiple"
-                    transaction.update(docRef, "claimedBy", uid);
-                }
-
-                // --- NEW TRACKING LOGIC ---
-                // Add to sub-collection: donations/{id}/claims/{auto-id}
-                DocumentReference newClaimRef = docRef.collection("claims").document();
-                java.util.Map<String, Object> claimData = new java.util.HashMap<>();
-                claimData.put("claimerId", uid);
-                claimData.put("claimerName", finalUserName);
-                claimData.put("quantityClaimed", claimQty);
-                claimData.put("timestamp", currentTime);
-
-                // Redundant data for Impact Page efficiency
-                claimData.put("foodTitle", foodItem.getTitle());
-                // Only save image URI if it is a remote URL (http/https) OR Base64 (which is
-                // reasonable size now 400x400)
-                if (foodItem.getImageUri() != null) {
-                    claimData.put("foodImage", foodItem.getImageUri());
-                }
-                claimData.put("location", foodItem.getLocationName());
-
-                // Store correctly calculated claimed weight
-                claimData.put("weight", claimedWeight);
-
-                transaction.set(newClaimRef, claimData);
-                // --------------------------
-
-                return null; // Success
-            } else {
-                throw new FirebaseFirestoreException("Item unavailable or insufficient quantity",
-                        FirebaseFirestoreException.Code.ABORTED);
-            }
-        }).addOnSuccessListener(result -> {
-            // Navigate to Success
-            if (isAdded()) {
-                FragmentManager fragmentManager = getParentFragmentManager();
-                fragmentManager.beginTransaction()
-                        .replace(R.id.coveringFragment, new ClaimNotifyFragment())
-                        .addToBackStack("ClaimSuccess")
-                        .commit();
-            }
-        }).addOnFailureListener(e -> {
-            if (isAdded() && getContext() != null) {
-                Toast.makeText(getContext(), "Claim failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        });
     }
 }

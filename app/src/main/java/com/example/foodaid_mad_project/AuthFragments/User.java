@@ -2,30 +2,42 @@ package com.example.foodaid_mad_project.AuthFragments;
 
 import java.util.List;
 
+/**
+ * <h1>User</h1>
+ * <p>
+ * Represents the User model for Authentication and Profile purposes.
+ * This class corresponds to the documents in the "users" collection in
+ * Firestore.
+ * </p>
+ */
 public class User {
+
     private String uid;
     private String email;
     private String displayName; // Populated from Registration or Google
     private String photoUrl; // Firebase Storage URL
     private java.util.List<String> earnedBadges = new java.util.ArrayList<>(); // List of Badge IDs (e.g., "badge_10kg")
-    private String userType; // "student"
     private long createdAt; // Timestamp
     private long lastLogin; // Timestamp
 
+    // Required empty public constructor for Firestore serialization
     public User() {
     }
 
     public User(String uid, String email, String displayName, String photoUrl, List<String> earnedBadges,
-            String userType, long createdAt, long lastLogin) {
+            long createdAt, long lastLogin) {
         this.uid = uid;
         this.email = email;
         this.displayName = displayName;
         this.photoUrl = photoUrl;
         this.earnedBadges = earnedBadges;
-        this.userType = userType;
         this.createdAt = createdAt;
         this.lastLogin = lastLogin;
     }
+
+    // ============================================================================================
+    // GETTERS & SETTERS
+    // ============================================================================================
 
     public String getUid() {
         return uid;
@@ -67,14 +79,6 @@ public class User {
         this.earnedBadges = earnedBadges;
     }
 
-    public String getUserType() {
-        return userType;
-    }
-
-    public void setUserType(String userType) {
-        this.userType = userType;
-    }
-
     public long getCreatedAt() {
         return createdAt;
     }
@@ -91,15 +95,9 @@ public class User {
         this.lastLogin = lastLogin;
     }
 
-    public void addAdditionalData(java.util.Map<String, Object> data) {
-        // This is a helper for local updates, though ideally User object should have
-        // these fields
-        // For now, we rely on Firestore for these extra fields if they aren't in the
-        // model
-        // or we add them to the model.
-        // Let's add them to the model for completeness if we want strong typing
-    }
-
+    /**
+     * Helper to get the display name, aliased as getName for convenience.
+     */
     public String getName() {
         return displayName;
     }

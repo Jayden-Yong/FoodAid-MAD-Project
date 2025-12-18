@@ -11,6 +11,19 @@ import com.example.foodaid_mad_project.AuthFragments.LoginFragment;
 import com.example.foodaid_mad_project.AuthFragments.RegisterFragment;
 import com.google.android.material.button.MaterialButton;
 
+/**
+ * <h1>AuthActivity</h1>
+ * <p>
+ * The authentication entry point.
+ * Handles navigation between:
+ * <ul>
+ * <li>Landing Page (Login/Register buttons)</li>
+ * <li>Login Fragment</li>
+ * <li>Register Fragment</li>
+ * </ul>
+ * Also manages back navigation to return to the landing page from fragments.
+ * </p>
+ */
 public class AuthActivity extends AppCompatActivity {
 
     private MaterialButton btnToLogin, btnToSignUp;
@@ -50,11 +63,11 @@ public class AuthActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Navigates to the Login Fragment.
+     */
     public void showLoginFragment() {
-        // Hide landing page views
         hideLandingPage();
-
-        // Show fragment container and load LoginFragment
         authFragmentContainer.setVisibility(View.VISIBLE);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.authFragmentContainer, new LoginFragment())
@@ -62,11 +75,11 @@ public class AuthActivity extends AppCompatActivity {
                 .commit();
     }
 
+    /**
+     * Navigates to the Register Fragment.
+     */
     public void showRegisterFragment() {
-        // Hide landing page views
         hideLandingPage();
-
-        // Show fragment container and load RegisterFragment
         authFragmentContainer.setVisibility(View.VISIBLE);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.authFragmentContainer, new RegisterFragment())
@@ -74,6 +87,9 @@ public class AuthActivity extends AppCompatActivity {
                 .commit();
     }
 
+    /**
+     * Hides the landing page elements to display the fragment container.
+     */
     private void hideLandingPage() {
         authLogoTop.setVisibility(View.GONE);
         tvSlogan1.setVisibility(View.GONE);
@@ -83,8 +99,10 @@ public class AuthActivity extends AppCompatActivity {
         tvFooter.setVisibility(View.GONE);
     }
 
+    /**
+     * Restores the landing page view state.
+     */
     public void showLandingPage() {
-        // Show landing page views
         authLogoTop.setVisibility(View.VISIBLE);
         tvSlogan1.setVisibility(View.VISIBLE);
         tvSlogan2.setVisibility(View.VISIBLE);
@@ -92,10 +110,7 @@ public class AuthActivity extends AppCompatActivity {
         btnToSignUp.setVisibility(View.VISIBLE);
         tvFooter.setVisibility(View.VISIBLE);
 
-        // Hide fragment container
         authFragmentContainer.setVisibility(View.GONE);
-
-        // Clear back stack
-        getSupportFragmentManager().popBackStack();
+        getSupportFragmentManager().popBackStack(); // Clear back stack
     }
 }

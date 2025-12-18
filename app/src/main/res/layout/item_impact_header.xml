@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="16dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/impactConstraint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:id="@+id/dateNavLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginTop="@dimen/margin_small"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageButton
+                android:id="@+id/btnPrevDate"
+                android:layout_width="@dimen/button_icon_size"
+                android:layout_height="@dimen/button_icon_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/Back_Desc"
+                android:src="@drawable/ic_back_button"
+                app:tint="@color/primary_color" />
+
+            <TextView
+                android:id="@+id/tvDateRange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/margin_standard"
+                android:text="TODO: replace with Time List"
+                android:textColor="@color/font_primary"
+                android:textSize="@dimen/text_large"
+                android:fontFamily="@font/poppins_semi_bold"/>
+
+            <ImageButton
+                android:id="@+id/btnNextDate"
+                android:layout_width="@dimen/button_icon_size"
+                android:layout_height="@dimen/button_icon_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/Forward_Desc"
+                android:src="@drawable/ic_forward_button"
+                app:tint="@color/primary_color" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvChartTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_large"
+            android:text="@string/Chart_Title"
+            android:textColor="@color/font_primary"
+            android:textSize="@dimen/text_medium"
+            android:fontFamily="@font/poppins_medium"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/dateNavLayout" />
+
+        <FrameLayout
+            android:id="@+id/chartContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/tvChartTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.github.mikephil.charting.charts.BarChart
+                android:id="@+id/chartWeek"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/chart_height"
+                android:layout_marginHorizontal="@dimen/margin_standard"
+                android:layout_marginTop="@dimen/margin_standard" />
+
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/chartMonth"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/chart_height"
+                android:layout_marginHorizontal="@dimen/margin_standard"
+                android:layout_marginTop="@dimen/margin_standard"
+                android:visibility="gone" />
+
+            <com.github.mikephil.charting.charts.PieChart
+                android:id="@+id/chartYear"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/chart_height"
+                android:layout_marginHorizontal="@dimen/margin_standard"
+                android:layout_marginTop="@dimen/margin_standard"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/statsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/stats_card_min_height"
+            android:layout_marginTop="@dimen/margin_xlarge"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:baselineAligned="false"
+            app:layout_constraintTop_toBottomOf="@+id/chartContainer"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginVertical="10dp"
+                android:layout_marginStart="@dimen/margin_standard"
+                android:layout_marginEnd="@dimen/margin_small"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="@dimen/card_elevation"
+                app:contentPadding="12dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/tvStatClaimedValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/Number"
+                        android:textColor="@color/primary_color"
+                        android:textSize="@dimen/text_xlarge"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvStatClaimedDesc"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/Items_Claimed"
+                        android:textSize="@dimen/text_small"
+                        android:gravity="center"
+                        android:textColor="#757575"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginVertical="10dp"
+                android:layout_marginHorizontal="@dimen/margin_tiny"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="@dimen/card_elevation"
+                app:contentPadding="12dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/tvStatDonatedValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/Number"
+                        android:textColor="@color/primary_color"
+                        android:textSize="@dimen/text_xlarge"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvStateDonatedDesc"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/Items_Donated"
+                        android:textSize="@dimen/text_small"
+                        android:gravity="center"
+                        android:textColor="#757575"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginVertical="10dp"
+                android:layout_marginStart="@dimen/margin_small"
+                android:layout_marginEnd="@dimen/margin_standard"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="@dimen/card_elevation"
+                app:contentPadding="12dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/tvStatSavedValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/Number"
+                        android:textColor="@color/primary_color"
+                        android:textSize="@dimen/text_xlarge"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/Food_Saved"
+                        android:textSize="@dimen/text_small"
+                        android:gravity="center"
+                        android:textColor="#757575"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvContributionsHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_xlarge"
+            android:text="@string/Personal_Contribution"
+            android:textColor="#1A1A1A"
+            android:textSize="@dimen/text_large"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/statsContainer" />
+
+        <LinearLayout
+            android:id="@+id/header_Month_Year"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_medium"
+            android:layout_marginHorizontal="@dimen/margin_standard"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:baselineAligned="true"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/tvContributionsHeader"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+            <TextView
+                android:id="@+id/tvMonthYear"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:text="@string/String" />
+
+            <TextView
+                android:id="@+id/tvClaimedCount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8"
+                android:layout_marginStart="10dp"
+                android:gravity="center"
+                android:text="@string/Claimed"
+                android:textSize="13sp"
+                android:fontFamily="@font/poppins_medium"/>
+
+            <TextView
+                android:id="@+id/tvDonatedCount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8"
+                android:layout_marginStart="10dp"
+                android:gravity="center"
+                android:text="@string/Donated"
+                android:textSize="13sp"
+                android:fontFamily="@font/poppins_medium"/>
+
+            <TextView
+                android:id="@+id/tvSavedAmount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8"
+                android:gravity="end"
+                android:text="@string/Food_Saved"
+                android:textSize="13sp"
+                android:fontFamily="@font/poppins_medium"/>
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

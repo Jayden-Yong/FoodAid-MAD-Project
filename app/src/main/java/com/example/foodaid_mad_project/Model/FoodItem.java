@@ -3,6 +3,15 @@ package com.example.foodaid_mad_project.Model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+/**
+ * <h1>FoodItem</h1>
+ * <p>
+ * Represents a listing for a donated food item or meal.
+ * Used in Firestore "donations" collection and displayed in the Home lists and
+ * Map.
+ * Implements {@link Parcelable} to be passed between Fragments.
+ * </p>
+ */
 public class FoodItem implements Parcelable {
     private String donationId; // Document ID
     private String donatorId; // User UID
@@ -18,6 +27,7 @@ public class FoodItem implements Parcelable {
     // Impact & Time Logic
     private double weight; // TOTAL Weight in KG
     private int quantity; // Number of items available
+    private int initialQuantity; // Original number of items donated
     private long startTime; // Pick-up start (Unix Millis)
     private long endTime; // Expiry time (Unix Millis)
 
@@ -116,7 +126,9 @@ public class FoodItem implements Parcelable {
         dest.writeLong(timestamp);
     }
 
-    // Getters and Setters
+    // ============================================================================================
+    // GETTERS & SETTERS
+    // ============================================================================================
 
     public String getDescription() {
         return description;
@@ -132,6 +144,14 @@ public class FoodItem implements Parcelable {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public int getInitialQuantity() {
+        return initialQuantity;
+    }
+
+    public void setInitialQuantity(int initialQuantity) {
+        this.initialQuantity = initialQuantity;
     }
 
     public String getDonationId() {

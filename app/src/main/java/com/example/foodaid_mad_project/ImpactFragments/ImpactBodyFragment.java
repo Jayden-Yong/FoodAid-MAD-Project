@@ -1,6 +1,6 @@
 package com.example.foodaid_mad_project.ImpactFragments;
 
-import android.graphics.Color;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,83 +9,93 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.foodaid_mad_project.Model.FoodItem;
 import com.example.foodaid_mad_project.R;
+import com.example.foodaid_mad_project.Utils.ImageUtil;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * <h1>ImpactBodyFragment</h1>
+ * <p>
+ * Displays the core content of the Impact screen.
+ * Features:
+ * <ul>
+ * <li>Statistics for Items Claimed, Donated, and Weight Saved.</li>
+ * <li>Dynamic Charts (Bar for Week, Line for Month, Pie for Year).</li>
+ * <li>Scrollable list of recent contributions (Donations & Claims).</li>
+ * <li>Time range navigation (Previous/Next).</li>
+ * </ul>
+ * </p>
+ */
 public class ImpactBodyFragment extends Fragment {
 
     public static final String MODE_WEEK = "WEEK";
     public static final String MODE_MONTH = "MONTH";
     public static final String MODE_YEAR = "YEAR";
 
-    private TextView tvDateRange, tvContributionsHeader, tvStatClaimedValue, tvStatClaimedDesc, tvStatDonatedValue,
-            tvStateDonatedDesc, tvStatSavedValue, tvMonthYear;
+    private String currentMode = MODE_WEEK;
+    private Calendar displayedDate;
+
+    // Data
+    private List<FoodItem> claimedItems = new ArrayList<>();
+    private List<FoodItem> donatedItems = new ArrayList<>();
+    private List<FoodItem> allItems = new ArrayList<>(); // Unified list
+    private List<DocumentSnapshot> rawClaims = new ArrayList<>();
+    private List<DocumentSnapshot> rawLegacy = new ArrayList<>();
+    private List<DocumentSnapshot> rawMyDonations = new ArrayList<>();
+
+    // Firebase
+    private FirebaseAuth auth;
+    private FirebaseFirestore db;
+    private ListenerRegistration lrClaims, lrLegacy, lrMyDonations;
+    private ImpactCalculator calculator = new ImpactCalculator();
+
+    // UI Elements
+    private RecyclerView rvContributions;
+    private View headerView; // The header inserted into RecyclerView
+
+    // Header Components
+    private TextView tvDateRange, tvContributionsHeader, tvStatClaimedValue, tvStatClaimedDesc,
+            tvStatDonatedValue, tvStateDonatedDesc, tvStatSavedValue, tvMonthYear;
     private ImageButton btnPrevDate, btnNextDate;
     private BarChart chartWeek;
     private LineChart chartMonth;
     private PieChart chartYear;
-    private LinearLayout statsContainer, headerMonthYear;
-    private RecyclerView rvContributions;
-    private ConstraintLayout impactConstraint;
-
-    private String currentMode = MODE_WEEK;
-
-    // Real Data Lists
-    private List<FoodItem> claimedItems = new ArrayList<>();
-    private List<FoodItem> donatedItems = new ArrayList<>();
-
-    // Raw Snapshots for merging
-    private List<com.google.firebase.firestore.DocumentSnapshot> rawClaims = new ArrayList<>();
-    private List<com.google.firebase.firestore.DocumentSnapshot> rawLegacy = new ArrayList<>();
-    private List<com.google.firebase.firestore.DocumentSnapshot> rawMyDonations = new ArrayList<>();
-
-    private com.google.firebase.firestore.ListenerRegistration lrClaims;
-    private com.google.firebase.firestore.ListenerRegistration lrLegacy;
-    private com.google.firebase.firestore.ListenerRegistration lrMyDonations;
-
-    private ImpactCalculator calculator = new ImpactCalculator();
-    private FirebaseAuth auth;
-    private FirebaseFirestore db;
+    private LinearLayout headerMonthYear;
 
     @Nullable
     @Override
@@ -100,148 +110,170 @@ public class ImpactBodyFragment extends Fragment {
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        displayedDate = Calendar.getInstance();
 
-        // Date Range
-        btnPrevDate = view.findViewById(R.id.btnPrevDate);
-        btnNextDate = view.findViewById(R.id.btnNextDate);
-        tvDateRange = view.findViewById(R.id.tvDateRange);
-        // Chart
-        chartWeek = view.findViewById(R.id.chartWeek);
-        chartMonth = view.findViewById(R.id.chartMonth);
-        chartYear = view.findViewById(R.id.chartYear);
-        // Stats
-        statsContainer = view.findViewById(R.id.statsContainer);
-        tvStatClaimedValue = view.findViewById(R.id.tvStatClaimedValue);
-        tvStatClaimedDesc = view.findViewById(R.id.tvStatClaimedDesc);
-        tvStatDonatedValue = view.findViewById(R.id.tvStatDonatedValue);
-        tvStateDonatedDesc = view.findViewById(R.id.tvStateDonatedDesc);
-        tvStatSavedValue = view.findViewById(R.id.tvStatSavedValue);
-        // Contribution Title
-        tvContributionsHeader = view.findViewById(R.id.tvContributionsHeader);
-        tvMonthYear = view.findViewById(R.id.tvMonthYear);
-        // Contribution Recycler
-        headerMonthYear = view.findViewById(R.id.header_Month_Year);
+        // 1. Setup RecyclerView
         rvContributions = view.findViewById(R.id.rvContributions);
-        impactConstraint = view.findViewById(R.id.impactConstraint);
-
         rvContributions.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        setupListeners();
+        // 2. Initialize Header View & Components
+        initHeaderView();
+
+        // 3. Setup Listeners & Logic
+        setupFirestoreListeners();
+        setupDateNavigation();
+        loadStatsFromCache(); // Fast load previous state
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        if (lrClaims != null)
-            lrClaims.remove();
-        if (lrLegacy != null)
-            lrLegacy.remove();
-        if (lrMyDonations != null)
-            lrMyDonations.remove();
+    private void initHeaderView() {
+        // Inflate header layout (not attached yet)
+        headerView = LayoutInflater.from(getContext()).inflate(R.layout.item_impact_header, rvContributions, false);
+
+        btnPrevDate = headerView.findViewById(R.id.btnPrevDate);
+        btnNextDate = headerView.findViewById(R.id.btnNextDate);
+        tvDateRange = headerView.findViewById(R.id.tvDateRange);
+
+        chartWeek = headerView.findViewById(R.id.chartWeek);
+        chartMonth = headerView.findViewById(R.id.chartMonth);
+        chartYear = headerView.findViewById(R.id.chartYear);
+
+        tvStatClaimedValue = headerView.findViewById(R.id.tvStatClaimedValue);
+        tvStatClaimedDesc = headerView.findViewById(R.id.tvStatClaimedDesc);
+        tvStatDonatedValue = headerView.findViewById(R.id.tvStatDonatedValue);
+        tvStateDonatedDesc = headerView.findViewById(R.id.tvStateDonatedDesc);
+        tvStatSavedValue = headerView.findViewById(R.id.tvStatSavedValue);
+
+        tvContributionsHeader = headerView.findViewById(R.id.tvContributionsHeader);
+        tvMonthYear = headerView.findViewById(R.id.tvMonthYear);
+        headerMonthYear = headerView.findViewById(R.id.header_Month_Year);
     }
 
-    private void setupListeners() {
+    private void setupFirestoreListeners() {
         if (auth.getCurrentUser() == null)
             return;
-        String uid = auth.getCurrentUser().getUid();
+        String userId = auth.getCurrentUser().getUid();
 
-        // 1. New Claims
+        // A. Listen for Claims (Where user is claimer)
         if (lrClaims != null)
             lrClaims.remove();
-        lrClaims = db.collectionGroup("claims")
-                .whereEqualTo("claimerId", uid)
+        lrClaims = db.collection("claims").whereEqualTo("claimerId", userId)
                 .addSnapshotListener((snapshots, e) -> {
-                    if (e != null) {
-                        Log.e("Impact", "Claims Error", e);
+                    if (e != null || snapshots == null)
                         return;
-                    }
-                    if (snapshots != null) {
-                        rawClaims = snapshots.getDocuments();
-                        processData();
-                    }
+                    rawClaims = snapshots.getDocuments();
+                    processData();
                 });
 
-        // 2. Legacy Claims (Donations)
+        // B. Listen for Legacy Claims (Old format via Donations collection)
         if (lrLegacy != null)
             lrLegacy.remove();
         lrLegacy = db.collection("donations")
-                .whereEqualTo("claimedBy", uid)
+                .whereEqualTo("claimedBy", userId)
                 .whereEqualTo("status", "CLAIMED")
                 .addSnapshotListener((snapshots, e) -> {
-                    if (e != null) {
-                        Log.e("Impact", "Legacy Error", e);
+                    if (e != null || snapshots == null)
                         return;
-                    }
-                    if (snapshots != null) {
-                        rawLegacy = snapshots.getDocuments();
-                        processData();
-                    }
+                    rawLegacy = snapshots.getDocuments();
+                    processData();
                 });
 
-        // 3. My Donations
+        // C. Listen for My Donations
         if (lrMyDonations != null)
             lrMyDonations.remove();
-        lrMyDonations = db.collection("donations")
-                .whereEqualTo("donatorId", uid)
+        lrMyDonations = db.collection("donations").whereEqualTo("donatorId", userId)
                 .addSnapshotListener((snapshots, e) -> {
-                    if (e != null) {
-                        Log.e("Impact", "Donations Error", e);
+                    if (e != null || snapshots == null)
                         return;
-                    }
-                    if (snapshots != null) {
-                        rawMyDonations = snapshots.getDocuments();
-                        processData();
-                    }
+                    rawMyDonations = snapshots.getDocuments();
+                    processData();
                 });
     }
 
+    /**
+     * Consolidates raw snapshots into mapped FoodItem objects and updates UI.
+     */
     private void processData() {
         claimedItems.clear();
         donatedItems.clear();
+        allItems.clear();
         List<String> processedDonationIds = new ArrayList<>();
 
-        // A. Process New Claims
-        for (com.google.firebase.firestore.DocumentSnapshot doc : rawClaims) {
+        // 1. Process New Claims
+        for (DocumentSnapshot doc : rawClaims) {
             FoodItem item = new FoodItem();
-            item.setTitle(doc.getString("foodTitle"));
+            item.setTitle(doc.getString("foodTitle") != null ? doc.getString("foodTitle") : "Claimed Item");
             Object img = doc.get("foodImage");
             if (img instanceof String)
                 item.setImageUri((String) img);
             item.setLocationName(doc.getString("location"));
+
             Double w = doc.getDouble("weight");
             item.setWeight(w != null ? w : 0.0);
+            item.setCategory(doc.getString("category"));
+
             Long ts = doc.getLong("timestamp");
             item.setTimestamp(ts != null ? ts : 0);
 
-            if (item.getTitle() == null)
-                item.setTitle("Claimed Item");
+            // Use claimed quantity specifically
+            Long q = doc.getLong("quantityClaimed");
+            item.setQuantity(q != null ? q.intValue() : 1);
+
             claimedItems.add(item);
 
+            // Track ID to avoid duplication with legacy query if data overlaps
+            // (Assuming parent logic for deep reference, otherwise logic is safe)
             if (doc.getReference().getParent().getParent() != null) {
                 processedDonationIds.add(doc.getReference().getParent().getParent().getId());
             }
         }
 
-        // B. Process Legacy Claims
-        for (com.google.firebase.firestore.DocumentSnapshot doc : rawLegacy) {
+        // 2. Process Legacy Claims (Skip if ID matches known parent donation)
+        for (DocumentSnapshot doc : rawLegacy) {
             if (!processedDonationIds.contains(doc.getId())) {
                 claimedItems.add(doc.toObject(FoodItem.class));
             }
         }
+        Collections.sort(claimedItems, (o1, o2) -> Long.compare(o2.getTimestamp(), o1.getTimestamp()));
 
-        // Sort Combined List
-        java.util.Collections.sort(claimedItems, (o1, o2) -> Long.compare(o2.getTimestamp(), o1.getTimestamp()));
-
-        // C. Process Donated Items
-        for (com.google.firebase.firestore.DocumentSnapshot doc : rawMyDonations) {
-            donatedItems.add(doc.toObject(FoodItem.class));
+        // 3. Process My Donations
+        for (DocumentSnapshot doc : rawMyDonations) {
+            FoodItem item = doc.toObject(FoodItem.class);
+            if (item != null) {
+                // Ensure timestamp exists
+                if (item.getTimestamp() == 0) {
+                    Long ts = doc.getLong("timestamp"); // Try field
+                    if (ts == null || ts == 0)
+                        ts = doc.getLong("endTime"); // Fallback
+                    if (ts == null || ts == 0)
+                        ts = doc.getLong("startTime");
+                    if (ts != null)
+                        item.setTimestamp(ts);
+                }
+                // Ensure title
+                if (item.getTitle() == null || item.getTitle().isEmpty()) {
+                    String desc = doc.getString("description");
+                    item.setTitle(desc != null ? desc : "Donation");
+                }
+                // Use initial quantity for history
+                if (item.getInitialQuantity() > 0) {
+                    item.setQuantity(item.getInitialQuantity());
+                }
+                donatedItems.add(item);
+            }
         }
+
+        // 4. Merge
+        allItems.addAll(claimedItems);
+        allItems.addAll(donatedItems);
+        Collections.sort(allItems, (o1, o2) -> Long.compare(o2.getTimestamp(), o1.getTimestamp()));
 
         checkBadges();
         refreshStats();
     }
 
     private void checkBadges() {
+        if (auth.getCurrentUser() == null)
+            return;
         double totalKg = calculator.getAllTimeWeight(claimedItems);
         List<String> newBadges = new ArrayList<>();
 
@@ -255,14 +287,40 @@ public class ImpactBodyFragment extends Fragment {
         if (!newBadges.isEmpty()) {
             db.collection("users").document(auth.getCurrentUser().getUid())
                     .update("earnedBadges", FieldValue.arrayUnion(newBadges.toArray()))
-                    .addOnSuccessListener(aVoid -> Log.d("Impact", "Badges updated"));
+                    .addOnFailureListener(e -> Log.e("Impact", "Badge Update Failed", e));
+        }
+    }
+
+    private void setupDateNavigation() {
+        btnPrevDate.setOnClickListener(v -> {
+            adjustDate(-1);
+            refreshStats();
+        });
+        btnNextDate.setOnClickListener(v -> {
+            adjustDate(1);
+            refreshStats();
+        });
+    }
+
+    private void adjustDate(int amount) {
+        switch (currentMode) {
+            case MODE_WEEK:
+                displayedDate.add(Calendar.WEEK_OF_YEAR, amount);
+                break;
+            case MODE_MONTH:
+                displayedDate.add(Calendar.MONTH, amount);
+                break;
+            case MODE_YEAR:
+                displayedDate.add(Calendar.YEAR, amount);
+                break;
         }
     }
 
     public void updateViewMode(String mode) {
         this.currentMode = mode;
         if (tvDateRange != null) {
-            refreshStats(); // Trigger refresh with new mode
+            displayedDate = Calendar.getInstance(); // Reset to today
+            refreshStats();
         }
     }
 
@@ -270,63 +328,66 @@ public class ImpactBodyFragment extends Fragment {
         if (getContext() == null)
             return;
 
-        Calendar now = Calendar.getInstance();
-        long endTime = now.getTimeInMillis();
-        long startTime = 0;
+        Calendar calSnapshot = (Calendar) displayedDate.clone();
+        long startTime = 0, endTime = 0;
         String dateRangeText = "";
+        SimpleDateFormat sdfDayMonth = new SimpleDateFormat("dd MMM", Locale.getDefault());
+        SimpleDateFormat sdfFull = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
 
-        // Calculate Start Time based on Mode
-        Calendar startCal = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
-
-        // Filter items for the list
-        List<FoodItem> filteredItems = new ArrayList<>();
-
+        // Calculate Range based on Mode
         switch (currentMode) {
             case MODE_WEEK:
-                startCal.set(Calendar.DAY_OF_WEEK, startCal.getFirstDayOfWeek());
-                startTime = startCal.getTimeInMillis();
-                dateRangeText = sdf.format(startCal.getTime()) + " - " + sdf.format(now.getTime());
+                calSnapshot.set(Calendar.DAY_OF_WEEK, calSnapshot.getFirstDayOfWeek());
+                setStartOfDay(calSnapshot);
+                startTime = calSnapshot.getTimeInMillis();
 
-                tvContributionsHeader.setText("This Week's Contribution");
-                headerMonthYear.setVisibility(View.GONE);
-                chartWeek.setVisibility(View.VISIBLE);
-                chartMonth.setVisibility(View.GONE);
-                chartYear.setVisibility(View.GONE);
-                setupBarChart();
+                calSnapshot.add(Calendar.DAY_OF_YEAR, 6);
+                setEndOfDay(calSnapshot);
+                endTime = calSnapshot.getTimeInMillis();
+
+                dateRangeText = sdfDayMonth.format(new Date(startTime)) + " - " + sdfFull.format(new Date(endTime));
+                updateChartsVisibility(View.VISIBLE, View.GONE, View.GONE);
+                tvContributionsHeader.setText("Contribution (Week)");
+                setupBarChart(startTime, endTime);
                 break;
 
             case MODE_MONTH:
-                startCal.set(Calendar.DAY_OF_MONTH, 1);
-                startTime = startCal.getTimeInMillis();
-                dateRangeText = new SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(now.getTime());
+                calSnapshot.set(Calendar.DAY_OF_MONTH, 1);
+                setStartOfDay(calSnapshot);
+                startTime = calSnapshot.getTimeInMillis();
 
-                tvContributionsHeader.setText("This Month's Contribution");
-                tvMonthYear.setText("Week");
-                headerMonthYear.setVisibility(View.VISIBLE);
-                chartWeek.setVisibility(View.GONE);
-                chartMonth.setVisibility(View.VISIBLE);
-                chartYear.setVisibility(View.GONE);
-                setupLineChart();
+                calSnapshot.set(Calendar.DAY_OF_MONTH, calSnapshot.getActualMaximum(Calendar.DAY_OF_MONTH));
+                setEndOfDay(calSnapshot);
+                endTime = calSnapshot.getTimeInMillis();
+
+                dateRangeText = new SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(new Date(startTime));
+                updateChartsVisibility(View.GONE, View.VISIBLE, View.GONE);
+                tvContributionsHeader.setText("Contribution (Month)");
+                setupLineChart(startTime, endTime);
                 break;
 
             case MODE_YEAR:
-                startCal.set(Calendar.DAY_OF_YEAR, 1);
-                startTime = startCal.getTimeInMillis();
-                dateRangeText = new SimpleDateFormat("yyyy", Locale.getDefault()).format(now.getTime());
+                calSnapshot.set(Calendar.DAY_OF_YEAR, 1);
+                setStartOfDay(calSnapshot);
+                startTime = calSnapshot.getTimeInMillis();
 
-                tvContributionsHeader.setText("This Year's Contribution");
-                tvMonthYear.setText("Month");
-                headerMonthYear.setVisibility(View.VISIBLE);
-                chartWeek.setVisibility(View.GONE);
-                chartMonth.setVisibility(View.GONE);
-                chartYear.setVisibility(View.VISIBLE);
-                setupPieChart();
+                calSnapshot.set(Calendar.MONTH, 11);
+                calSnapshot.set(Calendar.DAY_OF_MONTH, 31);
+                setEndOfDay(calSnapshot);
+                endTime = calSnapshot.getTimeInMillis();
+
+                dateRangeText = new SimpleDateFormat("yyyy", Locale.getDefault()).format(new Date(startTime));
+                updateChartsVisibility(View.GONE, View.GONE, View.VISIBLE);
+                tvContributionsHeader.setText("Contribution (Year)");
+                setupPieChart(startTime, endTime);
                 break;
         }
-        tvDateRange.setText(dateRangeText);
 
-        // Calculate Stats using Calculator
+        tvDateRange.setText(dateRangeText);
+        headerMonthYear.setVisibility(currentMode.equals(MODE_WEEK) ? View.GONE : View.VISIBLE);
+        tvMonthYear.setText(currentMode.equals(MODE_WEEK) ? "" : (currentMode.equals(MODE_MONTH) ? "Week" : "Month"));
+
+        // Update Text Stats
         int claimedCount = calculator.getItemCountForRange(claimedItems, startTime, endTime);
         int donatedCount = calculator.getItemCountForRange(donatedItems, startTime, endTime);
         double savedWeight = calculator.getWeightForRange(claimedItems, startTime, endTime);
@@ -338,57 +399,82 @@ public class ImpactBodyFragment extends Fragment {
         tvStatClaimedDesc.setText(getString(R.string.Items_Claimed, currentMode.toLowerCase()));
         tvStateDonatedDesc.setText(getString(R.string.Items_Donated, currentMode.toLowerCase()));
 
-        // Filter List for Adpater
-        for (FoodItem item : claimedItems) {
+        saveStatsToCache(String.valueOf(claimedCount), String.valueOf(donatedCount),
+                String.format(Locale.getDefault(), "%.1f kg", savedWeight));
+
+        // Update List Adapter
+        List<FoodItem> filteredItems = new ArrayList<>();
+        for (FoodItem item : allItems) {
             if (item.getTimestamp() >= startTime && item.getTimestamp() <= endTime) {
                 filteredItems.add(item);
             }
         }
-        rvContributions.setAdapter(new WeekAdapter(filteredItems)); // Reuse WeekAdapter (layout) for all
+        String currentUserId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "";
+        rvContributions.setAdapter(new ImpactAdapter(filteredItems, headerView, currentUserId));
     }
 
-    // --- Chart Setup (Visuals only for now, can perform further data binding if
-    // needed) ---
-    // --- Chart Setup ---
+    private void updateChartsVisibility(int week, int month, int year) {
+        chartWeek.setVisibility(week);
+        chartMonth.setVisibility(month);
+        chartYear.setVisibility(year);
+    }
 
-    private void setupBarChart() {
-        if (claimedItems == null || claimedItems.isEmpty()) {
+    private void setStartOfDay(Calendar cal) {
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+    }
+
+    private void setEndOfDay(Calendar cal) {
+        cal.set(Calendar.HOUR_OF_DAY, 23);
+        cal.set(Calendar.MINUTE, 59);
+        cal.set(Calendar.SECOND, 59);
+    }
+
+    // --- Caching for Fast Load ---
+    private void saveStatsToCache(String claimed, String donated, String saved) {
+        if (getContext() == null || auth.getCurrentUser() == null)
+            return;
+        getActivity().getSharedPreferences("ImpactStats_" + auth.getCurrentUser().getUid(), Context.MODE_PRIVATE)
+                .edit()
+                .putString("claimed", claimed)
+                .putString("donated", donated)
+                .putString("saved", saved)
+                .apply();
+    }
+
+    private void loadStatsFromCache() {
+        if (getContext() == null || auth.getCurrentUser() == null)
+            return;
+        android.content.SharedPreferences prefs = getActivity()
+                .getSharedPreferences("ImpactStats_" + auth.getCurrentUser().getUid(), Context.MODE_PRIVATE);
+        tvStatClaimedValue.setText(prefs.getString("claimed", "0"));
+        tvStatDonatedValue.setText(prefs.getString("donated", "0"));
+        tvStatSavedValue.setText(prefs.getString("saved", "0.0 kg"));
+    }
+
+    // ================= Charts =================
+
+    private void setupBarChart(long startOfWeek, long endOfWeek) {
+        if (allItems == null || allItems.isEmpty()) {
             chartWeek.clear();
             return;
         }
-
-        // 1. Determine Range (Week)
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek()); // Start of week coverage
-        long startOfWeek = cal.getTimeInMillis();
-        long endOfWeek = System.currentTimeMillis(); // Up to now
-
-        // 2. Aggregate Daily Weights
-        // Map: DayOfYear -> Weight
-        // We only care about 7 days
         float[] dailyWeights = new float[7];
-        // 0=Sun, 1=Mon ... depending on Locale. Let's align with Calendar.DAY_OF_WEEK
-        // (1-7)
-
-        for (FoodItem item : claimedItems) {
+        for (FoodItem item : allItems) {
             long ts = item.getTimestamp();
             if (ts >= startOfWeek && ts <= endOfWeek) {
                 Calendar c = Calendar.getInstance();
                 c.setTimeInMillis(ts);
-                int dayOfWeek = c.get(Calendar.DAY_OF_WEEK); // 1 (Sun) - 7 (Sat)
-                // Normalize to array index 0-6
-                int index = dayOfWeek - 1;
-                if (index >= 0 && index < 7) {
+                int index = c.get(Calendar.DAY_OF_WEEK) - 1; // 0=Sun to 6=Sat
+                if (index >= 0 && index < 7)
                     dailyWeights[index] += (float) item.getWeight();
-                }
             }
         }
-
         List<BarEntry> entries = new ArrayList<>();
-        // Create entries for each day
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < 7; i++)
             entries.add(new BarEntry(i + 1, dailyWeights[i]));
-        }
 
         BarDataSet set = new BarDataSet(entries, "Saved (kg)");
         set.setColor(getResources().getColor(R.color.teal_200));
@@ -396,263 +482,185 @@ public class ImpactBodyFragment extends Fragment {
 
         BarData data = new BarData(set);
         data.setBarWidth(0.9f);
-
         chartWeek.setData(data);
         chartWeek.getDescription().setEnabled(false);
         chartWeek.setFitBars(true);
         chartWeek.invalidate();
     }
 
-    private void setupLineChart() {
-        if (claimedItems == null) {
+    private void setupLineChart(long startOfMonth, long endOfMonth) {
+        if (allItems == null) {
             chartMonth.clear();
             return;
         }
-
-        // 1. Determine Range (Month)
         Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.DAY_OF_MONTH, 1);
-        long startOfMonth = cal.getTimeInMillis();
-        long endOfMonth = System.currentTimeMillis();
+        cal.setTimeInMillis(startOfMonth);
         int maxDays = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+        float[] dailyWeights = new float[maxDays + 1];
 
-        // 2. Aggregate Daily Weights for the Month
-        float[] dailyWeights = new float[maxDays + 1]; // Index 1 to maxDays
-
-        for (FoodItem item : claimedItems) {
-            if (item == null)
-                continue;
+        for (FoodItem item : allItems) {
             long ts = item.getTimestamp();
             if (ts >= startOfMonth && ts <= endOfMonth) {
                 Calendar c = Calendar.getInstance();
                 c.setTimeInMillis(ts);
                 int day = c.get(Calendar.DAY_OF_MONTH);
-                if (day >= 1 && day <= maxDays) {
+                if (day >= 1 && day <= maxDays)
                     dailyWeights[day] += (float) item.getWeight();
-                }
             }
         }
-
         List<Entry> entries = new ArrayList<>();
-        // Show ALL days in the month, not just up to today
-        for (int i = 1; i <= maxDays; i++) {
+        for (int i = 1; i <= maxDays; i++)
             entries.add(new Entry(i, dailyWeights[i]));
-        }
 
         LineDataSet set = new LineDataSet(entries, "Saved (kg)");
-        set.setColor(getResources().getColor(R.color.teal_200)); // Use app color
+        set.setColor(getResources().getColor(R.color.teal_200));
         set.setLineWidth(2.5f);
-        set.setCircleColor(getResources().getColor(R.color.teal_200));
-        set.setCircleRadius(4f);
-        set.setDrawValues(false); // Cleaner look
-        set.setMode(LineDataSet.Mode.CUBIC_BEZIER); // Smooth curves
+        set.setDrawValues(false);
         set.setDrawFilled(true);
         set.setFillColor(getResources().getColor(R.color.teal_200));
         set.setFillAlpha(50);
+        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
 
         LineData data = new LineData(set);
         chartMonth.setData(data);
         chartMonth.getDescription().setEnabled(false);
         chartMonth.getXAxis().setDrawGridLines(false);
         chartMonth.getAxisRight().setEnabled(false);
-        chartMonth.animateX(1000);
         chartMonth.invalidate();
     }
 
-    private void setupPieChart() {
-        // Filter for Year
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.DAY_OF_YEAR, 1);
-        long startOfYear = cal.getTimeInMillis();
-        long endOfYear = System.currentTimeMillis();
+    private void setupPieChart(long startOfYear, long endOfYear) {
+        int claimedCount = calculator.getItemCountForRange(claimedItems, startOfYear, endOfYear);
+        int donatedCount = calculator.getItemCountForRange(donatedItems, startOfYear, endOfYear);
 
-        int claimedCount = 0;
-        for (FoodItem i : claimedItems) {
-            if (i.getTimestamp() >= startOfYear && i.getTimestamp() <= endOfYear)
-                claimedCount++;
-        }
-
-        int donatedCount = 0;
-        for (FoodItem i : donatedItems) {
-            if (i.getTimestamp() >= startOfYear && i.getTimestamp() <= endOfYear)
-                donatedCount++;
-        }
-
-        List<PieEntry> entries = new ArrayList<>();
-        if (claimedCount > 0)
-            entries.add(new PieEntry((float) claimedCount, "Claimed"));
-        if (donatedCount > 0)
-            entries.add(new PieEntry((float) donatedCount, "Donated"));
-
-        // Handle Empty State
-        if (entries.isEmpty()) {
+        if (claimedCount == 0 && donatedCount == 0) {
             chartYear.setCenterText("No Activity");
             chartYear.setData(null);
             chartYear.invalidate();
             return;
-        } else {
-            chartYear.setCenterText("");
         }
 
-        PieDataSet set = new PieDataSet(entries, ""); // Blank label to hide legend title if redundant
-
-        // Custom Colors: Teal (App Primary) for Claims, Orange for Donations
+        List<PieEntry> entries = new ArrayList<>();
         List<Integer> colors = new ArrayList<>();
-        if (claimedCount > 0)
+        if (claimedCount > 0) {
+            entries.add(new PieEntry(claimedCount, "Claimed"));
             colors.add(getResources().getColor(R.color.teal_200));
-        if (donatedCount > 0)
-            colors.add(Color.parseColor("#FF9800")); // Orange
-        set.setColors(colors);
+        }
+        if (donatedCount > 0) {
+            entries.add(new PieEntry(donatedCount, "Donated"));
+            colors.add(android.graphics.Color.parseColor("#FF9800"));
+        }
 
+        PieDataSet set = new PieDataSet(entries, "");
+        set.setColors(colors);
         set.setValueTextSize(14f);
-        set.setValueTextColor(Color.WHITE);
-        set.setSliceSpace(3f);
-        set.setSelectionShift(5f);
+        set.setValueTextColor(android.graphics.Color.WHITE);
 
         PieData data = new PieData(set);
         chartYear.setData(data);
         chartYear.getDescription().setEnabled(false);
-        chartYear.setHoleRadius(40f);
-        chartYear.setTransparentCircleRadius(45f);
-        chartYear.animateY(1000);
+        chartYear.setCenterText("");
         chartYear.invalidate();
     }
 
-    // --- ADAPTERS ---
-    // Simplified adapters to just show lists of FoodItems for the demo
+    // ================= Adapter =================
 
-    private class WeekAdapter extends RecyclerView.Adapter<WeekAdapter.ViewHolder> {
+    private static class ImpactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+        private static final int TYPE_HEADER = 0;
+        private static final int TYPE_ITEM = 1;
+
         List<FoodItem> data;
+        View headerView;
+        String currentUserId;
 
-        public WeekAdapter(List<FoodItem> data) {
+        public ImpactAdapter(List<FoodItem> data, View headerView, String userId) {
             this.data = data;
+            this.headerView = headerView;
+            this.currentUserId = userId;
         }
 
         @NonNull
         @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            if (viewType == TYPE_HEADER) {
+                if (headerView.getParent() != null)
+                    ((ViewGroup) headerView.getParent()).removeView(headerView);
+                return new RecyclerView.ViewHolder(headerView) {
+                };
+            }
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.fragment_week_contribution, parent,
                     false);
-            return new ViewHolder(v);
+            return new ItemViewHolder(v);
         }
 
         @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            FoodItem item = data.get(position);
-            holder.tvItemName.setText(item.getTitle());
-            holder.tvItemDate
-                    .setText(new SimpleDateFormat("dd/MM", Locale.getDefault()).format(new Date(item.getTimestamp())));
-            holder.tvStatus.setText("Saved");
-            holder.tvWeight.setText(item.getWeight() + " kg");
-            // Handle image logic
-            if (item.getImageUri() != null && !item.getImageUri().isEmpty()) {
-                String imageStr = item.getImageUri();
-                if (imageStr.startsWith("http")) {
-                    com.bumptech.glide.Glide.with(holder.itemView.getContext())
-                            .load(imageStr)
-                            .placeholder(R.drawable.ic_launcher_background)
-                            .error(R.drawable.ic_launcher_background)
-                            .into(holder.ivItemImage);
+        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+            if (getItemViewType(position) == TYPE_HEADER)
+                return;
+
+            FoodItem item = data.get(position - 1);
+            ItemViewHolder h = (ItemViewHolder) holder;
+
+            h.tvItemName.setText(item.getTitle());
+            h.tvItemDate.setText(
+                    new SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(new Date(item.getTimestamp())));
+            h.tvWeight.setText(String.format(Locale.getDefault(), "%.1f kg", item.getWeight()));
+
+            boolean isMyDonation = item.getDonatorId() != null && item.getDonatorId().equals(currentUserId);
+            h.tvStatus.setText(isMyDonation ? "Donated" : "Saved");
+
+            // Image Loading
+            String imgUrl = item.getImageUri();
+            if (imgUrl != null && !imgUrl.isEmpty()) {
+                if (imgUrl.startsWith("http")) {
+                    Glide.with(h.itemView).load(imgUrl).placeholder(R.drawable.ic_launcher_background)
+                            .into(h.ivItemImage);
                 } else {
                     try {
-                        // Decode Base64 to bytes
-                        byte[] imageBytes = com.example.foodaid_mad_project.Utils.ImageUtil.base64ToBytes(imageStr);
-                        com.bumptech.glide.Glide.with(holder.itemView.getContext())
-                                .asBitmap()
-                                .load(imageBytes)
-                                .placeholder(R.drawable.ic_launcher_background)
-                                .error(R.drawable.ic_launcher_background)
-                                .into(holder.ivItemImage);
+                        Glide.with(h.itemView).asBitmap().load(ImageUtil.base64ToBytes(imgUrl))
+                                .placeholder(R.drawable.ic_launcher_background).into(h.ivItemImage);
                     } catch (Exception e) {
-                        holder.ivItemImage.setImageResource(R.drawable.ic_launcher_background);
+                        h.ivItemImage.setImageResource(R.drawable.ic_launcher_background);
                     }
                 }
             } else {
-                holder.ivItemImage.setImageResource(R.drawable.ic_launcher_background);
+                h.ivItemImage.setImageResource(R.drawable.ic_launcher_background);
             }
         }
 
         @Override
         public int getItemCount() {
-            return data.size();
+            return data.size() + 1;
         }
 
-        class ViewHolder extends RecyclerView.ViewHolder {
+        @Override
+        public int getItemViewType(int position) {
+            return position == 0 ? TYPE_HEADER : TYPE_ITEM;
+        }
+
+        static class ItemViewHolder extends RecyclerView.ViewHolder {
             TextView tvItemName, tvItemDate, tvStatus, tvWeight;
             ImageView ivItemImage;
 
-            public ViewHolder(View itemView) {
-                super(itemView);
-                ivItemImage = itemView.findViewById(R.id.ivItemImage);
-                tvItemName = itemView.findViewById(R.id.tvItemName);
-                tvItemDate = itemView.findViewById(R.id.tvItemDate);
-                tvStatus = itemView.findViewById(R.id.tvStatus);
-                tvWeight = itemView.findViewById(R.id.tvWeight);
+            public ItemViewHolder(View v) {
+                super(v);
+                tvItemName = v.findViewById(R.id.tvItemName);
+                tvItemDate = v.findViewById(R.id.tvItemDate);
+                tvStatus = v.findViewById(R.id.tvStatus);
+                tvWeight = v.findViewById(R.id.tvWeight);
+                ivItemImage = v.findViewById(R.id.ivItemImage);
             }
         }
     }
 
-    // Retaining dummy adapters for Month/Year to avoid UI crashes if layouts are
-    // specific
-    private class MonthAdapter extends RecyclerView.Adapter<MonthAdapter.ViewHolder> {
-        List<String> data;
-
-        public MonthAdapter(List<String> data) {
-            this.data = data;
-        }
-
-        @NonNull
-        @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.fragment_month_contribution, parent,
-                    false);
-            return new ViewHolder(v);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        }
-
-        @Override
-        public int getItemCount() {
-            return data.size();
-        }
-
-        class ViewHolder extends RecyclerView.ViewHolder {
-            public ViewHolder(View itemView) {
-                super(itemView);
-            }
-        }
-    }
-
-    private class YearAdapter extends RecyclerView.Adapter<YearAdapter.ViewHolder> {
-        List<String> data;
-
-        public YearAdapter(List<String> data) {
-            this.data = data;
-        }
-
-        @NonNull
-        @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.fragment_year_contribution, parent,
-                    false);
-            return new ViewHolder(v);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        }
-
-        @Override
-        public int getItemCount() {
-            return data.size();
-        }
-
-        class ViewHolder extends RecyclerView.ViewHolder {
-            public ViewHolder(View itemView) {
-                super(itemView);
-            }
-        }
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (lrClaims != null)
+            lrClaims.remove();
+        if (lrLegacy != null)
+            lrLegacy.remove();
+        if (lrMyDonations != null)
+            lrMyDonations.remove();
     }
 }

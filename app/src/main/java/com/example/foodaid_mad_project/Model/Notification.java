@@ -1,13 +1,24 @@
 package com.example.foodaid_mad_project.Model;
 
+import com.google.firebase.firestore.PropertyName;
+
+/**
+ * <h1>Notification</h1>
+ * <p>
+ * Represents a notification document in Firestore.
+ * This is the raw data model associated with the "notifications" collection.
+ * </p>
+ */
 public class Notification {
     private String id;
     private String title;
     private String message;
-    private String type; // e.g., "SYSTEM", "CLAIM", "DONATION"
+    private String type; // e.g., "SYSTEM", "CLAIM", "DONATION", "Community"
     private String relatedId; // e.g., donationId or userId
     private long timestamp;
+    @PropertyName("isRead")
     private boolean isRead;
+    private String userId; // Target user ID, or "ALL" for global notifications
 
     public Notification() {
         // Required for Firestore
@@ -23,6 +34,10 @@ public class Notification {
         this.timestamp = timestamp;
         this.isRead = isRead;
     }
+
+    // ============================================================================================
+    // GETTERS & SETTERS
+    // ============================================================================================
 
     public String getId() {
         return id;
@@ -72,11 +87,21 @@ public class Notification {
         this.timestamp = timestamp;
     }
 
+    @PropertyName("isRead")
     public boolean isRead() {
         return isRead;
     }
 
+    @PropertyName("isRead")
     public void setRead(boolean read) {
         isRead = read;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }
