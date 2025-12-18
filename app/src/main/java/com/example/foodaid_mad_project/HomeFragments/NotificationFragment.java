@@ -366,7 +366,7 @@ public class NotificationFragment extends Fragment {
 
     private void markGlobalReadLocally(String notificationId) {
         if (auth.getCurrentUser() == null || getContext() == null)
-            return false;
+            return;
         SharedPreferences prefs = requireContext().getSharedPreferences(
                 "foodaid_prefs_" + auth.getCurrentUser().getUid(), android.content.Context.MODE_PRIVATE);
         Set<String> readSet = new HashSet<>(prefs.getStringSet("read_global_ids", new HashSet<>()));

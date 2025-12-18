@@ -40,30 +40,30 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:src="@drawable/ic_launcher_background" />
 
-            <androidx.cardview.widget.CardView
-                android:id="@+id/tvTag"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
-                app:cardBackgroundColor="@color/transparent"
-                app:cardCornerRadius="50dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
-                <TextView
-                    android:id="@+id/tvDietary"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@color/bg_detail_preference"
-                    android:drawablePadding="4dp"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="6dp"
-                    android:text="@string/Dietary_Type"
-                    android:textColor="@color/font_primary"
-                    android:textSize="12sp"
-                    app:drawableStartCompat="@drawable/ic_preference_type"
-                    app:drawableTint="@color/font_primary" />
-            </androidx.cardview.widget.CardView>
+<!--            <androidx.cardview.widget.CardView-->
+<!--                android:id="@+id/tvTag"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="16dp"-->
+<!--                android:layout_marginEnd="16dp"-->
+<!--                app:cardBackgroundColor="@color/transparent"-->
+<!--                app:cardCornerRadius="50dp"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent">-->
+<!--                <TextView-->
+<!--                    android:id="@+id/tvDietary"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:background="@color/bg_detail_preference"-->
+<!--                    android:drawablePadding="4dp"-->
+<!--                    android:paddingHorizontal="12dp"-->
+<!--                    android:paddingVertical="6dp"-->
+<!--                    android:text="@string/Dietary_Type"-->
+<!--                    android:textColor="@color/font_primary"-->
+<!--                    android:textSize="12sp"-->
+<!--                    app:drawableStartCompat="@drawable/ic_preference_type"-->
+<!--                    app:drawableTint="@color/font_primary" />-->
+<!--            </androidx.cardview.widget.CardView>-->
 
             <TextView
                 android:id="@+id/tvProductTitle"

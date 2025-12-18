@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -21,6 +22,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -30,6 +32,7 @@ import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
@@ -90,10 +93,11 @@ public class DonateFragment extends Fragment {
     private FirebaseFirestore db;
 
     // UI Elements
-    private ImageView ivSelectedPhoto;
+    private ImageView ivSelectedPhoto, transparentImage;
     private TextView tvUploadPlaceholder;
     private Uri selectedImageUri;
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
+    private NestedScrollView scrollView;
 
     // Map Elements
     private MapView mapView;
@@ -131,6 +135,9 @@ public class DonateFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        TextView toolbarTitle = view.findViewById(R.id.toolbarTitle);
+        toolbarTitle.setText("Donate");
+
         // 1. Initialize UI Groups
         initializeInputs(view);
         initializeMap(view);
@@ -150,14 +157,17 @@ public class DonateFragment extends Fragment {
         setupTimePickers();
         setupSubmitButton(view);
         setupNavigation(view);
+        fixMapScrolling();
     }
 
     private void initializeInputs(View view) {
+        scrollView = view.findViewById(R.id.scrollView);
         etLocationSearch = view.findViewById(R.id.etLocationSearch);
         etTimeFrom = view.findViewById(R.id.etTimeFrom);
         etTimeTo = view.findViewById(R.id.etTimeTo);
         ivSelectedPhoto = view.findViewById(R.id.ivSelectedPhoto);
         tvUploadPlaceholder = view.findViewById(R.id.tvUploadPlaceholder);
+        transparentImage = view.findViewById(R.id.transparentImage);
 
         CardView cvUploadPhoto = view.findViewById(R.id.cvUploadPhoto);
         if (cvUploadPhoto != null) {
@@ -536,6 +546,13 @@ public class DonateFragment extends Fragment {
                 }
             });
         }
+
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                getParentFragmentManager().popBackStack("Donate", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            }
+        });
     }
 
     // Map Helper Methods -> Logic identical to previous impl
@@ -604,5 +621,29 @@ public class DonateFragment extends Fragment {
         super.onPause();
         if (mapView != null)
             mapView.onPause();
+    }
+
+    private void fixMapScrolling() {
+        if (transparentImage == null || scrollView == null) return;
+
+        transparentImage.setOnTouchListener((v, event) -> {
+            int action = event.getAction();
+            switch (action) {
+                case MotionEvent.ACTION_DOWN:
+                    // Disallow ScrollView to intercept touch events.
+                    scrollView.requestDisallowInterceptTouchEvent(true);
+                    // Disable touch on transparent view
+                    return false;
+                case MotionEvent.ACTION_UP:
+                    // Allow ScrollView to intercept touch events.
+                    scrollView.requestDisallowInterceptTouchEvent(false);
+                    return true;
+                case MotionEvent.ACTION_MOVE:
+                    scrollView.requestDisallowInterceptTouchEvent(true);
+                    return false;
+                default:
+                    return true;
+            }
+        });
     }
 }

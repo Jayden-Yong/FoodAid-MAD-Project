@@ -38,6 +38,7 @@ public class ClaimNotifyFragment extends Fragment {
         // Bind Views
         TextView tvTitle = view.findViewById(R.id.tvClaimTitle);
         TextView tvGuide = view.findViewById(R.id.tvClaimGuide);
+        TextView tvDonationDate = view.findViewById(R.id.tvDonationDate);
         MaterialButton btnViewItem = view.findViewById(R.id.btnViewItem);
         MaterialButton btnBackToHome = view.findViewById(R.id.btnBackToHome);
 
@@ -48,6 +49,9 @@ public class ClaimNotifyFragment extends Fragment {
         if (tvGuide != null) {
             tvGuide.setText(
                     "Please collect your item within the time window. You can view your claims in the Impact page.");
+        }
+        if(tvDonationDate != null){
+            tvDonationDate.setVisibility(View.GONE);
         }
 
         // Hide "View Item" as per design request (claims are viewed in Impact/History)
