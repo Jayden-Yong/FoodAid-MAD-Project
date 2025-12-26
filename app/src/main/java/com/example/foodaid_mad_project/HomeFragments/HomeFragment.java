@@ -4,6 +4,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -127,6 +129,31 @@ public class HomeFragment extends Fragment {
 
         // Search Bar
         EditText etSearch = view.findViewById(R.id.etSearch);
+        // Real-time search listener
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                MapFragment mapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.MapFragment);
+                if (mapFragment != null) {
+                    // Get current category from chips or default to "All"
+                    String currentCategory = "All";
+                    ChipGroup chipGroup = view.findViewById(R.id.chipGroupFilters);
+                    if (chipGroup.getCheckedChipId() == R.id.chipGroceries) currentCategory = "Groceries";
+                    else if (chipGroup.getCheckedChipId() == R.id.chipMeals) currentCategory = "Meals";
+
+                    // Filter map immediately
+                    mapFragment.filterItems(currentCategory, s.toString());
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        // Listen Keyboard Enter, but addTextChanged above already handles everything
         etSearch.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_DONE) {
                 String query = etSearch.getText().toString().trim();

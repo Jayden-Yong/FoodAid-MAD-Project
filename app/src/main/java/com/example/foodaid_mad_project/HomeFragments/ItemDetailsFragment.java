@@ -92,6 +92,12 @@ public class ItemDetailsFragment extends Fragment {
         // 3. Setup Actions (Back, Claim)
         setupActions(view);
 
+        // 5. Load the Map for this specific item
+        loadItemMap();
+
+        // 6. Check donor privacy
+        checkDonorPrivacy();
+
         // 4. Start Real-time Updates
         setupRealtimeUpdates();
     }
@@ -387,6 +393,56 @@ public class ItemDetailsFragment extends Fragment {
                             Toast.makeText(getContext(), "Item no longer exists", Toast.LENGTH_SHORT).show();
                             navigateBack();
                         }
+                    }
+                });
+    }
+
+    private void loadItemMap() {
+        // Create a new MapFragment in "Single Item Mode"
+        MapFragment mapFragment = new MapFragment();
+        mapFragment.setSingleItemMode(foodItem);
+
+        // Load it into the container
+        getChildFragmentManager()
+                .beginTransaction()
+                .replace(R.id.MapFragment, mapFragment)
+                .commit();
+    }
+
+    private void checkDonorPrivacy() {
+        if (foodItem == null || foodItem.getDonatorId() == null) return;
+
+        FirebaseFirestore.getInstance().collection("users")
+                .document(foodItem.getDonatorId())
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (!isAdded()) return;
+
+                    boolean isPrivate = false;
+                    if (snapshot.exists() && snapshot.contains("isPrivate")) {
+                        isPrivate = Boolean.TRUE.equals(snapshot.getBoolean("isPrivate"));
+                    }
+
+                    if (isPrivate) {
+                        // Privacy enabled: Force Anonymous
+                        tvPostedBy.setText(getString(R.string.Food_Donator, "Anonymous Donor"));
+                    } else {
+                        // Privacy disabled: Show Name
+                        // PRIORITY: Use the name from the User Profile (most up to date)
+                        // FALLBACK: Use the name from the Food Item (snapshot from when it was posted)
+                        String displayDateName = foodItem.getDonatorName();
+
+                        if (snapshot.exists() && snapshot.getString("name") != null) {
+                            displayDateName = snapshot.getString("name");
+                        }
+
+                        tvPostedBy.setText(getString(R.string.Food_Donator, displayDateName));
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // If fetch fails, fallback to what is on the item object
+                    if (isAdded()) {
+                        tvPostedBy.setText(getString(R.string.Food_Donator, foodItem.getDonatorName()));
                     }
                 });
     }
