@@ -112,13 +112,16 @@ public class HomeFragment extends Fragment {
      * Determines the greeting based on the current time of day.
      */
     private String getTimeOfDay() {
-        int hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
-        if (hour >= 0 && hour < 12) {
+        java.util.Calendar calendar = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Asia/Kuala_Lumpur"));
+        int hour = calendar.get(java.util.Calendar.HOUR_OF_DAY);
+        if (hour >= 5 && hour < 12) {
             return "Morning";
-        } else if (hour >= 12 && hour < 18) {
-            return "Afternoon";
+        } else if (hour >= 12 && hour < 17) {
+            return "Afternoon"; 
+        } else if (hour >= 17 && hour < 21) {
+            return "Evening"; 
         } else {
-            return "Evening";
+            return "Night";
         }
     }
 
