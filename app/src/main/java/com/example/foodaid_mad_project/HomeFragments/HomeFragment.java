@@ -109,6 +109,20 @@ public class HomeFragment extends Fragment {
     }
 
     /**
+     * Determines the greeting based on the current time of day.
+     */
+    private String getTimeOfDay() {
+        int hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
+        if (hour >= 0 && hour < 12) {
+            return "Morning";
+        } else if (hour >= 12 && hour < 18) {
+            return "Afternoon";
+        } else {
+            return "Evening";
+        }
+    }
+
+    /**
      * sets up the search bar listener and chip group filters for the map.
      */
     private void setupSearchAndFilters(View view) {
