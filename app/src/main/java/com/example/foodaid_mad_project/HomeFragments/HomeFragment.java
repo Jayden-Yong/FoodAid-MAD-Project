@@ -104,7 +104,8 @@ public class HomeFragment extends Fragment {
         } catch (NullPointerException e) {
             welcomeDisplay = "Guest";
         }
-        tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
+        String timeOfDay = getTimeOfDay();
+        tvWelcomeUser.setText(getString(R.string.Welcome_User, timeOfDay, welcomeDisplay));
     }
 
     /**
@@ -132,7 +133,8 @@ public class HomeFragment extends Fragment {
         // Real-time search listener
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -141,8 +143,10 @@ public class HomeFragment extends Fragment {
                     // Get current category from chips or default to "All"
                     String currentCategory = "All";
                     ChipGroup chipGroup = view.findViewById(R.id.chipGroupFilters);
-                    if (chipGroup.getCheckedChipId() == R.id.chipGroceries) currentCategory = "Groceries";
-                    else if (chipGroup.getCheckedChipId() == R.id.chipMeals) currentCategory = "Meals";
+                    if (chipGroup.getCheckedChipId() == R.id.chipGroceries)
+                        currentCategory = "Groceries";
+                    else if (chipGroup.getCheckedChipId() == R.id.chipMeals)
+                        currentCategory = "Meals";
 
                     // Filter map immediately
                     mapFragment.filterItems(currentCategory, s.toString());
@@ -150,7 +154,8 @@ public class HomeFragment extends Fragment {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         // Listen Keyboard Enter, but addTextChanged above already handles everything
