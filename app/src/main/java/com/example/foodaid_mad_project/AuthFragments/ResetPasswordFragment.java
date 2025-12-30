@@ -99,14 +99,18 @@ public class ResetPasswordFragment extends Fragment {
         }
 
         // Check sign-in methods for this email
+        Toast.makeText(getContext(), "Verifying account...", Toast.LENGTH_SHORT).show();
         auth.fetchSignInMethodsForEmail(email).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 java.util.List<String> signInMethods = task.getResult().getSignInMethods();
+                android.util.Log.d("ResetPasswordDebug", "Methods for " + email + ": " + signInMethods);
 
                 if (signInMethods != null && signInMethods.contains(com.google.firebase.auth.GoogleAuthProvider.PROVIDER_ID)) {
+                    android.util.Log.d("ResetPasswordDebug", "Blocked: Google account detected");
                     // User is signed in with Google
                     Toast.makeText(getContext(), "You are signed up with Google. Please sign in with Google.", Toast.LENGTH_LONG).show();
                 } else {
+                    android.util.Log.d("ResetPasswordDebug", "Proceeding with reset (Methods: " + signInMethods + ")");
                     // Proceed with password reset
                     auth.sendPasswordResetEmail(email).addOnCompleteListener(resetTask -> {
                         if (resetTask.isSuccessful()) {
@@ -116,25 +120,31 @@ public class ResetPasswordFragment extends Fragment {
                                     .addToBackStack(null)
                                     .commit();
                         } else {
+                            android.util.Log.e("ResetPasswordDebug", "Send failed: " + (resetTask.getException() != null ? resetTask.getException().getMessage() : "Unknown"));
                             Toast.makeText(getContext(), "Failed to send password reset email", Toast.LENGTH_LONG).show();
                         }
                     });
                 }
             } else {
-                // If checking methods fails, defaulting to trying to send functionality (or show error)
-                // Often fails if user doesn't exist, so we can just try sending or show generic error.
-                // For better UX, we'll try sending ensuring standard firebase behavior controls it.
-                 auth.sendPasswordResetEmail(email).addOnCompleteListener(resetTask -> {
+                Exception e = task.getException();
+                String errorMsg = e != null ? e.getMessage() : "Unknown error";
+                android.util.Log.e("ResetPasswordDebug", "Fetch Methods Failed: " + errorMsg);
+                
+                if (errorMsg != null && errorMsg.toLowerCase().contains("blocked")) {
+                    Toast.makeText(getContext(), "Too many attempts. Please try again later.", Toast.LENGTH_LONG).show();
+                } else {
+                    // Only fallback to sending email if it wasn't a blocking error
+                    auth.sendPasswordResetEmail(email).addOnCompleteListener(resetTask -> {
                         if (resetTask.isSuccessful()) {
                             getParentFragmentManager().beginTransaction()
                                     .replace(R.id.authFragmentContainer, new ResetNotifyFragment())
                                     .addToBackStack(null)
                                     .commit();
                         } else {
-                             // Likely user doesn't exist or other error
                             Toast.makeText(getContext(), "Failed to process request. Please check email.", Toast.LENGTH_LONG).show();
                         }
                     });
+                }
             }
         });
     }

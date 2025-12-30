@@ -251,16 +251,39 @@ public class ItemDetailsFragment extends Fragment {
             String qtyStr = etQuantity.getText().toString().trim();
             if (!qtyStr.isEmpty()) {
                 try {
-                    int qtyToClaim = Integer.parseInt(qtyStr);
-                    if (qtyToClaim > 0 && qtyToClaim <= foodItem.getQuantity()) {
-                        performClaimTransaction(qtyToClaim);
-                        dialog.dismiss();
+                    android.util.Log.d("ClaimDebug", "Raw Input: '" + qtyStr + "'");
+                    // Use BigDecimal for robust exactness
+                    java.math.BigDecimal qtyBd = new java.math.BigDecimal(qtyStr);
+                    android.util.Log.d("ClaimDebug", "Parsed BigDecimal: " + qtyBd.toString());
+
+                    // Check if is integer (scale <= 0 or stripTrailingZeros scale <= 0)
+                    // Simple check: remainder of division by 1 is 0
+                    boolean isInteger = qtyBd.remainder(java.math.BigDecimal.ONE).compareTo(java.math.BigDecimal.ZERO) == 0;
+                    android.util.Log.d("ClaimDebug", "isInteger: " + isInteger);
+
+                    if (isInteger) {
+                        int qtyToClaim = qtyBd.intValueExact();
+                        android.util.Log.d("ClaimDebug", "qtyToClaim (int): " + qtyToClaim);
+                        android.util.Log.d("ClaimDebug", "Available: " + foodItem.getQuantity());
+                        
+                        if (qtyToClaim > 0 && qtyToClaim <= foodItem.getQuantity()) {
+                            performClaimTransaction(qtyToClaim);
+                            dialog.dismiss();
+                        } else {
+                            android.util.Log.e("ClaimDebug", "Quantity out of bounds");
+                            Toast.makeText(getContext(), "Invalid quantity (1-" + foodItem.getQuantity() + ")",
+                                    Toast.LENGTH_SHORT).show();
+                        }
                     } else {
-                        Toast.makeText(getContext(), "Invalid quantity (1-" + foodItem.getQuantity() + ")",
-                                Toast.LENGTH_SHORT).show();
+                        android.util.Log.e("ClaimDebug", "Not a whole number");
+                         Toast.makeText(getContext(), "Please enter a whole number", Toast.LENGTH_SHORT).show();
                     }
                 } catch (NumberFormatException e) {
-                    Toast.makeText(getContext(), "Enter a number", Toast.LENGTH_SHORT).show();
+                    android.util.Log.e("ClaimDebug", "NumberFormatException: " + e.getMessage());
+                    Toast.makeText(getContext(), "Invalid number format", Toast.LENGTH_SHORT).show();
+                } catch (ArithmeticException e) {
+                     android.util.Log.e("ClaimDebug", "ArithmeticException (Overflow?): " + e.getMessage());
+                     Toast.makeText(getContext(), "Invalid quantity", Toast.LENGTH_SHORT).show();
                 }
             } else {
                 Toast.makeText(getContext(), "Enter quantity", Toast.LENGTH_SHORT).show();
@@ -304,12 +327,14 @@ public class ItemDetailsFragment extends Fragment {
                     (endTime == null || endTime > currentTime) &&
                     currentQty >= claimQty) {
 
-                BigDecimal bd = new BigDecimal("#.00");
-                double unitWeight = (currentQty > 0) ? bd.setScale((int) (currentWeight / currentQty), RoundingMode.HALF_UP).doubleValue() : 0.0;
-                double mainClaimedWeight = unitWeight * claimQty; // Rename to avoid confusion with local var if any
+                // Calculate proportional weight
+                double unitWeight = (currentQty > 0) ? (currentWeight / currentQty) : 0.0;
+                double mainClaimedWeight = unitWeight * claimQty;
 
                 int newQty = currentQty - claimQty;
                 double newTotalWeight = currentWeight - mainClaimedWeight;
+                
+                // Ensure no negative weight due to floating point variations
                 if (newTotalWeight < 0)
                     newTotalWeight = 0.0;
 

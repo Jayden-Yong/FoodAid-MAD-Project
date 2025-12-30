@@ -104,7 +104,7 @@ public class HomeFragment extends Fragment {
         } catch (NullPointerException e) {
             welcomeDisplay = "Guest";
         }
-        tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
+        tvWelcomeUser.setText(getString(R.string.Welcome_User, welcomeDisplay));
     }
 
     /**
