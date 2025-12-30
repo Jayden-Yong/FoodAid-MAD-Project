@@ -33,6 +33,7 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -104,7 +105,20 @@ public class HomeFragment extends Fragment {
         } catch (NullPointerException e) {
             welcomeDisplay = "Guest";
         }
-        tvWelcomeUser.setText(getString(R.string.Welcome_User, "morning", welcomeDisplay));
+
+        Calendar now = Calendar.getInstance();
+        int hourOfDay = now.get(Calendar.HOUR_OF_DAY);
+        String greet;
+
+        if(hourOfDay < 12){
+            greet = "morning";
+        }else if(hourOfDay < 18){
+            greet = "afternoon";
+        }else{
+            greet = "evening";
+        }
+
+        tvWelcomeUser.setText(getString(R.string.Welcome_User, greet, welcomeDisplay));
     }
 
     /**
