@@ -83,6 +83,7 @@ public class ResetPasswordFragment extends Fragment {
 
     /**
      * Validates email and sends a password reset link via Firebase.
+     * Checks if the user is signed in via Google first to prevent errors.
      */
     private void sendPasswordResetEmail() {
         String email = etEmailToReset.getText().toString().trim();
@@ -97,15 +98,43 @@ public class ResetPasswordFragment extends Fragment {
             return;
         }
 
-        auth.sendPasswordResetEmail(email).addOnCompleteListener(task -> {
+        // Check sign-in methods for this email
+        auth.fetchSignInMethodsForEmail(email).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                // Navigate to confirmation screen
-                getParentFragmentManager().beginTransaction()
-                        .replace(R.id.authFragmentContainer, new ResetNotifyFragment())
-                        .addToBackStack(null)
-                        .commit();
+                java.util.List<String> signInMethods = task.getResult().getSignInMethods();
+
+                if (signInMethods != null && signInMethods.contains(com.google.firebase.auth.GoogleAuthProvider.PROVIDER_ID)) {
+                    // User is signed in with Google
+                    Toast.makeText(getContext(), "You are signed up with Google. Please sign in with Google.", Toast.LENGTH_LONG).show();
+                } else {
+                    // Proceed with password reset
+                    auth.sendPasswordResetEmail(email).addOnCompleteListener(resetTask -> {
+                        if (resetTask.isSuccessful()) {
+                            // Navigate to confirmation screen
+                            getParentFragmentManager().beginTransaction()
+                                    .replace(R.id.authFragmentContainer, new ResetNotifyFragment())
+                                    .addToBackStack(null)
+                                    .commit();
+                        } else {
+                            Toast.makeText(getContext(), "Failed to send password reset email", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
             } else {
-                Toast.makeText(getContext(), "Failed to send password reset email", Toast.LENGTH_LONG).show();
+                // If checking methods fails, defaulting to trying to send functionality (or show error)
+                // Often fails if user doesn't exist, so we can just try sending or show generic error.
+                // For better UX, we'll try sending ensuring standard firebase behavior controls it.
+                 auth.sendPasswordResetEmail(email).addOnCompleteListener(resetTask -> {
+                        if (resetTask.isSuccessful()) {
+                            getParentFragmentManager().beginTransaction()
+                                    .replace(R.id.authFragmentContainer, new ResetNotifyFragment())
+                                    .addToBackStack(null)
+                                    .commit();
+                        } else {
+                             // Likely user doesn't exist or other error
+                            Toast.makeText(getContext(), "Failed to process request. Please check email.", Toast.LENGTH_LONG).show();
+                        }
+                    });
             }
         });
     }
