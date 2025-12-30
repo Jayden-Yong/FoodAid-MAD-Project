@@ -83,6 +83,7 @@ public class ResetPasswordFragment extends Fragment {
 
     /**
      * Validates email and sends a password reset link via Firebase.
+     * Checks if the user is signed in via Google first to prevent errors.
      */
     private void sendPasswordResetEmail() {
         String email = etEmailToReset.getText().toString().trim();
@@ -97,15 +98,53 @@ public class ResetPasswordFragment extends Fragment {
             return;
         }
 
-        auth.sendPasswordResetEmail(email).addOnCompleteListener(task -> {
+        // Check sign-in methods for this email
+        Toast.makeText(getContext(), "Verifying account...", Toast.LENGTH_SHORT).show();
+        auth.fetchSignInMethodsForEmail(email).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                // Navigate to confirmation screen
-                getParentFragmentManager().beginTransaction()
-                        .replace(R.id.authFragmentContainer, new ResetNotifyFragment())
-                        .addToBackStack(null)
-                        .commit();
+                java.util.List<String> signInMethods = task.getResult().getSignInMethods();
+                android.util.Log.d("ResetPasswordDebug", "Methods for " + email + ": " + signInMethods);
+
+                if (signInMethods != null && signInMethods.contains(com.google.firebase.auth.GoogleAuthProvider.PROVIDER_ID)) {
+                    android.util.Log.d("ResetPasswordDebug", "Blocked: Google account detected");
+                    // User is signed in with Google
+                    Toast.makeText(getContext(), "You are signed up with Google. Please sign in with Google.", Toast.LENGTH_LONG).show();
+                } else {
+                    android.util.Log.d("ResetPasswordDebug", "Proceeding with reset (Methods: " + signInMethods + ")");
+                    // Proceed with password reset
+                    auth.sendPasswordResetEmail(email).addOnCompleteListener(resetTask -> {
+                        if (resetTask.isSuccessful()) {
+                            // Navigate to confirmation screen
+                            getParentFragmentManager().beginTransaction()
+                                    .replace(R.id.authFragmentContainer, new ResetNotifyFragment())
+                                    .addToBackStack(null)
+                                    .commit();
+                        } else {
+                            android.util.Log.e("ResetPasswordDebug", "Send failed: " + (resetTask.getException() != null ? resetTask.getException().getMessage() : "Unknown"));
+                            Toast.makeText(getContext(), "Failed to send password reset email", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
             } else {
-                Toast.makeText(getContext(), "Failed to send password reset email", Toast.LENGTH_LONG).show();
+                Exception e = task.getException();
+                String errorMsg = e != null ? e.getMessage() : "Unknown error";
+                android.util.Log.e("ResetPasswordDebug", "Fetch Methods Failed: " + errorMsg);
+                
+                if (errorMsg != null && errorMsg.toLowerCase().contains("blocked")) {
+                    Toast.makeText(getContext(), "Too many attempts. Please try again later.", Toast.LENGTH_LONG).show();
+                } else {
+                    // Only fallback to sending email if it wasn't a blocking error
+                    auth.sendPasswordResetEmail(email).addOnCompleteListener(resetTask -> {
+                        if (resetTask.isSuccessful()) {
+                            getParentFragmentManager().beginTransaction()
+                                    .replace(R.id.authFragmentContainer, new ResetNotifyFragment())
+                                    .addToBackStack(null)
+                                    .commit();
+                        } else {
+                            Toast.makeText(getContext(), "Failed to process request. Please check email.", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
             }
         });
     }

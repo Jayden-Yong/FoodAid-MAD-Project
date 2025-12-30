@@ -81,7 +81,7 @@
 
     <!-- Home -->
     <string name="Home">Home</string>
-    <string name="Welcome_User">Good %1$s, %2$s</string><!-- To be formatted in backend - morning/afternoon/evening, user -->
+    <string name="Welcome_User">Welcome, %1$s</string><!-- User only -->
     <string name="Notification_Bell">Notification Bell</string>
     <string name="QR_Code">QR Code</string>
     <string name="Search_Icon">Search Icon</string>
