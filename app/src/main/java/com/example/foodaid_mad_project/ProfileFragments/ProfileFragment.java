@@ -34,6 +34,7 @@ import com.bumptech.glide.Glide;
 import com.example.foodaid_mad_project.AuthActivity;
 import com.example.foodaid_mad_project.Model.Badge;
 import com.example.foodaid_mad_project.R;
+import com.example.foodaid_mad_project.Utils.BadgeRepository;
 import com.example.foodaid_mad_project.Utils.ImageUtil;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -161,7 +162,9 @@ public class ProfileFragment extends Fragment {
 
         // View All Badges
         TextView tvViewAllBadges = view.findViewById(R.id.tvViewAllBadges);
-        tvViewAllBadges.setOnClickListener(v -> Toast.makeText(getContext(), "Coming Soon", Toast.LENGTH_SHORT).show());
+        tvViewAllBadges.setOnClickListener(v -> {
+            new AllBadgesFragment().show(requireActivity().getSupportFragmentManager(), "AllBadges");
+        });
 
         // Settings Buttons
         view.findViewById(R.id.btnChangePassword).setOnClickListener(v -> showChangePasswordDialog());
@@ -181,13 +184,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupBadges() {
-        allBadges = new ArrayList<>();
-        allBadges.add(
-                new Badge("badge_10kg", "10kg Saved", "Saved 10kg of food", 10.0, R.drawable.ic_launcher_foreground));
-        allBadges.add(
-                new Badge("badge_50kg", "50kg Saved", "Saved 50kg of food", 50.0, R.drawable.ic_launcher_foreground));
-        allBadges.add(new Badge("badge_100kg", "100kg Saved", "Saved 100kg of food", 100.0,
-                R.drawable.ic_launcher_foreground));
+        allBadges = BadgeRepository.getAllBadges();
 
         badgeAdapter = new BadgeAdapter(new ArrayList<>());
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,

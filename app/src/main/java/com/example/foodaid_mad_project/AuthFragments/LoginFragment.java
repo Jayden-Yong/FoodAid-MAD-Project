@@ -52,18 +52,15 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 
 /**
- * <h1>LoginFragment</h1>
- * <p>
+ * LoginFragment
+ * 
  * This fragment handles the user login process.
  * It supports:
- * <ul>
- * <li>Email/Password login.</li>
- * <li>Google Sign-In integration (using Android Credential Manager).</li>
- * <li>"Remember Me" functionality using SharedPreferences.</li>
- * <li>Password visibility toggling.</li>
- * <li>Navigation to "Forgot Password" and Registration flows.</li>
- * </ul>
- * </p>
+ * - Email/Password login.
+ * - Google Sign-In integration (using Android Credential Manager).
+ * - "Remember Me" functionality using SharedPreferences.
+ * - Password visibility toggling.
+ * - Navigation to "Forgot Password" and Registration flows.
  */
 public class LoginFragment extends Fragment {
 
