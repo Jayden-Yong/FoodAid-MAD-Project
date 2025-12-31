@@ -49,17 +49,14 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * <h1>ImpactBodyFragment</h1>
- * <p>
+ * ImpactBodyFragment
+ *
  * Displays the core content of the Impact screen.
  * Features:
- * <ul>
- * <li>Statistics for Items Claimed, Donated, and Weight Saved.</li>
- * <li>Dynamic Charts (Bar for Week, Line for Month, Pie for Year).</li>
- * <li>Scrollable list of recent contributions (Donations & Claims).</li>
- * <li>Time range navigation (Previous/Next).</li>
- * </ul>
- * </p>
+ * - Statistics for Items Claimed, Donated, and Weight Saved.
+ * - Dynamic Charts (Bar for Week, Line for Month, Pie for Year).
+ * - Scrollable list of recent contributions (Donations & Claims).
+ * - Time range navigation (Previous/Next).
  */
 public class ImpactBodyFragment extends Fragment {
 

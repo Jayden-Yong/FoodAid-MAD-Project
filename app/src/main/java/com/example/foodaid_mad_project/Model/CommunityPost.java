@@ -4,12 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <h1>CommunityPost</h1>
- * <p>
+ * CommunityPost
+ *
  * Represents a user-generated post in the Community feed.
- * Includes text content, optional images, and interaction data
- * (likes/comments).
- * </p>
+ * Includes text content, optional images, and interaction data (likes/comments).
  */
 public class CommunityPost {
     private String postId;

@@ -24,13 +24,11 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.concurrent.ExecutionException;
 
 /**
- * <h1>NotificationWorker</h1>
- * <p>
+ * NotificationWorker
+ *
  * Background worker for checking new notifications periodically.
- * Useful for polling global notifications (e.g., new donations) even when the
- * app is in the background.
+ * Useful for polling global notifications (e.g., new donations) even when the app is in the background.
  * Uses Firestore queries to find messages created after the last check time.
- * </p>
  */
 public class NotificationWorker extends Worker {
 

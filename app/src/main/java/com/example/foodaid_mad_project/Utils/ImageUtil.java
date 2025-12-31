@@ -11,16 +11,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * <h1>ImageUtil</h1>
- * <p>
+ * ImageUtil
+ *
  * Utility class for handling image processing tasks.
  * Primarily used for:
- * <ul>
- * <li>Compressing large images to avoid OutOfMemory errors.</li>
- * <li>Converting Bitmaps/URIs to Base64 strings for Firestore storage.</li>
- * <li>Decoding Base64 strings back to Bitmaps for display.</li>
- * </ul>
- * </p>
+ * - Compressing large images to avoid OutOfMemory errors.
+ * - Converting Bitmaps/URIs to Base64 strings for Firestore storage.
+ * - Decoding Base64 strings back to Bitmaps for display.
  */
 public class ImageUtil {
 

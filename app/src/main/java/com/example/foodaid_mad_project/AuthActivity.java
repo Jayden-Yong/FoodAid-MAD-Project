@@ -12,17 +12,15 @@ import com.example.foodaid_mad_project.AuthFragments.RegisterFragment;
 import com.google.android.material.button.MaterialButton;
 
 /**
- * <h1>AuthActivity</h1>
- * <p>
+ * AuthActivity
+ *
  * The authentication entry point.
  * Handles navigation between:
- * <ul>
- * <li>Landing Page (Login/Register buttons)</li>
- * <li>Login Fragment</li>
- * <li>Register Fragment</li>
- * </ul>
+ * - Landing Page (Login/Register buttons)
+ * - Login Fragment
+ * - Register Fragment
+ *
  * Also manages back navigation to return to the landing page from fragments.
- * </p>
  */
 public class AuthActivity extends AppCompatActivity {
 

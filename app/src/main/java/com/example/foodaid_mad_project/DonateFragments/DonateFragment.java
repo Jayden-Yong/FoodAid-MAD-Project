@@ -63,20 +63,14 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * <h1>DonateFragment</h1>
- * <p>
+ * DonateFragment
+ *
  * Allows users to donate food items by filling out a form.
  * Features:
- * <ul>
- * <li>Form inputs: Title, Weight, Quantity, Description, Category.</li>
- * <li>Location Selection: Map View (OpenStreetMap), Auto-detect GPS, or Manual
- * Search.</li>
- * <li>Image Upload: Converts selected image to Base64 String for Firestore
- * storage.</li>
- * <li>Notifications: Triggers Firestore notifications for the donor
- * (confirmation) and others (global alert).</li>
- * </ul>
- * </p>
+ * - Form inputs: Title, Weight, Quantity, Description, Category.
+ * - Location Selection: Map View (OpenStreetMap), Auto-detect GPS, or Manual Search.
+ * - Image Upload: Converts selected image to Base64 String for Firestore storage.
+ * - Notifications: Triggers Firestore notifications for the donor (confirmation) and others (global alert).
  */
 public class DonateFragment extends Fragment {
 

@@ -18,12 +18,10 @@ import com.example.foodaid_mad_project.HomeFragments.HomeFragment;
 import com.google.android.material.button.MaterialButton;
 
 /**
- * <h1>DonateNotifyFragment</h1>
- * <p>
+ * DonateNotifyFragment
+ *
  * Displays a success message after a donation has been posted.
- * Allows the user to view the item they just created (simulated) or return to
- * Home.
- * </p>
+ * Allows the user to view the item they just created (simulated) or return to Home.
  */
 public class DonateNotifyFragment extends Fragment {
 

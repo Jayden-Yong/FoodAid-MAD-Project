@@ -4,13 +4,11 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * <h1>FoodItem</h1>
- * <p>
+ * FoodItem
+ *
  * Represents a listing for a donated food item or meal.
- * Used in Firestore "donations" collection and displayed in the Home lists and
- * Map.
- * Implements {@link Parcelable} to be passed between Fragments.
- * </p>
+ * Used in Firestore "donations" collection and displayed in the Home lists and Map.
+ * Implements Parcelable to be passed between Fragments.
  */
 public class FoodItem implements Parcelable {
     private String donationId; // Document ID

@@ -46,17 +46,14 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 /**
- * <h1>MapFragment</h1>
- * <p>
+ * MapFragment
+ *
  * Displays an OpenStreetMap view showing available food banks and donations.
  * Features:
- * <ul>
- * <li>Real-time updates from "donations" collection in Firestore.</li>
- * <li>User location tracking (with permission).</li>
- * <li>Filtering by category (Groceries/Meals).</li>
- * <li>Interactive pins that open details in {@link MapPinItemFragment}.</li>
- * </ul>
- * </p>
+ * - Real-time updates from "donations" collection in Firestore.
+ * - User location tracking (with permission).
+ * - Filtering by category (Groceries/Meals).
+ * - Interactive pins that open details in MapPinItemFragment.
  */
 public class MapFragment extends Fragment {
 

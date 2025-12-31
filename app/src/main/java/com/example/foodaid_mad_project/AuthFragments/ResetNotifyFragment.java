@@ -14,13 +14,11 @@ import androidx.fragment.app.Fragment;
 import com.example.foodaid_mad_project.R;
 
 /**
- * <h1>ResetNotifyFragment</h1>
- * <p>
+ * ResetNotifyFragment
+ *
  * Displays a confirmation screen telling the user to check their email.
  * Tapping the screen or back button returns the user to the Login screen
- * by popping the back stack twice (skipping the "Forgot Password" input
- * screen).
- * </p>
+ * by popping the back stack twice (skipping the "Forgot Password" input screen).
  */
 public class ResetNotifyFragment extends Fragment {
 

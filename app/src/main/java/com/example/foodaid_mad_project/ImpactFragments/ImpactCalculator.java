@@ -5,11 +5,10 @@ import com.example.foodaid_mad_project.Model.FoodItem;
 import java.util.List;
 
 /**
- * <h1>ImpactCalculator</h1>
- * <p>
+ * ImpactCalculator
+ *
  * Utility class for calculating aggregation statistics for Impact reports.
  * Used to sum up counts and weights of food items over specific time ranges.
- * </p>
  */
 public class ImpactCalculator {
 

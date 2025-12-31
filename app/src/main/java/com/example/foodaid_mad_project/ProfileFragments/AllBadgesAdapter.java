@@ -18,6 +18,13 @@ import com.example.foodaid_mad_project.R;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * AllBadgesAdapter
+ *
+ * This adapter manages the display of badges in a RecyclerView grid.
+ * It handles the visual distinction between earned and unearned badges by applying
+ * a grayscale filter to unearned items.
+ */
 public class AllBadgesAdapter extends RecyclerView.Adapter<AllBadgesAdapter.BadgeViewHolder> {
 
     private List<Badge> allBadges;

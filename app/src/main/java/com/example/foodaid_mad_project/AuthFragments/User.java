@@ -3,12 +3,10 @@ package com.example.foodaid_mad_project.AuthFragments;
 import java.util.List;
 
 /**
- * <h1>User</h1>
- * <p>
+ * User
+ *
  * Represents the User model for Authentication and Profile purposes.
- * This class corresponds to the documents in the "users" collection in
- * Firestore.
- * </p>
+ * This class corresponds to the documents in the "users" collection in Firestore.
  */
 public class User {
 

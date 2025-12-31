@@ -15,9 +15,10 @@ import com.example.foodaid_mad_project.R;
 import com.google.android.material.button.MaterialButton;
 
 /**
- ClaimNotifyFragment
- Displays a success message after a user claims a food item.
- Reuses the layout {@code fragment_donate_notify.xml} but customizes text for claims.
+ * ClaimNotifyFragment
+ *
+ * Displays a success message after a user claims a food item.
+ * Reuses the layout fragment_donate_notify.xml but customizes text for claims.
  */
 public class ClaimNotifyFragment extends Fragment {
 

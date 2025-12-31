@@ -3,12 +3,11 @@ package com.example.foodaid_mad_project;
 import com.example.foodaid_mad_project.AuthFragments.User;
 
 /**
- * <h1>UserManager</h1>
- * <p>
+ * UserManager
+ *
  * Singleton class for managing the current user's session data.
  * Useful for accessing user details (like name, email, earned badges) globally
  * without refetching from Firestore every time.
- * </p>
  */
 public class UserManager {
     private static UserManager instance;

@@ -1,12 +1,10 @@
 package com.example.foodaid_mad_project.Model;
 
 /**
- * <h1>Badge</h1>
- * <p>
- * Represents an achievement badge that a user can earn based on their
- * contributions
+ * Badge
+ *
+ * Represents an achievement badge that a user can earn based on their contributions
  * (e.g., total weight of food donated).
- * </p>
  */
 public class Badge {
     private String id; // Unique ID, e.g., "badge_10kg"

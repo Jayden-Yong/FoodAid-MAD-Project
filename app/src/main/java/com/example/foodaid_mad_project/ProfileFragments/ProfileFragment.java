@@ -52,18 +52,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <h1>ProfileFragment</h1>
- * <p>
+ * ProfileFragment
+ *
  * Displays the user's profile information, earned badges, and settings.
  * Features:
- * <ul>
- * <li>View/Edit Profile (Name, Photo).</li>
- * <li>View Earned Badges.</li>
- * <li>Manage Settings (Notifications, Privacy, Password).</li>
- * <li>Help & Support (FAQ, Contact).</li>
- * <li>Logout functionality.</li>
- * </ul>
- * </p>
+ * - View/Edit Profile (Name, Photo).
+ * - View Earned Badges.
+ * - Manage Settings (Notifications, Privacy, Password).
+ * - Help & Support (FAQ, Contact).
+ * - Logout functionality.
  */
 public class ProfileFragment extends Fragment {
 

@@ -13,13 +13,11 @@ import androidx.fragment.app.Fragment;
 import com.example.foodaid_mad_project.R;
 
 /**
- * <h1>ImpactFragment</h1>
- * <p>
+ * ImpactFragment
+ *
  * The parent fragment for the Impact screen.
- * Handles the top-level View Mode switching (Week / Month / Year) using a
- * RadioGroup.
- * Delegates the content display to {@link ImpactBodyFragment}.
- * </p>
+ * Handles the top-level View Mode switching (Week / Month / Year) using a RadioGroup.
+ * Delegates the content display to ImpactBodyFragment.
  */
 public class ImpactFragment extends Fragment {
 

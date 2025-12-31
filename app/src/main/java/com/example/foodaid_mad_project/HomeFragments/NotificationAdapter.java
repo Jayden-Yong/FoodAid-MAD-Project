@@ -15,15 +15,12 @@ import com.example.foodaid_mad_project.R;
 import java.util.List;
 
 /**
- * <h1>NotificationAdapter</h1>
- * <p>
- * Adapter for displaying notifications in {@link NotificationFragment}.
+ * NotificationAdapter
+ *
+ * Adapter for displaying notifications in NotificationFragment.
  * Supports two view types:
- * <ul>
- * <li>Header (Date grouping)</li>
- * <li>Item (Notification content)</li>
- * </ul>
- * </p>
+ * - Header (Date grouping)
+ * - Item (Notification content)
  */
 public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 

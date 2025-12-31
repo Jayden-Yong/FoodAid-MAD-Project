@@ -41,16 +41,13 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * <h1>ItemDetailsFragment</h1>
- * <p>
+ * ItemDetailsFragment
+ *
  * Displays the full details of a donated FoodItem.
  * Allows users to:
- * <ul>
- * <li>View Item ID, Title, Image, Quantity, Weight, and Pickup Times.</li>
- * <li>See the donor's name and location.</li>
- * <li><b>Claim</b> the item (full or partial quantity).</li>
- * </ul>
- * </p>
+ * - View Item ID, Title, Image, Quantity, Weight, and Pickup Times.
+ * - See the donor's name and location.
+ * - Claim the item (full or partial quantity).
  */
 public class ItemDetailsFragment extends Fragment {
 

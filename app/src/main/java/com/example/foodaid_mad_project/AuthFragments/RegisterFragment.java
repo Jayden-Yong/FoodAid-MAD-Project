@@ -48,20 +48,14 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 
 /**
- * <h1>RegisterFragment</h1>
- * <p>
+ * RegisterFragment
+ *
  * This fragment handles new user registration.
  * It provides:
- * <ul>
- * <li>Email/Password registration with strict password strength
- * validation.</li>
- * <li>Google Sign-In integration.</li>
- * <li>Password visibility toggling for both password and confirm password
- * fields.</li>
- * <li>Automatic basic profile creation in Firestore upon successful
- * registration.</li>
- * </ul>
- * </p>
+ * - Email/Password registration with strict password strength validation.
+ * - Google Sign-In integration.
+ * - Password visibility toggling for both password and confirm password fields.
+ * - Automatic basic profile creation in Firestore upon successful registration.
  */
 public class RegisterFragment extends Fragment implements CompoundButton.OnCheckedChangeListener {
 
@@ -136,13 +130,11 @@ public class RegisterFragment extends Fragment implements CompoundButton.OnCheck
     /**
      * Validates password strength according to security requirements.
      * Password must:
-     * <ul>
-     * <li>Be at least 8 characters long</li>
-     * <li>Contain at least one uppercase letter</li>
-     * <li>Contain at least one lowercase letter</li>
-     * <li>Contain at least one digit</li>
-     * <li>Contain at least one special character</li>
-     * </ul>
+     * - Be at least 8 characters long
+     * - Contain at least one uppercase letter
+     * - Contain at least one lowercase letter
+     * - Contain at least one digit
+     * - Contain at least one special character
      *
      * @param password The password to validate.
      * @return Error message if validation fails, null if password is valid.

@@ -38,19 +38,15 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * <h1>HomeFragment</h1>
- * <p>
+ * HomeFragment
+ *
  * The main landing fragment of the application.
  * Features:
- * <ul>
- * <li>Displays a welcome message to the user.</li>
- * <li>Provides a Search Bar and Category Filters (Groceries vs Meals).</li>
- * <li>Embeds the {@link MapFragment} to show donation locations.</li>
- * <li>Handles Notification Badge updates by listening to Firestore.</li>
- * <li>Navigates to {@link NotificationFragment} and shows
- * {@link MapPinItemFragment} details.</li>
- * </ul>
- * </p>
+ * - Displays a welcome message to the user.
+ * - Provides a Search Bar and Category Filters (Groceries vs Meals).
+ * - Embeds the MapFragment to show donation locations.
+ * - Handles Notification Badge updates by listening to Firestore.
+ * - Navigates to NotificationFragment and shows MapPinItemFragment details.
  */
 public class HomeFragment extends Fragment {
 

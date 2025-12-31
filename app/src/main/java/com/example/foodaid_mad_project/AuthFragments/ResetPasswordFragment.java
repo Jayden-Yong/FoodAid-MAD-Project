@@ -19,12 +19,11 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 
 /**
- * <h1>ResetPasswordFragment</h1>
- * <p>
+ * ResetPasswordFragment
+ *
  * This fragment allows users to request a password reset email.
  * It validates the email input and triggers the Firebase reset flow.
- * Upon success, it navigates to the {@link ResetNotifyFragment}.
- * </p>
+ * Upon success, it navigates to the ResetNotifyFragment.
  */
 public class ResetPasswordFragment extends Fragment {
 

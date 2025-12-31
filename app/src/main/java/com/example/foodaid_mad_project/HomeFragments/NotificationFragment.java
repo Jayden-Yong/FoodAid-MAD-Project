@@ -39,18 +39,14 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * <h1>NotificationFragment</h1>
- * <p>
+ * NotificationFragment
+ *
  * Displays a list of notifications for the user.
  * Supports:
- * <ul>
- * <li>Real-time updates from Firestore.</li>
- * <li>Filtering by "All", "Donation", or "Community".</li>
- * <li>Handling "Global" notifications (system-wide) with local read-status
- * tracking.</li>
- * <li>Grouping notifications by date (Today, Yesterday, etc.).</li>
- * </ul>
- * </p>
+ * - Real-time updates from Firestore.
+ * - Filtering by "All", "Donation", or "Community".
+ * - Handling "Global" notifications (system-wide) with local read-status tracking.
+ * - Grouping notifications by date (Today, Yesterday, etc.).
  */
 public class NotificationFragment extends Fragment {
 

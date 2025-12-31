@@ -29,17 +29,14 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import java.util.concurrent.TimeUnit;
 
 /**
- * <h1>MainActivity</h1>
- * <p>
+ * MainActivity
+ *
  * The main container for the application after authentication.
  * Manages:
- * <ul>
- * <li>Bottom Navigation (Home, Impact, Donate, Community, Profile).</li>
- * <li>Floating Action Button for Quick Donation.</li>
- * <li>Global Notification subscriptions (FCM & Worker).</li>
- * <li>Permission requests (Notifications).</li>
- * </ul>
- * </p>
+ * - Bottom Navigation (Home, Impact, Donate, Community, Profile).
+ * - Floating Action Button for Quick Donation.
+ * - Global Notification subscriptions (FCM & Worker).
+ * - Permission requests (Notifications).
  */
 public class MainActivity extends AppCompatActivity {
 

@@ -6,6 +6,13 @@ import com.example.foodaid_mad_project.R;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * BadgeRepository
+ *
+ * This utility class acts as a central source of truth for all badge definitions in the application.
+ * It provides methods to retrieve the list of all available badges and to find specific badges by ID.
+ * This prevents data duplication and keeps hardcoded badge strings in one place.
+ */
 public class BadgeRepository {
 
     public static List<Badge> getAllBadges() {

@@ -45,16 +45,13 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * <h1>CommunityFragment</h1>
- * <p>
+ * CommunityFragment
+ *
  * Displays a social feed of community posts.
  * Users can:
- * <ul>
- * <li>View posts from other users (stories, updates).</li>
- * <li>Create new posts with optional image attachments.</li>
- * <li>See real-time updates as new posts are added.</li>
- * </ul>
- * </p>
+ * - View posts from other users (stories, updates).
+ * - Create new posts with optional image attachments.
+ * - See real-time updates as new posts are added.
  */
 public class CommunityFragment extends Fragment {
 

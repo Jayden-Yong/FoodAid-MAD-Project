@@ -3,15 +3,12 @@ package com.example.foodaid_mad_project.Model;
 import java.util.Date;
 
 /**
- * <h1>NotificationItem</h1>
- * <p>
+ * NotificationItem
+ *
  * A View Model Wrapper class for displaying notifications in the RecyclerView.
  * It can represent either:
- * <ul>
- * <li>A <b>Header</b> (e.g., "Today", "Yesterday")</li>
- * <li>A <b>Data Item</b> (actual notification content)</li>
- * </ul>
- * </p>
+ * - A Header (e.g., "Today", "Yesterday")
+ * - A Data Item (actual notification content)
  */
 public class NotificationItem {
     // Data Item Fields

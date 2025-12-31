@@ -19,17 +19,14 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 /**
- * <h1>SplashActivity</h1>
- * <p>
+ * SplashActivity
+ *
  * The initial launch screen.
  * Handles:
- * <ul>
- * <li>Displaying the splash screen animation.</li>
- * <li>Checking current Authentication state.</li>
- * <li>Pre-fetching User data from Firestore if logged in.</li>
- * <li>Routing to MainActivity (if logged in) or AuthActivity (if not).</li>
- * </ul>
- * </p>
+ * - Displaying the splash screen animation.
+ * - Checking current Authentication state.
+ * - Pre-fetching User data from Firestore if logged in.
+ * - Routing to MainActivity (if logged in) or AuthActivity (if not).
  */
 @SuppressLint("CustomSplashScreen")
 public class SplashActivity extends AppCompatActivity {

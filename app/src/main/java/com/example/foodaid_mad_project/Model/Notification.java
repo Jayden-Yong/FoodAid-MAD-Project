@@ -3,11 +3,10 @@ package com.example.foodaid_mad_project.Model;
 import com.google.firebase.firestore.PropertyName;
 
 /**
- * <h1>Notification</h1>
- * <p>
+ * Notification
+ *
  * Represents a notification document in Firestore.
  * This is the raw data model associated with the "notifications" collection.
- * </p>
  */
 public class Notification {
     private String id;

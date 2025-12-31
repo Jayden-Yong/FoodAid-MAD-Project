@@ -21,13 +21,11 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
 /**
- * <h1>MapPinItemFragment</h1>
- * <p>
+ * MapPinItemFragment
+ *
  * Displays a summary card for a selected map pin (FoodItem).
  * Appears as an overlay on the map.
- * Allows the user to view basic details (Qty, Duration) and click "Claim" to
- * see full details.
- * </p>
+ * Allows the user to view basic details (Qty, Duration) and click "Claim" to see full details.
  */
 public class MapPinItemFragment extends Fragment {
 

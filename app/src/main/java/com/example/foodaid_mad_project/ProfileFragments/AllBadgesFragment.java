@@ -23,6 +23,13 @@ import com.google.firebase.firestore.ListenerRegistration;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * AllBadgesFragment
+ *
+ * This fragment displays the user's earned badges in a popup dialog.
+ * It shows a grid of available badges, highlighting the ones the user has earned with full color,
+ * while unearned badges are shown in grayscale.
+ */
 public class AllBadgesFragment extends androidx.fragment.app.DialogFragment {
 
     private RecyclerView rvAllBadges;

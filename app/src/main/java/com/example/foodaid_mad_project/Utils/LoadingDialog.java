@@ -8,12 +8,10 @@ import android.view.Window;
 import com.example.foodaid_mad_project.R;
 
 /**
- * <h1>LoadingDialog</h1>
- * <p>
+ * LoadingDialog
+ *
  * A custom dialog to show a loading indicator during long-running operations.
- * Displays a transparent background with a centered layout (usually a
- * ProgressBar).
- * </p>
+ * Displays a transparent background with a centered layout (usually a ProgressBar).
  */
 public class LoadingDialog {
     private Dialog dialog;
