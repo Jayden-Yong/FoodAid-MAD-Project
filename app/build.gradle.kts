@@ -7,14 +7,13 @@ plugins {
 
 android {
     namespace = "com.example.foodaid_mad_project"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 35
+    buildToolsVersion = "35.0.0"
 
     defaultConfig {
         applicationId = "com.example.foodaid_mad_project"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 

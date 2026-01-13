@@ -1,0 +1,25 @@
+Initialized native services in: C:\Users\chazi\.gradle\native
+Initialized jansi services in: C:\Users\chazi\.gradle\native
+The client will now receive all logging from the daemon (pid: 41256). The daemon log file: C:\Users\chazi\.gradle\daemon\8.13\daemon-41256.out.log
+Starting 5th build in daemon [uptime: 1 hrs 21 mins 24.258 secs, performance: 99%, GC rate: 0.00/s, heap usage: 0% of 2 GiB]
+Using 24 worker leases.
+Now considering [D:\Documents\GitHub\FoodAid-MAD-Project] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Caching disabled for Kotlin DSL script compilation (Settings/TopLevel/stage1) because:
+  Build cache is disabled
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+25.0.1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1s
+Watched directory hierarchies: []
