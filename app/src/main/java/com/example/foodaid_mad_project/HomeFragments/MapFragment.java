@@ -60,7 +60,7 @@ public class MapFragment extends Fragment {
     private static final int LOCATION_REQUEST_CODE = 1001;
     // Default Location: Universiti Malaya
     private static final GeoPoint DEFAULT_LOCATION = new GeoPoint(3.1207, 101.6544);
-    private static final float PIN_SCALE_FACTOR = 1.7f;
+    private static final float PIN_SCALE_FACTOR = 1.0f;
 
     private MapView mapView;
     private MyLocationNewOverlay locationOverlay;
@@ -250,29 +250,29 @@ public class MapFragment extends Fragment {
         marker.setIcon(new BitmapDrawable(getResources(), getScaledDefaultPin()));
         mapView.getOverlays().add(marker);
 
-        // 2. Load Image & Composite
-        if (item.getImageUri() != null && !item.getImageUri().isEmpty()) {
-            CustomTarget<Bitmap> target = new CustomTarget<Bitmap>() {
-                @Override
-                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                    if (isAdded() && mapView != null) {
-                        marker.setIcon(new BitmapDrawable(getResources(), createCustomPin(resource)));
-                        mapView.invalidate();
-                    }
-                }
-                @Override
-                public void onLoadCleared(@Nullable Drawable placeholder) {}
-            };
-
-            if (!item.getImageUri().startsWith("http")) {
-                try {
-                    byte[] imageBytes = ImageUtil.base64ToBytes(item.getImageUri());
-                    Glide.with(requireContext()).asBitmap().load(imageBytes).into(target);
-                } catch (Exception e) { /* keep default */ }
-            } else {
-                Glide.with(requireContext()).asBitmap().load(item.getImageUri()).into(target);
-            }
-        }
+//        // 2. Load Image & Composite
+//        if (item.getImageUri() != null && !item.getImageUri().isEmpty()) {
+//            CustomTarget<Bitmap> target = new CustomTarget<Bitmap>() {
+//                @Override
+//                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+//                    if (isAdded() && mapView != null) {
+//                        marker.setIcon(new BitmapDrawable(getResources(), createCustomPin(resource)));
+//                        mapView.invalidate();
+//                    }
+//                }
+//                @Override
+//                public void onLoadCleared(@Nullable Drawable placeholder) {}
+//            };
+//
+//            if (!item.getImageUri().startsWith("http")) {
+//                try {
+//                    byte[] imageBytes = ImageUtil.base64ToBytes(item.getImageUri());
+//                    Glide.with(requireContext()).asBitmap().load(imageBytes).into(target);
+//                } catch (Exception e) { /* keep default */ }
+//            } else {
+//                Glide.with(requireContext()).asBitmap().load(item.getImageUri()).into(target);
+//            }
+//        }
     }
 
     /**
